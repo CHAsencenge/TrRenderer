@@ -33,13 +33,16 @@
     <ClInclude Include="TrRenderer.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="window.h">
+    <ClInclude Include="Window.h">
       <Filter>platform</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
+    <ClInclude Include="Camera.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="maths.h">
+    <ClInclude Include="Maths.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,13 +50,16 @@
     <ClCompile Include="TrRenderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="window.cpp">
+    <ClCompile Include="Window.cpp">
       <Filter>platform</Filter>
     </ClCompile>
-    <ClCompile Include="camera.cpp">
+    <ClCompile Include="Camera.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="maths.cpp">
+    <ClCompile Include="Maths.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
       <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>

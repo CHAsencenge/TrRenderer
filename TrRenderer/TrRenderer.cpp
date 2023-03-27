@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "TrRenderer.h"
 #include <iostream>
-#include "window.h"
+#include "Window.h"
 
 
 #define MAX_LOADSTRING 100
