@@ -36,6 +36,12 @@
     <ClInclude Include="window.h">
       <Filter>platform</Filter>
     </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="maths.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrRenderer.cpp">
@@ -43,6 +49,12 @@
     </ClCompile>
     <ClCompile Include="window.cpp">
       <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="maths.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
