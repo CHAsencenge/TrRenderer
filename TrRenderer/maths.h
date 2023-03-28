@@ -139,27 +139,6 @@ namespace MathUtil
 
 }
 
-template<int nrow, int ncol> 
-class Mat
-{
-public:
-	Vec4& operator[](int i);
-	const Vec4& operator[](int i) const;
-
-	Mat4 Transpose() const;
-	Mat4 Inverse() const;
-	Mat4 InverseTranspose() const;
-	// 余子式
-	float Minor(int row, int col) const;
-	// 代数余子式
-	float Cofactor(int row, int col) const;
-	// 行列式
-	float Det() const;
-	static Mat4 Identity();
-
-	Vec<ncol> rows[nrow];
-};
-
 template<int nelement>
 class Vec
 {
@@ -171,8 +150,33 @@ public:
 	float Norm2() const;
 	Vec<nelement> Normalize() const;
 
-	float e[nelement] = {0};
+	float e[nelement] = { 0 };
 };
+
+template<int nrow, int ncol> 
+class Mat
+{
+public:
+	Vec<ncol>& operator[](int i);
+	const Vec<ncol>& operator[](int i) const;
+
+	Mat<nrow, ncol> Transpose() const;
+	Mat<nrow, ncol> Inverse() const;
+	Mat<nrow, ncol> InverseTranspose() const;
+	// 余子式
+	float Minor(int row, int col) const;
+	// 代数余子式
+	float Cofactor(int row, int col) const;
+	// 行列式
+	float Det() const;
+	static Mat<nrow, ncol> Identity();
+	void SetCol(const int idx, const Vec<nrow>& v);
+	Vec<nrow> GetCol(const int idx) const;
+
+	Vec<ncol> rows[nrow];
+};
+
+
 
 template<int nelement>
 inline float& Vec<nelement>::operator[](int i)
@@ -265,3 +269,82 @@ Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
 	return vec;
 }
 
+template<int nrow, int ncol>
+inline Vec<ncol>& Mat<nrow, ncol>::operator[](int i)
+{
+	return rows[i]; 
+}
+
+template<int nrow, int ncol>
+inline const Vec<ncol>& Mat<nrow, ncol>::operator[](int i) const
+{
+	return rows[i];
+}
+
+template<int nrow, int ncol>
+inline Mat<nrow, ncol> Mat<nrow, ncol>::Transpose() const
+{
+	Mat<ncol, nrow> mat;
+	for (int i = 0; i < ncol; i++)
+	{
+		mat.rows[i] = GetCol(i);
+	}
+	return mat;
+}
+
+template<int nrow, int ncol>
+inline Mat<nrow, ncol> Mat<nrow, ncol>::Inverse() const
+{
+	return Mat<nrow, ncol>();
+}
+
+template<int nrow, int ncol>
+inline Mat<nrow, ncol> Mat<nrow, ncol>::InverseTranspose() const
+{
+	return Mat<nrow, ncol>();
+}
+
+template<int nrow, int ncol>
+inline float Mat<nrow, ncol>::Minor(int row, int col) const
+{
+	return 0.0f;
+}
+
+template<int nrow, int ncol>
+inline float Mat<nrow, ncol>::Cofactor(int row, int col) const
+{
+	return 0.0f;
+}
+
+template<int nrow, int ncol>
+inline float Mat<nrow, ncol>::Det() const
+{
+	return 0.0f;
+}
+
+template<int nrow, int ncol>
+inline Mat<nrow, ncol> Mat<nrow, ncol>::Identity()
+{
+	return Mat<nrow, ncol>();
+}
+
+template<int nrow, int ncol>
+inline void Mat<nrow, ncol>::SetCol(const int idx, const Vec<nrow>& v)
+{
+	for (int i = 0; i < nrow; i++)
+	{
+		rows[i][idx] = v.e[i];
+	}
+}
+
+// Vec的类型声明要在Mat前面，这里才不会报错
+template<int nrow, int ncol>
+inline Vec<nrow> Mat<nrow, ncol>::GetCol(const int idx) const
+{
+	Vec<nrow> vec;
+	for (int i = 0; i < nrow; i++)
+	{
+		vec.e[i] = rows[i][idx];
+	}
+	return vec;
+}
