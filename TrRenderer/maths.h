@@ -86,6 +86,9 @@ public:
 	Mat3 Inverse();
 	Mat3 InverseTranspose();
 	static Mat3 Identity();
+	float Minor(int row, int col) const;
+	float Cofactor(int row, int col) const;
+	float Det() const;
 
 	Vec3 rows[3];
 };
@@ -103,6 +106,12 @@ public:
 	Mat4 Transpose() const;
 	Mat4 Inverse() const;
 	Mat4 InverseTranspose() const;
+	// 余子式
+	float Minor(int row, int col) const;
+	// 代数余子式
+	float Cofactor(int row, int col) const;
+	// 行列式
+	float Det() const;
 	static Mat4 Identity();
 
 	Vec4 rows[4];
@@ -118,11 +127,141 @@ Vec3 operator*(const Vec3& m, const Vec3& n);
 Vec3 operator*(double t, const Vec3& n);
 Vec3 operator*(const Vec3& n, double t);
 Vec3 operator/(Vec3 n, double t);
-double Dot(const Vec3& m, const Vec3& n);
-Vec3 Cross(const Vec3& m, const Vec3& n);
+
 
 namespace MathUtil
 {
+	double Dot(const Vec3& m, const Vec3& n);
+	Vec3 Cross(const Vec3& m, const Vec3& n);
+
 	template<typename T>
 	T UniformVec(T& Vec);
+
 }
+
+template<int nrow, int ncol> 
+class Mat
+{
+public:
+	Vec4& operator[](int i);
+	const Vec4& operator[](int i) const;
+
+	Mat4 Transpose() const;
+	Mat4 Inverse() const;
+	Mat4 InverseTranspose() const;
+	// 余子式
+	float Minor(int row, int col) const;
+	// 代数余子式
+	float Cofactor(int row, int col) const;
+	// 行列式
+	float Det() const;
+	static Mat4 Identity();
+
+	Vec<ncol> rows[nrow];
+};
+
+template<int nelement>
+class Vec
+{
+public:
+	float& operator[](int i);
+	const float& operator[](int i) const;
+
+	float Norm() const;
+	float Norm2() const;
+	Vec<nelement> Normalize() const;
+
+	float e[nelement] = {0};
+};
+
+template<int nelement>
+inline float& Vec<nelement>::operator[](int i)
+{
+	return e[i];
+}
+
+template<int nelement>
+inline const float& Vec<nelement>::operator[](int i) const
+{
+	return e[i];
+}
+
+template<int nelement>
+inline float Vec<nelement>::Norm() const
+{
+	return sqrt(Norm2());
+}
+
+template<int nelement>
+inline float Vec<nelement>::Norm2() const
+{
+	return *this * *this;
+}
+
+template<int nelement>
+inline Vec<nelement> Vec<nelement>::Normalize() const
+{
+	return *this / Norm();
+}
+
+template<int nelement>
+float operator*(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	float ret = 0;
+	for (int i = 0; i < nelement; i++)
+	{
+		ret = lhs[i] * rhs[i];
+	}
+	return ret;
+}
+
+template<int nelement>
+Vec<nelement> operator*(const Vec<nelement>& lhs, float m)
+{
+	Vec<nelement> vec;
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs.e[i] * m;
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator*(float m, const Vec<nelement>& rhs)
+{
+	return rhs * m;
+}
+
+template<int nelement>
+Vec<nelement> operator+(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	Vec<nelement> vec = {0};
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs[i] + rhs[i];
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator-(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	Vec<nelement> vec = { 0 };
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs[i] - rhs[i];
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
+{
+	Vec<nelement> vec;
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs.e[i] * m;
+	}
+	return vec;
+}
+

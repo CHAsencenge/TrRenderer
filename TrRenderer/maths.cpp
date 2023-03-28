@@ -265,6 +265,21 @@ Mat3 Mat3::Identity()
 	return Mat3();
 }
 
+float Mat3::Minor(int row, int col) const
+{
+	return 0.0f;
+}
+
+float Mat3::Cofactor(int row, int col) const
+{
+	return 0.0f;
+}
+
+float Mat3::Det() const
+{
+	return 0.0f;
+}
+
 Mat4::Mat4()
 {
 	rows[0] = { 1, 0, 0, 0 };
@@ -318,6 +333,36 @@ Mat4 Mat4::InverseTranspose() const
 	return Mat4();
 }
 
+float Mat4::Minor(int row, int col) const
+{
+	Mat3 mat;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			int x = i < row ? i : i + 1;
+			int y = j < col ? j : j + 1;
+			mat.rows[i][j] = rows[x][y];
+		}
+	}
+	return mat.Det();
+}
+
+float Mat4::Cofactor(int row, int col) const
+{
+	return pow(-1, row + col) * Minor(row, col);
+}
+
+float Mat4::Det() const
+{
+	float res = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		res += Cofactor(0, i);
+	}
+	return res;
+}
+
 Mat4 Mat4::Identity()
 {
 	Mat4 Mat;
@@ -358,14 +403,14 @@ Vec3 operator/(Vec3 n, double t)
 	return (1 / t) * n;
 }
 
-double Dot(const Vec3& m, const Vec3& n)
+double MathUtil::Dot(const Vec3& m, const Vec3& n)
 {
 	return m.e[0] * n.e[0]
 		+ m.e[1] * n.e[1]
 		+ m.e[2] * n.e[2];
 }
 
-Vec3 Cross(const Vec3& m, const Vec3& n)
+Vec3 MathUtil::Cross(const Vec3& m, const Vec3& n)
 {
 	return Vec3(m.e[1] * n.e[2] - m.e[2] * n.e[1],
 		m.e[2] * n.e[0] - m.e[0] * n.e[2],
