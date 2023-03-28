@@ -1,117 +1,117 @@
 #include "Maths.h"
 
-vec2::vec2() : e{0, 0}
+Vec2::Vec2() : e{0, 0}
 {
 }
 
-vec2::vec2(float v0, float v1)
+Vec2::Vec2(float v0, float v1)
 {
 	e[0] = v0;
 	e[1] = v1;
 }
 
-vec2::~vec2()
+Vec2::~Vec2()
 {
 }
 
-float vec2::x() const
+float Vec2::x() const
 {
 	return e[0];
 }
 
-float vec2::y() const
+float Vec2::y() const
 {
 	return e[1];
 }
 
-float& vec2::operator[](int i)
+float& Vec2::operator[](int i)
 {
 	return e[i];
 }
 
-const float& vec2::operator[](int i) const
+const float& Vec2::operator[](int i) const
 {
 	return e[i];
 }
 
-vec2 vec2::operator-() const
+Vec2 Vec2::operator-() const
 {
-	return vec2(-e[0], -e[1]);
+	return Vec2(-e[0], -e[1]);
 }
 
-vec2& vec2::operator+=(const vec2& x)
+Vec2& Vec2::operator+=(const Vec2& x)
 {
 	e[0] += x[0];
 	e[1] += x[1];
 	return *this;
 }
 
-vec2& vec2::operator*=(const float t)
+Vec2& Vec2::operator*=(const float t)
 {
 	e[0] *= t;
 	e[1] *= t;
 	return *this;
 }
 
-vec2& vec2::operator/=(const float t)
+Vec2& Vec2::operator/=(const float t)
 {
 	e[0] /= t;
 	e[1] /= t;
 	return *this;
 }
 
-float vec2::norm() const
+float Vec2::Norm() const
 {
 	return sqrt(e[0] * e[0] + e[1] * e[1]);
 }
 
-float vec2::norm_squared() const
+float Vec2::NormSquared() const
 {
 	return e[0] * e[0] + e[1] * e[1];
 }
 
 
-vec3::vec3() : e{ 0, 0, 0 }
+Vec3::Vec3() : e{ 0, 0, 0 }
 {
 }
 
-vec3::vec3(float v0, float v1, float v2)
+Vec3::Vec3(float v0, float v1, float v2)
 {
 	e[0] = v0;
 	e[1] = v1;
 	e[2] = v2;
 }
 
-vec3::~vec3()
+Vec3::~Vec3()
 {
 }
 
-float vec3::x() const
+float Vec3::x() const
 {
 	return e[0];
 }
 
-float vec3::y() const
+float Vec3::y() const
 {
 	return e[1];
 }
 
-float vec3::z() const
+float Vec3::z() const
 {
 	return e[2];
 }
 
-float& vec3::operator[](int i)
+float& Vec3::operator[](int i)
 {
 	return e[i];
 }
 
-const float& vec3::operator[](int i) const
+const float& Vec3::operator[](int i) const
 {
 	return e[i];
 }
 
-vec3& vec3::operator=(vec3 v1)
+Vec3& Vec3::operator=(Vec3 v1)
 {
 	e[0] = v1[0];
 	e[1] = v1[1];
@@ -119,12 +119,12 @@ vec3& vec3::operator=(vec3 v1)
 	return *this;
 }
 
-vec3 vec3::operator-() const
+Vec3 Vec3::operator-() const
 {
-	return vec3(-e[0], -e[1], -e[2]);
+	return Vec3(-e[0], -e[1], -e[2]);
 }
 
-vec3& vec3::operator+=(const vec3& x)
+Vec3& Vec3::operator+=(const Vec3& x)
 {
 	e[0] += x[0];
 	e[1] += x[1];
@@ -132,7 +132,7 @@ vec3& vec3::operator+=(const vec3& x)
 	return *this;
 }
 
-vec3& vec3::operator*=(const float t)
+Vec3& Vec3::operator*=(const float t)
 {
 	e[0] *= t;
 	e[1] *= t;
@@ -140,7 +140,7 @@ vec3& vec3::operator*=(const float t)
 	return *this;
 }
 
-vec3& vec3::operator/=(const float t)
+Vec3& Vec3::operator/=(const float t)
 {
 	e[0] /= t;
 	e[1] /= t;
@@ -148,35 +148,35 @@ vec3& vec3::operator/=(const float t)
 	return *this;
 }
 
-float vec3::norm() const
+float Vec3::Norm() const
 {
 	return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
 }
 
-float vec3::norm_squared() const
+float Vec3::NormSquared() const
 {
 	return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 }
 
-vec4 vec3::add_dimension_1(float n)
+Vec4 Vec3::AddDimension1(float n)
 {
-	vec4 vec;
-	vec[0] = e[0];
-	vec[1] = e[1];
-	vec[2] = e[2];
-	vec[3] = n;
-	return vec;
+	Vec4 Vec;
+	Vec[0] = e[0];
+	Vec[1] = e[1];
+	Vec[2] = e[2];
+	Vec[3] = n;
+	return Vec;
 }
 
-/* vec4 class member functions */
-vec4::vec4() : e{ 0,0,0,0 } {}
-vec4::vec4(float e0, float e1, float e2, float e3) : e{ e0,e1,e2,e3 } {}
-float vec4::x() const { return e[0]; }
-float vec4::y() const { return e[1]; }
-float vec4::z() const { return e[2]; }
-float vec4::w() const { return e[3]; }
-const float& vec4::operator[](int i) const { return e[i]; }
-vec4& vec4::operator=(vec4 v1)
+/* Vec4 class member functions */
+Vec4::Vec4() : e{ 0,0,0,0 } {}
+Vec4::Vec4(float e0, float e1, float e2, float e3) : e{ e0,e1,e2,e3 } {}
+float Vec4::x() const { return e[0]; }
+float Vec4::y() const { return e[1]; }
+float Vec4::z() const { return e[2]; }
+float Vec4::w() const { return e[3]; }
+const float& Vec4::operator[](int i) const { return e[i]; }
+Vec4& Vec4::operator=(Vec4 v1)
 {
 	e[0] = v1[0];
 	e[1] = v1[1];
@@ -184,88 +184,88 @@ vec4& vec4::operator=(vec4 v1)
 	e[3] = v1[3];
 	return *this;
 }
-float& vec4::operator[](int i) { return e[i]; }
-vec4& vec4::operator*=(const float t) { e[0] *= t; e[1] *= t; e[2] *= t; e[3] *= t; return *this; }
-vec4& vec4::operator/=(const float t) { return *this *= 1 / t; }
+float& Vec4::operator[](int i) { return e[i]; }
+Vec4& Vec4::operator*=(const float t) { e[0] *= t; e[1] *= t; e[2] *= t; e[3] *= t; return *this; }
+Vec4& Vec4::operator/=(const float t) { return *this *= 1 / t; }
 
-/* vec4 related functions */
+/* Vec4 related functions */
 
-vec4 to_vec4(const vec3& u, float w)
+Vec4 to_Vec4(const Vec3& u, float w)
 {
-	return vec4(u[0], u[1], u[2], w);
+	return Vec4(u[0], u[1], u[2], w);
 }
 
-std::ostream& operator<<(std::ostream& out, const vec4& e)
+std::ostream& operator<<(std::ostream& out, const Vec4& e)
 {
 	return out << e[0] << " " << e[1] << " " << e[2] << " " << e[3];
 }
 
-vec4 operator-(const vec4& u, const vec4& v)
+Vec4 operator-(const Vec4& u, const Vec4& v)
 {
-	return vec4(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2], u.e[3] - v.e[3]);
+	return Vec4(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2], u.e[3] - v.e[3]);
 }
 
-vec4 operator+(const vec4& u, const vec4& v)
+Vec4 operator+(const Vec4& u, const Vec4& v)
 {
-	return vec4(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2], u.e[3] + v.e[3]);
+	return Vec4(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2], u.e[3] + v.e[3]);
 }
 
-vec4 operator*(double t, const vec4& v)
+Vec4 operator*(double t, const Vec4& v)
 {
-	return vec4(t * v.e[0], t * v.e[1], t * v.e[2], t * v.e[3]);
+	return Vec4(t * v.e[0], t * v.e[1], t * v.e[2], t * v.e[3]);
 }
 
-vec4 operator*(const vec4& v, double t)
+Vec4 operator*(const Vec4& v, double t)
 {
 	return t * v;
 }
 
-mat3::mat3()
+Mat3::Mat3()
 {
 }
 
-mat3::mat3(vec3 row0, vec3 row1, vec3 row2)
+Mat3::Mat3(Vec3 row0, Vec3 row1, Vec3 row2)
 {
 	rows[0] = { 1, 0, 0 };
 	rows[1] = { 0, 1, 0 };
 	rows[2] = { 0, 0, 1 };
 }
 
-mat3::~mat3()
+Mat3::~Mat3()
 {
 }
 
-vec3& mat3::operator[](int i)
-{
-	return rows[i];
-}
-
-const vec3& mat3::operator[](int i) const
+Vec3& Mat3::operator[](int i)
 {
 	return rows[i];
 }
 
-mat3 mat3::transpose()
+const Vec3& Mat3::operator[](int i) const
 {
-	return mat3();
+	return rows[i];
 }
 
-mat3 mat3::inverse()
+Mat3 Mat3::Transpose()
 {
-	return mat3();
+	return Mat3();
 }
 
-mat3 mat3::inverse_transpose()
+Mat3 Mat3::Inverse()
 {
-	return mat3();
+	return Mat3();
 }
 
-mat3 mat3::identity()
+Mat3 Mat3::InverseTranspose()
 {
-	return mat3();
+	return Mat3();
 }
 
-mat4::mat4()
+Mat3 Mat3::Identity()
+{
+	return Mat3();
+}
+
+Mat4::Mat4()
 {
 	rows[0] = { 1, 0, 0, 0 };
 	rows[1] = { 0, 1, 0, 0 };
@@ -273,7 +273,7 @@ mat4::mat4()
 	rows[3] = { 0, 0, 0, 1 };
 }
 
-mat4::mat4(vec4 row0, vec4 row1, vec4 row2, vec4 row3)
+Mat4::Mat4(Vec4 row0, Vec4 row1, Vec4 row2, Vec4 row3)
 {
 	rows[0] = row0;
 	rows[1] = row1;
@@ -281,99 +281,99 @@ mat4::mat4(vec4 row0, vec4 row1, vec4 row2, vec4 row3)
 	rows[3] = row3;
 }
 
-mat4::~mat4()
+Mat4::~Mat4()
 {
 }
 
-vec4& mat4::operator[](int i)
+Vec4& Mat4::operator[](int i)
 {
 	return rows[i];
 }
 
-const vec4& mat4::operator[](int i) const
+const Vec4& Mat4::operator[](int i) const
 {
 	return rows[i];
 }
 
-mat4 mat4::transpose() const
+Mat4 Mat4::Transpose() const
 {
-	mat4 mat;
+	Mat4 Mat;
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			mat[i][j] = rows[j][i];
+			Mat[i][j] = rows[j][i];
 		}
 	}
-	return mat;
+	return Mat;
 }
 
-mat4 mat4::inverse() const
+Mat4 Mat4::Inverse() const
 {
-	return mat4();
+	return Mat4();
 }
 
-mat4 mat4::inverse_transpose() const
+Mat4 Mat4::InverseTranspose() const
 {
-	return mat4();
+	return Mat4();
 }
 
-mat4 mat4::identity()
+Mat4 Mat4::Identity()
 {
-	mat4 mat;
+	Mat4 Mat;
 	for (int i = 0; i < 4; ++i)
 		for (int j = 0; j < 4; ++j)
-			mat[i][j] = (i == j);
-	return mat;
+			Mat[i][j] = (i == j);
+	return Mat;
 }
 
 
-vec3 operator+(const vec3& m, const vec3& n)
+Vec3 operator+(const Vec3& m, const Vec3& n)
 {
-	return vec3(m.e[0] + n.e[0], m.e[1] + n.e[1], m.e[2] + n.e[2]);
+	return Vec3(m.e[0] + n.e[0], m.e[1] + n.e[1], m.e[2] + n.e[2]);
 }
 
-vec3 operator-(const vec3& m, const vec3& n)
+Vec3 operator-(const Vec3& m, const Vec3& n)
 {
-	return vec3(m.e[0] - n.e[0], m.e[1] - n.e[1], m.e[2] - n.e[2]);
+	return Vec3(m.e[0] - n.e[0], m.e[1] - n.e[1], m.e[2] - n.e[2]);
 }
 
-vec3 operator*(const vec3& m, const vec3& n)
+Vec3 operator*(const Vec3& m, const Vec3& n)
 {
-	return vec3(m.e[0] * n.e[0], m.e[1] * n.e[1], m.e[2] * n.e[2]);
+	return Vec3(m.e[0] * n.e[0], m.e[1] * n.e[1], m.e[2] * n.e[2]);
 }
 
-vec3 operator*(double t, const vec3& n)
+Vec3 operator*(double t, const Vec3& n)
 {
-	return vec3(t * n.e[0], t * n.e[1], t * n.e[2]);
+	return Vec3(t * n.e[0], t * n.e[1], t * n.e[2]);
 }
 
-vec3 operator*(const vec3& n, double t)
+Vec3 operator*(const Vec3& n, double t)
 {
 	return t * n;
 }
 
-vec3 operator/(vec3 n, double t)
+Vec3 operator/(Vec3 n, double t)
 {
 	return (1 / t) * n;
 }
 
-double dot(const vec3& m, const vec3& n)
+double Dot(const Vec3& m, const Vec3& n)
 {
 	return m.e[0] * n.e[0]
 		+ m.e[1] * n.e[1]
 		+ m.e[2] * n.e[2];
 }
 
-vec3 cross(const vec3& m, const vec3& n)
+Vec3 Cross(const Vec3& m, const Vec3& n)
 {
-	return vec3(m.e[1] * n.e[2] - m.e[2] * n.e[1],
+	return Vec3(m.e[1] * n.e[2] - m.e[2] * n.e[1],
 		m.e[2] * n.e[0] - m.e[0] * n.e[2],
 		m.e[0] * n.e[1] - m.e[1] * n.e[0]);
 }
 
 template<typename T>
-T uniform_vec(T& vec)
+T MathUtil::UniformVec(T& Vec)
 {
-	return T / T.norm();
+	return T / T.Norm();
 }

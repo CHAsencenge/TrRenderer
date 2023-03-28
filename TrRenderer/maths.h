@@ -1,61 +1,61 @@
 #pragma once
-#include <cmath>
+#include <cMath>
 #include <iostream>
 
-class vec2
+class Vec2
 {
 public:
-	vec2();
-	vec2(float v0, float v1);
-	~vec2();
+	Vec2();
+	Vec2(float v0, float v1);
+	~Vec2();
 
 	float x() const;
 	float y() const;
 	float& operator[](int i);
 	const float& operator[](int i) const;
 
-	vec2 operator-() const;
-	vec2& operator+=(const vec2& x);
-	vec2& operator*=(const float t);
-	vec2& operator/=(const float t);
+	Vec2 operator-() const;
+	Vec2& operator+=(const Vec2& x);
+	Vec2& operator*=(const float t);
+	Vec2& operator/=(const float t);
 
-	float norm() const;
-	float norm_squared() const;
+	float Norm() const;
+	float NormSquared() const;
 
 	float e[2];
 };
 
-class vec3
+class Vec3
 {
 public:
-	vec3();
-	vec3(float v0, float v1, float v2);
-	~vec3();
+	Vec3();
+	Vec3(float v0, float v1, float v2);
+	~Vec3();
 
 	float x() const;
 	float y() const;
 	float z() const;
 	float& operator[](int i);
 	const float& operator[](int i) const;
-	vec3& operator=(vec3 v1);
+	Vec3& operator=(Vec3 v1);
 
-	vec3 operator-() const;
-	vec3& operator+=(const vec3& x);
-	vec3& operator*=(const float t);
-	vec3& operator/=(const float t);
+	Vec3 operator-() const;
+	Vec3& operator+=(const Vec3& x);
+	Vec3& operator*=(const float t);
+	Vec3& operator/=(const float t);
 
-	float norm() const;
-	float norm_squared() const;
-	class vec4 add_dimension_1(float n);
+	float Norm() const;
+	float NormSquared() const;
+	class Vec4 AddDimension1(float n);
 
 	float e[3];
 };
 
-class vec4 
+class Vec4 
 {
 public:
-	vec4();
-	vec4(float e0, float e1, float e2, float e3);
+	Vec4();
+	Vec4(float e0, float e1, float e2, float e3);
 
 	float x() const;
 	float y() const;
@@ -63,65 +63,66 @@ public:
 	float w() const;
 	float& operator[](int i);
 	const float& operator[](int i) const;
-	vec4& operator=(vec4 v1);
+	Vec4& operator=(Vec4 v1);
 
-	vec4& operator*=(const float t);
-	vec4& operator/=(const float t);
+	Vec4& operator*=(const float t);
+	Vec4& operator/=(const float t);
 
 public:
 	float e[4];
 };
 
-class mat3
+class Mat3
 {
 public:
-	mat3();
-	mat3(vec3 row0, vec3 row1, vec3 row2);
-	~mat3();
+	Mat3();
+	Mat3(Vec3 row0, Vec3 row1, Vec3 row2);
+	~Mat3();
 
-	vec3& operator[](int i);
-	const vec3& operator[](int i) const;
+	Vec3& operator[](int i);
+	const Vec3& operator[](int i) const;
 
-	mat3 transpose();
-	mat3 inverse();
-	mat3 inverse_transpose();
-	static mat3 identity();
+	Mat3 Transpose();
+	Mat3 Inverse();
+	Mat3 InverseTranspose();
+	static Mat3 Identity();
 
-	vec3 rows[3];
+	Vec3 rows[3];
 };
 
-class mat4
+class Mat4
 {
 public:
-	mat4();
-	mat4(vec4 row0, vec4 row1, vec4 row2, vec4 row3);
-	~mat4();
+	Mat4();
+	Mat4(Vec4 row0, Vec4 row1, Vec4 row2, Vec4 row3);
+	~Mat4();
 
-	vec4& operator[](int i);
-	const vec4& operator[](int i) const;
+	Vec4& operator[](int i);
+	const Vec4& operator[](int i) const;
 
-	mat4 transpose() const;
-	mat4 inverse() const;
-	mat4 inverse_transpose() const;
-	static mat4 identity();
+	Mat4 Transpose() const;
+	Mat4 Inverse() const;
+	Mat4 InverseTranspose() const;
+	static Mat4 Identity();
 
-	vec4 rows[4];
+	Vec4 rows[4];
 };
 
 
 // 双目，不定义为类成员函数
 
-// vec3
-vec3 operator+(const vec3& m, const vec3& n);
-vec3 operator-(const vec3& m, const vec3& n);
-vec3 operator*(const vec3& m, const vec3& n);
-vec3 operator*(double t, const vec3& n);
-vec3 operator*(const vec3& n, double t);
-vec3 operator/(vec3 n, double t);
-double dot(const vec3& m, const vec3& n);
-vec3 cross(const vec3& m, const vec3& n);
+// Vec3
+Vec3 operator+(const Vec3& m, const Vec3& n);
+Vec3 operator-(const Vec3& m, const Vec3& n);
+Vec3 operator*(const Vec3& m, const Vec3& n);
+Vec3 operator*(double t, const Vec3& n);
+Vec3 operator*(const Vec3& n, double t);
+Vec3 operator/(Vec3 n, double t);
+double Dot(const Vec3& m, const Vec3& n);
+Vec3 Cross(const Vec3& m, const Vec3& n);
 
-
-template<typename T>
-T uniform_vec(T& vec);
-
+namespace MathUtil
+{
+	template<typename T>
+	T UniformVec(T& Vec);
+}
