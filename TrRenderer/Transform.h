@@ -1,7 +1,6 @@
 #pragma once
 #include "Maths.h"
 
-namespace Transform
-{
-	Mat4 Mat4Lookat(Vec3 eye, Vec3 target, Vec3 up);
-}
+Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up);
+
+Mat<4, 4> Mat4Perspective(float fovy, float aspect, float near, float far);

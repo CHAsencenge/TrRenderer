@@ -14,7 +14,7 @@ public:
 	float Norm() const;
 	float Norm2() const;
 	Vec<nelement> Normalize() const;
-	Vec<nelement + 1> AddDemention1(float value);
+	Vec<nelement + 1> AddDimension1(float value);
 
 	float e[nelement] = { 0 };
 };
@@ -85,7 +85,7 @@ inline Vec<nelement> Vec<nelement>::Normalize() const
 }
 
 template<int nelement>
-inline Vec<nelement + 1> Vec<nelement>::AddDemention1(float value)
+inline Vec<nelement + 1> Vec<nelement>::AddDimension1(float value)
 {
 	Vec<nelement + 1> vec;
 	for (int i = 0; i < nelement; i++)
@@ -247,17 +247,6 @@ template<int nelement>
 Vec<nelement> operator/(Vec<nelement>& n, float t);
 
 
-namespace MathUtil
-{
-	template<int nelement>
-	float Dot(const Vec<nelement>& m, const Vec<nelement>& n);
-	template<int nelement>
-	Vec<nelement>& Cross(const Vec<nelement>& m, const Vec<nelement>& n);
-
-	template<typename T>
-	T UniformVec(T& Vec);
-
-}
 
 template<int nelement>
 float operator*(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
@@ -318,4 +307,25 @@ Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
 		vec.e[i] = lhs.e[i] * m;
 	}
 	return vec;
+}
+
+
+/*template<int nelement>
+	float Dot(const Vec<nelement>& m, const Vec<nelement>& n);*/
+//template<int nelement>
+//Vec<nelement>& Cross(const Vec<nelement>& m, const Vec<nelement>& n);
+
+typedef Vec<3> Vec3;
+
+float Dot(const Vec3& m, const Vec3& n);
+
+Vec3 Cross(const Vec3& m, const Vec3& n);
+
+template<typename T>
+T UniformVec(T& Vec);
+
+template<typename T>
+inline T UniformVec(T& Vec)
+{
+	return T / T.Norm();
 }
