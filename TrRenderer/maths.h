@@ -1,154 +1,20 @@
 #pragma once
-#include <cMath>
+#include <cmath>
 #include <iostream>
-
-class Vec2
-{
-public:
-	Vec2();
-	Vec2(float v0, float v1);
-	~Vec2();
-
-	float x() const;
-	float y() const;
-	float& operator[](int i);
-	const float& operator[](int i) const;
-
-	Vec2 operator-() const;
-	Vec2& operator+=(const Vec2& x);
-	Vec2& operator*=(const float t);
-	Vec2& operator/=(const float t);
-
-	float Norm() const;
-	float NormSquared() const;
-
-	float e[2];
-};
-
-class Vec3
-{
-public:
-	Vec3();
-	Vec3(float v0, float v1, float v2);
-	~Vec3();
-
-	float x() const;
-	float y() const;
-	float z() const;
-	float& operator[](int i);
-	const float& operator[](int i) const;
-	Vec3& operator=(Vec3 v1);
-
-	Vec3 operator-() const;
-	Vec3& operator+=(const Vec3& x);
-	Vec3& operator*=(const float t);
-	Vec3& operator/=(const float t);
-
-	float Norm() const;
-	float NormSquared() const;
-	class Vec4 AddDimension1(float n);
-
-	float e[3];
-};
-
-class Vec4 
-{
-public:
-	Vec4();
-	Vec4(float e0, float e1, float e2, float e3);
-
-	float x() const;
-	float y() const;
-	float z() const;
-	float w() const;
-	float& operator[](int i);
-	const float& operator[](int i) const;
-	Vec4& operator=(Vec4 v1);
-
-	Vec4& operator*=(const float t);
-	Vec4& operator/=(const float t);
-
-public:
-	float e[4];
-};
-
-class Mat3
-{
-public:
-	Mat3();
-	Mat3(Vec3 row0, Vec3 row1, Vec3 row2);
-	~Mat3();
-
-	Vec3& operator[](int i);
-	const Vec3& operator[](int i) const;
-
-	Mat3 Transpose();
-	Mat3 Inverse();
-	Mat3 InverseTranspose();
-	static Mat3 Identity();
-	float Minor(int row, int col) const;
-	float Cofactor(int row, int col) const;
-	float Det() const;
-
-	Vec3 rows[3];
-};
-
-class Mat4
-{
-public:
-	Mat4();
-	Mat4(Vec4 row0, Vec4 row1, Vec4 row2, Vec4 row3);
-	~Mat4();
-
-	Vec4& operator[](int i);
-	const Vec4& operator[](int i) const;
-
-	Mat4 Transpose() const;
-	Mat4 Inverse() const;
-	Mat4 InverseTranspose() const;
-	// 余子式
-	float Minor(int row, int col) const;
-	// 代数余子式
-	float Cofactor(int row, int col) const;
-	// 行列式
-	float Det() const;
-	static Mat4 Identity();
-
-	Vec4 rows[4];
-};
-
-
-// 双目，不定义为类成员函数
-
-// Vec3
-Vec3 operator+(const Vec3& m, const Vec3& n);
-Vec3 operator-(const Vec3& m, const Vec3& n);
-Vec3 operator*(const Vec3& m, const Vec3& n);
-Vec3 operator*(double t, const Vec3& n);
-Vec3 operator*(const Vec3& n, double t);
-Vec3 operator/(Vec3 n, double t);
-
-
-namespace MathUtil
-{
-	double Dot(const Vec3& m, const Vec3& n);
-	Vec3 Cross(const Vec3& m, const Vec3& n);
-
-	template<typename T>
-	T UniformVec(T& Vec);
-
-}
+#include <cassert>
 
 template<int nelement>
 class Vec
 {
 public:
+	Vec<nelement>& operator=(const Vec<nelement>& other);
 	float& operator[](int i);
 	const float& operator[](int i) const;
 
 	float Norm() const;
 	float Norm2() const;
 	Vec<nelement> Normalize() const;
+	Vec<nelement + 1> AddDemention1(float value);
 
 	float e[nelement] = { 0 };
 };
@@ -157,6 +23,7 @@ template<int nrow, int ncol>
 class Mat
 {
 public:
+	Mat<nrow, ncol>& operator=(Mat<nrow, ncol>& other);
 	Vec<ncol>& operator[](int i);
 	const Vec<ncol>& operator[](int i) const;
 
@@ -177,6 +44,15 @@ public:
 };
 
 
+
+template<int nelement>
+inline Vec<nelement>& Vec<nelement>::operator=(const Vec<nelement>& other)
+{
+	for (int i = 0; i < nelement; i++)
+	{
+		e[i] = other.e[i];
+	}
+}
 
 template<int nelement>
 inline float& Vec<nelement>::operator[](int i)
@@ -209,64 +85,28 @@ inline Vec<nelement> Vec<nelement>::Normalize() const
 }
 
 template<int nelement>
-float operator*(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+inline Vec<nelement + 1> Vec<nelement>::AddDemention1(float value)
 {
-	float ret = 0;
+	Vec<nelement + 1> vec;
 	for (int i = 0; i < nelement; i++)
 	{
-		ret = lhs[i] * rhs[i];
+		vec.e[i] = e[i];
 	}
-	return ret;
-}
-
-template<int nelement>
-Vec<nelement> operator*(const Vec<nelement>& lhs, float m)
-{
-	Vec<nelement> vec;
-	for (int i = 0; i < nelement; i++)
-	{
-		vec.e[i] = lhs.e[i] * m;
-	}
+	vec.e[nelement] = value;
 	return vec;
 }
 
-template<int nelement>
-Vec<nelement> operator*(float m, const Vec<nelement>& rhs)
-{
-	return rhs * m;
-}
 
-template<int nelement>
-Vec<nelement> operator+(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+template<int nrow, int ncol>
+inline Mat<nrow, ncol>& Mat<nrow, ncol>::operator=(Mat<nrow, ncol>& other)
 {
-	Vec<nelement> vec = {0};
-	for (int i = 0; i < nelement; i++)
+	for (int i = 0; i < nrow; i++)
 	{
-		vec.e[i] = lhs[i] + rhs[i];
+		for (int j = 0; j < ncol; j++)
+		{
+			rows[i][j] = other.rows[i][j];
+		}
 	}
-	return vec;
-}
-
-template<int nelement>
-Vec<nelement> operator-(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
-{
-	Vec<nelement> vec = { 0 };
-	for (int i = 0; i < nelement; i++)
-	{
-		vec.e[i] = lhs[i] - rhs[i];
-	}
-	return vec;
-}
-
-template<int nelement>
-Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
-{
-	Vec<nelement> vec;
-	for (int i = 0; i < nelement; i++)
-	{
-		vec.e[i] = lhs.e[i] * m;
-	}
-	return vec;
 }
 
 template<int nrow, int ncol>
@@ -307,25 +147,41 @@ inline Mat<nrow, ncol> Mat<nrow, ncol>::InverseTranspose() const
 template<int nrow, int ncol>
 inline float Mat<nrow, ncol>::Minor(int row, int col) const
 {
-	return 0.0f;
+	Mat<nrow-1, ncol-1> mat;
+	for (int i = 0; i < nrow-1; i++)
+	{
+		for (int j = 0; j < ncol-1; j++)
+		{
+			int x = i < row ? i : i + 1;
+			int y = j < col ? j : j + 1;
+			mat.rows[i][j] = rows[x][y];
+		}
+	}
+	return mat.Det();
 }
 
 template<int nrow, int ncol>
 inline float Mat<nrow, ncol>::Cofactor(int row, int col) const
 {
-	return 0.0f;
+	return Minor(row, col) * pow(-1, (row+col));
 }
 
 template<int nrow, int ncol>
 inline float Mat<nrow, ncol>::Det() const
 {
-	return 0.0f;
+	assert(nrow == ncol);
+	return dt<nrow>::Det(*this);
 }
 
 template<int nrow, int ncol>
 inline Mat<nrow, ncol> Mat<nrow, ncol>::Identity()
 {
-	return Mat<nrow, ncol>();
+	Mat<nrow, ncol> mat;
+	assert(nrow == ncol);
+	for (int i = 0; i < nrow; ++i)
+		for (int j = 0; j < ncol; ++j)
+			mat[i][j] = (i == j);
+	return mat;
 }
 
 template<int nrow, int ncol>
@@ -345,6 +201,121 @@ inline Vec<nrow> Mat<nrow, ncol>::GetCol(const int idx) const
 	for (int i = 0; i < nrow; i++)
 	{
 		vec.e[i] = rows[i][idx];
+	}
+	return vec;
+}
+
+
+// 辅助计算矩阵Det的结构体
+template<int n> struct dt
+{
+	static float Det(Mat<n, n>& mat)
+	{
+		float ret = 0;
+		for (int i = 0; i < n; i++)
+		{
+			ret += mat[0][i] * mat.Cofactor(0, i);
+		}
+		return ret;
+	}
+};
+
+// 特化版本，结束条件
+template<> struct dt<1>
+{
+	static float Det(Mat<1, 1>& mat)
+	{
+		return mat[0][0];
+	}
+};
+
+
+// 双目运算，不定义为类成员函数
+
+// Vec
+template<int nelement>
+Vec<nelement> operator+(const Vec<nelement>& m, const Vec<nelement>& n);
+template<int nelement>
+Vec<nelement> operator-(const Vec<nelement>& m, const Vec<nelement>& n);
+template<int nelement>
+Vec<nelement> operator*(const Vec<nelement>& m, const Vec<nelement>& n);
+template<int nelement>
+Vec<nelement> operator*(float t, const Vec<nelement>& n);
+template<int nelement>
+Vec<nelement> operator*(const Vec<nelement>& n, float t);
+template<int nelement>
+Vec<nelement> operator/(Vec<nelement>& n, float t);
+
+
+namespace MathUtil
+{
+	template<int nelement>
+	float Dot(const Vec<nelement>& m, const Vec<nelement>& n);
+	template<int nelement>
+	Vec<nelement>& Cross(const Vec<nelement>& m, const Vec<nelement>& n);
+
+	template<typename T>
+	T UniformVec(T& Vec);
+
+}
+
+template<int nelement>
+float operator*(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	float ret = 0;
+	for (int i = 0; i < nelement; i++)
+	{
+		ret = lhs[i] * rhs[i];
+	}
+	return ret;
+}
+
+template<int nelement>
+Vec<nelement> operator*(const Vec<nelement>& lhs, float m)
+{
+	Vec<nelement> vec;
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs.e[i] * m;
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator*(float m, const Vec<nelement>& rhs)
+{
+	return rhs * m;
+}
+
+template<int nelement>
+Vec<nelement> operator+(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	Vec<nelement> vec = { 0 };
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs[i] + rhs[i];
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator-(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
+{
+	Vec<nelement> vec = { 0 };
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs[i] - rhs[i];
+	}
+	return vec;
+}
+
+template<int nelement>
+Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
+{
+	Vec<nelement> vec;
+	for (int i = 0; i < nelement; i++)
+	{
+		vec.e[i] = lhs.e[i] * m;
 	}
 	return vec;
 }
