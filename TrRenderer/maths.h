@@ -310,12 +310,8 @@ Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
 }
 
 
-/*template<int nelement>
-	float Dot(const Vec<nelement>& m, const Vec<nelement>& n);*/
-//template<int nelement>
-//Vec<nelement>& Cross(const Vec<nelement>& m, const Vec<nelement>& n);
-
 typedef Vec<3> Vec3;
+typedef Vec<2> Vec2;
 
 float Dot(const Vec3& m, const Vec3& n);
 
