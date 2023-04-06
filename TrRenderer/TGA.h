@@ -9,6 +9,8 @@ public:
 	// ÊúÖ±·­×ª
 	void FilpVertically();
 
+	bool ReadRLEData(std::istream& in);
+
 public:
 	enum Format
 	{
