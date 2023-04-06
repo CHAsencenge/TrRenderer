@@ -156,6 +156,7 @@
     <ClCompile Include="Maths.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="TGA.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="TrRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
