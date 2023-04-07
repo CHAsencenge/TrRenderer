@@ -1,6 +1,4 @@
 #include "TGA.h"
-#include <fstream>
-#include <iostream>
 
 // 使用ifstream读文件
 bool TGAImage::ReadTGAFile(const char* filename)
@@ -77,4 +75,20 @@ bool TGAImage::ReadTGAFile(const char* filename)
 
 void TGAImage::FilpVertically()
 {
+}
+
+bool TGAImage::ReadRLEData(std::ifstream& in)
+{
+	unsigned long pixelCount = width * height;
+	unsigned long currentPixel = 0;
+	unsigned long currentByte = 0;
+
+	// 此时TGAImage的数据成员bytesPerPixel应当已经通过读取header被赋值
+	while (currentPixel < pixelCount)
+	{
+
+		currentPixel++;
+	}
+
+	return false;
 }
