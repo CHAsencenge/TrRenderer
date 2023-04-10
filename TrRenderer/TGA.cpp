@@ -77,6 +77,9 @@ void TGAImage::FilpVertically()
 {
 }
 
+// 一个包含两个数据块的RLE数据示例
+// Header1 Data1 Header2 Data2
+// 10000010 01100100 00000110 01100001 01100010 01100011
 bool TGAImage::ReadRLEData(std::ifstream& in)
 {
 	unsigned long pixelCount = width * height;
