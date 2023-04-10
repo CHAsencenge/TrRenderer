@@ -1,4 +1,6 @@
 #pragma once
+#include <fstream>
+#include <iostream>
 
 // TGA文件格式支持多种压缩方式，包括无压缩、RLE压缩和Delta压缩等。其中，RLE压缩是一种常用的压缩方式，可以有效地减小文件大小
 class TGAImage
@@ -9,7 +11,7 @@ public:
 	// 竖直翻转
 	void FilpVertically();
 
-	bool ReadRLEData(std::istream& in);
+	bool ReadRLEData(std::ifstream& in);
 
 public:
 	enum Format
@@ -43,4 +45,47 @@ public:
 	short height;   // 图像的高度
 	char bitsPerPixel;   // 每个像素的位数
 	char imageDescriptor;   // 图像描述字节
+};
+
+class TGAColor
+{
+public:
+	unsigned char bgra[4];
+	unsigned char bytesPerPixel;
+	TGAColor() : bgra(), bytesPerPixel(1)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			bgra[i] = 0;
+		}
+	}
+
+	TGAColor(unsigned char R, unsigned char G, unsigned char B, unsigned char A = 255) : bgra(), bytesPerPixel(4)
+	{
+		bgra[0] = B;
+		bgra[1] = G;
+		bgra[2] = R;
+		bgra[3] = A;
+	}
+
+	TGAColor(unsigned char gray) : bgra(), bytesPerPixel(1)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			bgra[i] = 0;
+		}
+		bgra[0] = gray;
+	}
+
+	TGAColor(unsigned char* p, unsigned char bpp) : bgra(), bytesPerPixel(bpp)
+	{
+		for (int i = 0; i < (int)bpp; i++)
+		{
+			bgra[i] = p[i];
+		}
+		for (int i = int(bpp); i < 4; i++)
+		{
+			bgra[i] = 0;
+		}
+	}
 };

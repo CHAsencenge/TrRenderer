@@ -82,12 +82,58 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 	unsigned long pixelCount = width * height;
 	unsigned long currentPixel = 0;
 	unsigned long currentByte = 0;
+	TGAColor colorBuffer;
 
 	// 此时TGAImage的数据成员bytesPerPixel应当已经通过读取header被赋值
 	while (currentPixel < pixelCount)
 	{
-
-		currentPixel++;
+		unsigned char chunkHeader = 0;
+		chunkHeader = in.get();
+		if (!in.good())
+		{
+			std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data\n";
+			return false;
+		}
+		// 如果最高位为0，则表示当前数据块是一个非重复数据块，Data中包含多个字节，表示连续的非重复数据值
+		if (chunkHeader < 128) 
+		{
+			chunkHeader++;
+			for (int n = 0; n < chunkHeader; n++)
+			{
+				// 需要一直往后读
+				in.read((char*)colorBuffer.bgra, bytesPerPixel);
+				if (!in.good())
+				{
+					std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 1\n";
+					return false;
+				}
+				for (int i = 0; i < bytesPerPixel; i++)
+				{
+					data[currentByte++] = colorBuffer.bgra[i];
+				}
+				currentPixel++;
+			}
+		}
+		// 如果最高位为1，则表示当前数据块是一个重复数据块，Data中只包含一个字节，表示重复的数据值
+		else 
+		{
+			chunkHeader -= 127;
+			in.read((char*)colorBuffer.bgra, bytesPerPixel); // 无需一直往后读
+			if (!in.good())
+			{
+				std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 2\n";
+				return false;
+			}
+			for (int n = 0; n < chunkHeader; n++)
+			{
+				for (int i = 0; i < bytesPerPixel; i++)
+				{
+					data[currentByte++] = colorBuffer.bgra[i];
+				}
+				currentPixel++;
+			}
+		}
+		
 	}
 
 	return false;
