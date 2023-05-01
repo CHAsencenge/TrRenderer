@@ -55,7 +55,7 @@ bool TGAImage::ReadTGAFile(const char* filename)
 		if (!in.good())
 		{
 			in.close();
-			std::cerr << "ReadTGAFile: an error occured while reading the data\n";
+			std::cerr << "ReadTGAFile: an error occured while reading the data 0\n";
 			return false;
 		}
 	}
@@ -63,9 +63,26 @@ bool TGAImage::ReadTGAFile(const char* filename)
 	{
 		if (!ReadRLEData(in))
 		{
-
+			in.close();
+			std::cerr << "ReadTGAFile: an error occured while reading the data 1\n";
 		}
 	}
+	else
+	{
+		in.close();
+		std::cerr << "ReadTGAFile: unknown file format \n";
+	}
+
+	if (header.imageDescriptor & 0x20)
+	{
+		FilpVertically();
+	}
+	if (header.imageDescriptor & 0x10)
+	{
+		FilpHorizontally();
+	}
+	in.close();
+	return true;
 
 	// 是否读到末尾
 	// in.eof();
@@ -75,6 +92,12 @@ bool TGAImage::ReadTGAFile(const char* filename)
 
 void TGAImage::FilpVertically()
 {
+
+}
+
+void TGAImage::FilpHorizontally()
+{
+
 }
 
 // 一个包含两个数据块的RLE数据示例
@@ -140,4 +163,38 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 	}
 
 	return false;
+}
+
+bool TGAImage::WriteTGAFile(const char* filename, bool rle)
+{
+	return false;
+}
+
+TGAColor TGAImage::Get(int x, int y)
+{
+	if (!data || x < 0 || y < 0 || x >= width || y >= height)
+	{
+		return TGAColor();
+	}
+	return TGAColor(data + (x + width * y) * bytesPerPixel, bytesPerPixel);
+}
+
+bool TGAImage::Set(int x, int y, TGAColor& c)
+{
+	if (!data || x < 0 || y < 0 || x >= width || y >= height)
+	{
+		return false;
+	}
+	memcpy(data + (x + y * width) * bytesPerPixel, c.bgra, bytesPerPixel);
+	return true;
+}
+
+bool TGAImage::Set(int x, int y, const TGAColor& c)
+{
+	if (!data || x < 0 || y < 0 || x >= width || y >= height)
+	{
+		return false;
+	}
+	memcpy(data + (x + y * width) * bytesPerPixel, c.bgra, bytesPerPixel);
+	return true;
 }
