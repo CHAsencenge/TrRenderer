@@ -2,7 +2,8 @@
 // #include <fstream>
 #include <sstream>
 
-
+// 读取obj文件
+// 读取diffuse等纹理
 Model::Model(const char* filename)
 {
 	std::ifstream in;
@@ -48,7 +49,34 @@ Model::Model(const char* filename)
 			}
 			norms.push_back(n);
 		}
+		// uv
+		else if (!line.compare(0, 3, "vt "))
+		{
+			iss >> trash >> trash;
+			Vec2 uv;
+			for (int i = 0; i < 2; i++)
+			{
+				iss >> uv[i];
+			}
+			uvs.push_back(uv);
+		}
+		// face行结构
+		// f v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
+		else if (!line.compare(0, 2, "f "))
+		{
+			iss >> trash;
+			int f[3];
+			std::vector<int> face;
+			for (int i = 0; i < 3; i++)
+			{
+				iss >> f[i];
+				face.push_back(f[i]);
+			}
+			faces.push_back(face);
+		}
 	}
+
+	CreateMap(filename);
 }
 
 Model::~Model()
@@ -70,6 +98,9 @@ std::vector<int> Model::Face(int idx)
 	return std::vector<int>();
 }
 
+// diffuse, normal, spec, tangent等纹理读取
+// 主要是加后缀找到相应文件，实际读取调用ReadTGAFile
+// tangent怎么用
 void Model::LoadTexture(const char* filename, const char* suffix, TGAImage& img)
 {
 	std::string texFile(filename);
@@ -85,6 +116,10 @@ void Model::LoadTexture(const char* filename, const char* suffix, TGAImage& img)
 
 void Model::CreateMap(const char* filename)
 {
+	// 读取diffuse等纹理
+	LoadTexture(filename, "_diffuse.tga", *diffuseMap);
+	LoadTexture(filename, "_nm_tangent.tga", *normalMap);
+	LoadTexture(filename, "_spec.tga", *specularMap);
 }
 
 int Model::GetNumVerts()

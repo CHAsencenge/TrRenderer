@@ -194,4 +194,14 @@ int main()
         std::cout << "console hello" << std::endl;
     }
     std::cout << "console hello" << std::endl;
+
+    // 静态图生成
+    // 创建一个TGAImage类型的frame buffer
+    // model view projection
+    // 创建一个z-buffer
+    // 遍历读取输入的obj，创建model和shader
+        // 遍历所有的faces
+            // 对三角形的每个顶点调用顶点着色器
+            // 光栅化
+    // 用创建的frame buffer将结果写入tga文件保存
 }
