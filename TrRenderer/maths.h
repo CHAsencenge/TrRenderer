@@ -15,6 +15,8 @@ public:
 	float Norm2() const;
 	Vec<nelement> Normalize() const;
 	Vec<nelement + 1> AddDimension1(float value);
+	template<int n>
+	Vec<n> ReduceDimension();
 
 	float e[nelement] = { 0 };
 };
@@ -23,6 +25,7 @@ template<int nrow, int ncol>
 class Mat
 {
 public:
+	Mat();
 	Mat<nrow, ncol>& operator=(Mat<nrow, ncol>& other);
 	Vec<ncol>& operator[](int i);
 	const Vec<ncol>& operator[](int i) const;
@@ -41,6 +44,29 @@ public:
 	Vec<nrow> GetCol(const int idx) const;
 
 	Vec<ncol> rows[nrow];
+};
+
+// 辅助计算矩阵Det的结构体
+template<int n> struct dt
+{
+	static float Det(Mat<n, n>& mat)
+	{
+		float ret = 0;
+		for (int i = 0; i < n; i++)
+		{
+			ret += mat[0][i] * mat.Cofactor(0, i);
+		}
+		return ret;
+	}
+};
+
+// 特化版本，结束条件
+template<> struct dt<1>
+{
+	static float Det(Mat<1, 1>& mat)
+	{
+		return mat[0][0];
+	}
 };
 
 
@@ -84,6 +110,7 @@ inline Vec<nelement> Vec<nelement>::Normalize() const
 	return *this / Norm();
 }
 
+// 给向量增加一个维度
 template<int nelement>
 inline Vec<nelement + 1> Vec<nelement>::AddDimension1(float value)
 {
@@ -96,6 +123,12 @@ inline Vec<nelement + 1> Vec<nelement>::AddDimension1(float value)
 	return vec;
 }
 
+
+template<int nrow, int ncol>
+inline Mat<nrow, ncol>::Mat()
+{
+	rows[nrow] = { {} };
+}
 
 template<int nrow, int ncol>
 inline Mat<nrow, ncol>& Mat<nrow, ncol>::operator=(Mat<nrow, ncol>& other)
@@ -184,6 +217,7 @@ inline Mat<nrow, ncol> Mat<nrow, ncol>::Identity()
 	return mat;
 }
 
+// 将向量v设置到矩阵Mat的第idx列
 template<int nrow, int ncol>
 inline void Mat<nrow, ncol>::SetCol(const int idx, const Vec<nrow>& v)
 {
@@ -206,28 +240,7 @@ inline Vec<nrow> Mat<nrow, ncol>::GetCol(const int idx) const
 }
 
 
-// 辅助计算矩阵Det的结构体
-template<int n> struct dt
-{
-	static float Det(Mat<n, n>& mat)
-	{
-		float ret = 0;
-		for (int i = 0; i < n; i++)
-		{
-			ret += mat[0][i] * mat.Cofactor(0, i);
-		}
-		return ret;
-	}
-};
 
-// 特化版本，结束条件
-template<> struct dt<1>
-{
-	static float Det(Mat<1, 1>& mat)
-	{
-		return mat[0][0];
-	}
-};
 
 
 // 双目运算，不定义为类成员函数
@@ -324,4 +337,28 @@ template<typename T>
 inline T UniformVec(T& Vec)
 {
 	return T / T.Norm();
+}
+
+// 矩阵乘向量
+template<int nrow, int ncol>
+Vec<nrow> operator* (Mat<nrow, ncol>& mat, Vec<ncol>& vec)
+{
+	Vec<nrow> ret;
+	for (int i = 0; i < nrow; i++)
+	{
+		ret[i] = mat.rows[i] * vec;
+	}
+	return ret;
+}
+
+template<int nelement>
+template<int n>
+inline Vec<n> Vec<nelement>::ReduceDimension()
+{
+	Vec<n> ret;
+	for (int i = 0; i < n; i++)
+	{
+		ret[i] = e[i];
+	}
+	return ret;
 }

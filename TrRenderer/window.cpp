@@ -202,7 +202,7 @@ static void window_display()
 
 void window_draw(unsigned char* framebuffer)
 {
-	int i, j;
+	// int i, j;
 	for (int i = 0; i < window->height; i++)
 	{
 		for (int j = 0; j < window->width; j++)

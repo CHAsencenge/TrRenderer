@@ -5,6 +5,7 @@
 #include "TrRenderer.h"
 #include <iostream>
 #include "Window.h"
+#include "Maths.h"
 
 
 #define MAX_LOADSTRING 100
@@ -184,6 +185,12 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
+Vec3 uLightDir{ 1,1,1 };
+Vec3 uEye{ 1,1,3 };
+Vec3 uCenter{ 0,0,0 }; 
+Vec3 uUp{ 0,1,0 };
+
+
 // 项目属性---链接器---系统---子系统---控制台
 int main()
 {
@@ -197,7 +204,7 @@ int main()
 
     // 静态图生成
     // 创建一个TGAImage类型的frame buffer
-    // model view projection
+    // build model view projection矩阵
     // 创建一个z-buffer
     // 遍历读取输入的obj，创建model和shader
         // 遍历所有的faces

@@ -1,12 +1,5 @@
 #include "Maths.h"
 
-
-template<typename T>
-T UniformVec(T& Vec)
-{
-	return T / T.Norm();
-}
-
 float Dot(const Vec3& m, const Vec3& n)
 {
 	float ret = 0;
