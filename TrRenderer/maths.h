@@ -8,6 +8,28 @@ class Vec
 {
 public:
 	Vec() {};
+	// 使得Vec可以用参数列表进行初始化，但仅兼容到最多4个元素的Vec
+	Vec(float e0 = 0, float e1 = 0, float e2 = 0, float e3 = 0)
+	{
+		int count = 0;
+		e[0] = e0;
+		count++;
+		if (count < nelement)
+		{
+			e[1] = e1;
+			count++;
+		}
+		if (count < nelement)
+		{
+			e[2] = e2;
+			count++;
+		}
+		if (count < nelement)
+		{
+			e[3] = e3;
+			count++;
+		}
+	}
 	Vec(const float other[])
 	{
 		for (int i = 0; i < nelement; i++)
@@ -386,7 +408,7 @@ inline T UniformVec(T& Vec)
 
 // 矩阵乘向量
 template<int nrow, int ncol, int ncol1>
-Vec<nrow> operator* (Mat<nrow, ncol>& mat, Vec<ncol1>& vec)
+Vec<nrow> operator* (const Mat<nrow, ncol>& mat, const Vec<ncol1>& vec)
 {
 	Vec<nrow> ret;
 	for (int i = 0; i < nrow; i++)

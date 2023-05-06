@@ -214,7 +214,7 @@ int main()
     // 创建一个TGAImage类型的frame buffer
     // build model view projection矩阵
     ModelView = Mat4Lookat(uEye, uCenter, uUp);
-    // Projection = Mat4Projection();
+    Projection = Mat4Projection();
     // 创建一个z-buffer
     // 遍历读取输入的obj，创建model和shader
         // 遍历所有的faces
