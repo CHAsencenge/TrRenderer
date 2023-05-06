@@ -7,7 +7,30 @@ template<int nelement>
 class Vec
 {
 public:
+	Vec() {};
+	Vec(const float other[])
+	{
+		for (int i = 0; i < nelement; i++)
+		{
+			e[i] = other[i];
+		}
+	}
+	Vec(const Vec<nelement>& other)
+	{
+		for (int i = 0; i < nelement; i++)
+		{
+			e[i] = other.e[i];
+		}
+	}
 	Vec<nelement>& operator=(const Vec<nelement>& other);
+	Vec<nelement>& operator=(const float other[])
+	{
+		for (int i = 0; i < nelement; i++)
+		{
+			e[i] = other[i];
+		}
+		return *this;
+	}
 	float& operator[](int i);
 	const float& operator[](int i) const;
 
@@ -26,7 +49,28 @@ class Mat
 {
 public:
 	Mat();
-	Mat<nrow, ncol>& operator=(Mat<nrow, ncol>& other);
+	Mat(const Mat<nrow, ncol>& other)
+	{
+		for (int i = 0; i < nrow; i++)
+		{
+			for (int j = 0; j < ncol; j++)
+			{
+				rows[i][j] = other.rows[i][j];
+			}
+		}
+	}
+	Mat<nrow, ncol>& operator=(const Mat<nrow, ncol>& other)
+	{
+		for (int i = 0; i < nrow; i++)
+		{
+			for (int j = 0; j < ncol; j++)
+			{
+				rows[i][j] = other.rows[i][j];
+			}
+		}
+		return *this;
+	}
+	
 	Vec<ncol>& operator[](int i);
 	const Vec<ncol>& operator[](int i) const;
 
@@ -78,6 +122,7 @@ inline Vec<nelement>& Vec<nelement>::operator=(const Vec<nelement>& other)
 	{
 		e[i] = other.e[i];
 	}
+	return *this;
 }
 
 template<int nelement>
@@ -130,17 +175,17 @@ inline Mat<nrow, ncol>::Mat()
 	rows[nrow] = { {} };
 }
 
-template<int nrow, int ncol>
-inline Mat<nrow, ncol>& Mat<nrow, ncol>::operator=(Mat<nrow, ncol>& other)
-{
-	for (int i = 0; i < nrow; i++)
-	{
-		for (int j = 0; j < ncol; j++)
-		{
-			rows[i][j] = other.rows[i][j];
-		}
-	}
-}
+//template<int nrow, int ncol>
+//inline Mat<nrow, ncol>& Mat<nrow, ncol>::operator=(Mat<nrow, ncol>& other)
+//{
+//	for (int i = 0; i < nrow; i++)
+//	{
+//		for (int j = 0; j < ncol; j++)
+//		{
+//			rows[i][j] = other.rows[i][j];
+//		}
+//	}
+//}
 
 template<int nrow, int ncol>
 inline Vec<ncol>& Mat<nrow, ncol>::operator[](int i)
@@ -340,8 +385,8 @@ inline T UniformVec(T& Vec)
 }
 
 // æÿ’Û≥ÀœÚ¡ø
-template<int nrow, int ncol>
-Vec<nrow> operator* (Mat<nrow, ncol>& mat, Vec<ncol>& vec)
+template<int nrow, int ncol, int ncol1>
+Vec<nrow> operator* (Mat<nrow, ncol>& mat, Vec<ncol1>& vec)
 {
 	Vec<nrow> ret;
 	for (int i = 0; i < nrow; i++)

@@ -6,6 +6,7 @@
 #include <iostream>
 #include "Window.h"
 #include "Maths.h"
+#include "Transform.h"
 
 
 #define MAX_LOADSTRING 100
@@ -184,11 +185,18 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+float ld[] = { 1, 1, 1 };
+float e[] = { 1, 1, 3 };
+float t[] = { 0, 0, 0 };
+float u[] = { 0, 1, 0 };
+Vec3 uLightDir(ld);
+Vec3 uEye(e);
+Vec3 uCenter(t); 
+Vec3 uUp(u);
 
-Vec3 uLightDir{ 1,1,1 };
-Vec3 uEye{ 1,1,3 };
-Vec3 uCenter{ 0,0,0 }; 
-Vec3 uUp{ 0,1,0 };
+extern Mat<4, 4> ModelView;
+extern Mat<4, 4> Projection;
+extern Mat<4, 4> Viewport;
 
 
 // 项目属性---链接器---系统---子系统---控制台
@@ -205,6 +213,8 @@ int main()
     // 静态图生成
     // 创建一个TGAImage类型的frame buffer
     // build model view projection矩阵
+    ModelView = Mat4Lookat(uEye, uCenter, uUp);
+    // Projection = Mat4Projection();
     // 创建一个z-buffer
     // 遍历读取输入的obj，创建model和shader
         // 遍历所有的faces

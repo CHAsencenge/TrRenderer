@@ -20,7 +20,8 @@ TGAColor IShader::Sample2D(TGAImage& img, Vec2 uv)
 
 DefaultShader::DefaultShader(const Model& m, Vec3& lightDir) : model(m)
 {
-	uniformLightDir = (ModelView * lightDir.AddDimension1(0.0f)).ReduceDimension<3>().Normalize();
+	auto temp = ModelView * lightDir.AddDimension1(0.0f);
+	// uniformLightDir = (ModelView * lightDir.AddDimension1(0.0f)).ReduceDimension<3>().Normalize();
 }
 
 DefaultShader::~DefaultShader()
