@@ -45,7 +45,11 @@ Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
 }
 
 
-
+// in perspective projection: truncated pyramid frustum(¿‚◊∂Ã®) -> cube(NDC)
+// x: [l, r] -> [-1, 1]
+// y: [b, t] -> [-1, 1]
+// z: [-n, -f] -> [-1, 1]
+// ππ‘ÏGL_PROJECTION matrix
 Mat<4, 4> Mat4Perspective(float fovy, float aspect, float near, float far)
 {
 	Mat<4, 4> mat;

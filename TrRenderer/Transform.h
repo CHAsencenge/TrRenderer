@@ -1,11 +1,27 @@
 #pragma once
 #include "Maths.h"
 
+// http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
+// baseline：按照gl的规则来实现transform
+// truncated pyramid frustum (eye coordinates) 左l，右r，近-n， 远-f，从原点看向z轴负方向(右手坐标系中)
+// NDC 各轴[-1, 1]，变换成看向z轴正方向（NDC转换成左手坐标系）
+// 
+// frustrum实现按照glFrustrum()
+// glFrustrum()参数left, right, bottom, top, near, far
+// 
+// projection plane是near plane
+// 
+// 需要构造一个GL_PROJECTION matrix
+// 
+// eye coordinates [GL_PROJECTION matrix] -> clip coordinate [divide w-component] -> NDC
+// 
+
 // http://www.songho.ca/opengl/gl_camera.html
 Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up);
 
 // aspect宽高比
 // fovy yz平面视野开角
+// http://www.songho.ca/opengl/gl_projectionmatrix.html
 Mat<4, 4> Mat4Perspective(float fovy, float aspect, float near, float far);
 Mat<4, 4> Mat4Projection(float f);
 Mat<4, 4> Mat4Viewport(int x, int y, int w, int h);
