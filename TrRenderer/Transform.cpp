@@ -26,6 +26,8 @@
 //  0  0  0 1
 // 
 // M_view = M_R * M_T (以下函数的mat)
+
+// pending discard
 Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
 {
 	Vec<3> z = eye - target;
@@ -50,6 +52,8 @@ Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
 // y: [b, t] -> [-1, 1]
 // z: [-n, -f] -> [-1, 1]
 // 构造GL_PROJECTION matrix
+// fovy yz面上的开角（不是半角，所以计算三角函数时需要先除以2）
+// aspect 宽高比
 Mat<4, 4> Mat4Perspective(float fovy, float aspect, float near, float far)
 {
 	Mat<4, 4> mat;

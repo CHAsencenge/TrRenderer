@@ -49,6 +49,15 @@ public:
 class TGAImage
 {
 public:
+	TGAImage(int w, int h, int bpp = 0) 
+	{
+		width = w;
+		height = h;
+		// bytesPerPixel实际会在ReadRLEData时计算
+		bytesPerPixel = bpp;
+		data = nullptr;
+	}
+
 	// 读TGA文件
 	bool ReadTGAFile(const char* filename);
 	// 竖直翻转

@@ -67,10 +67,15 @@ Model::Model(const char* filename)
 			iss >> trash;
 			int f[3];
 			std::vector<int> face;
-			for (int i = 0; i < 3; i++)
+			int count = 0;
+			// 一般来说一行会while3次
+			while (iss >> f[0] >> trash >> f[1] >> trash >> f[2] >> trash)
 			{
-				iss >> f[i];
-				face.push_back(f[i]);
+				count++;
+				printf("Model::Model face line while count %d\n", count);
+				face.push_back(f[0]);
+				face.push_back(f[1]);
+				face.push_back(f[2]);
 			}
 			faces.push_back(face);
 		}
@@ -83,9 +88,9 @@ Model::~Model()
 {
 }
 
-Vec3 Model::Vert(int i)
+Vec3 Model::Vert(int idx)
 {
-	return Vec3();
+	return verts[idx];
 }
 
 Vec3 Model::Vert(int iFace, int nthVert)
@@ -93,9 +98,18 @@ Vec3 Model::Vert(int iFace, int nthVert)
 	return Vec3();
 }
 
-std::vector<int> Model::Face(int idx)
+std::vector<int> Model::FaceVert(int idx)
 {
-	return std::vector<int>();
+	// 根据face line结构
+	std::vector<int> face = faces[idx];
+	std::vector<int> vert;
+	int i = 0;
+	while (i < face.size())
+	{
+		vert.push_back(face[i]);
+		i += 3;
+	}
+	return vert;
 }
 
 // diffuse, normal, spec, tangent等纹理读取

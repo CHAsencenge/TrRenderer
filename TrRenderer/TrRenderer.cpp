@@ -1,12 +1,17 @@
 ﻿// TrRenderer.cpp : 定义应用程序的入口点。
 //
 
+#include "pch.h"
 #include "framework.h"
 #include "TrRenderer.h"
 #include <iostream>
 #include "Window.h"
 #include "Maths.h"
 #include "Transform.h"
+#include "Camera.h"
+#include "TGA.h"
+#include "Model.h"
+#include <vector>
 
 
 #define MAX_LOADSTRING 100
@@ -186,13 +191,15 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 float ld[] = { 1, 1, 1 };
-float e[] = { 1, 1, 3 };
-float t[] = { 0, 0, 0 };
-float u[] = { 0, 1, 0 };
-Vec3 uLightDir(ld);
-Vec3 uEye(e);
-Vec3 uCenter(t); 
-Vec3 uUp(u);
+// 相机，自身位置eye，目标位置target，向上向量up
+
+//float e[] = { 1, 1, 3 };
+//float t[] = { 0, 0, 0 };
+//float u[] = { 0, 1, 0 };
+//Vec3 uLightDir(ld);
+//Vec3 uEye(e);
+//Vec3 uCenter(t); 
+//Vec3 uUp(u);
 
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
@@ -203,7 +210,7 @@ extern Mat<4, 4> Viewport;
 int main()
 {
     int width = 800, height = 600;
-    window_init(width, height, L"SRender");
+    window_init(width, height, L"TrRenderer");
     while (1)
     {
         std::cout << "console hello" << std::endl;
@@ -212,13 +219,38 @@ int main()
 
     // 静态图生成
     // 创建一个TGAImage类型的frame buffer
+    TGAImage framebuf(width, height);
     // build model view projection矩阵
-    ModelView = Mat4Lookat(uEye, uCenter, uUp);
-    Projection = Mat4Projection();
+    // 
+    // 初始化相机参数，创建相机
+    float fovy = PI / 3.0f;
+    float aspect = 4.0f / 3.0f;
+    float e[] = { 5, 0, 0 };
+    float t[] = { 0, 0, 0 };
+    float u[] = { 0, 1, 0 };
+    Camera DefaultCam(e, t, u, fovy, aspect);
+    DefaultCam.SetMatLookAt();
+    ModelView = DefaultCam.GetMatLookAt();
+
+    float nearplane = -2.0f;
+    float farplane = -5.0f;
+    Projection = Mat4Perspective(DefaultCam.fovy, DefaultCam.aspect, nearplane, farplane);
     // 创建一个z-buffer
+    float mx = std::numeric_limits<float>::max();
+    std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
+    Model model("obj\floor.obj");
         // 遍历所有的faces
+        for(int i = 0; i < model.GetNumFaces(); i++)
+        { 
             // 对三角形的每个顶点调用顶点着色器
+            // face unit结构 v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
+            std::vector<int> faceVertsIdx = model.FaceVert(i);
+            for (int j = 0; j < faceVertsIdx.size(); j++)
+            {
+                Vec3 vert = model.Vert(faceVertsIdx[j]);
+            }
             // 光栅化
+        }
     // 用创建的frame buffer将结果写入tga文件保存
 }

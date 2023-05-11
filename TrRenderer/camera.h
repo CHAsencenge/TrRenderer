@@ -1,23 +1,53 @@
 #pragma once
+// 还是需要include预编译头
+#include "pch.h"
 #include "Maths.h"
 
 class Camera
 {
 public:
-	Camera(Vec3 e, Vec3 t, Vec3 u, float asp, float fov);
+	Camera() 
+	{
+		// 带f后缀以单精度处理
+		fovy = PI / 3.0f;
+		aspect = 4.0f / 3.0f;
+		float e[] = { 5, 0, 0 };
+		float t[] = { 0, 0, 0 };
+		float u[] = { 0, 1, 0 };
+		eye = e;
+		target = t;
+		up = u;
+	}
+	Camera(Vec3 e, Vec3 t, Vec3 u, float asp, float fov)
+	{
+		eye = e;
+		target = t;
+		up = u;
+		fovy = fov;
+		aspect = asp;
+	}
 	~Camera();
 
 	// 根据朝向计算此相机的坐标轴
 	void CalcAxis();
 
-private:
+	void SetMatLookAt();
+	Mat<4, 4> GetMatLookAt() const;
+
+public:
 	float fovy;
 	float aspect;
 	Vec3 eye;
 	Vec3 target;
 	Vec3 up;
 
+private:
+	// 计算出的eye space坐标轴方向
 	Vec3 x;
 	Vec3 y;
 	Vec3 z;
+
+	Mat<4, 4> matLookAt;
+
+	// 用x, y, z是否可以直接构造view矩阵
 };

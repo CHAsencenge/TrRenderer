@@ -32,8 +32,17 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 {
 }
 
+void DefaultShader::VertexShader(Vec3 vert, Vec<4>& gl_Position)
+{
+	Vec<4> vertHomo = vert.AddDimension1(1);
+	Vec<4> vertEyeSpace = ModelView * vertHomo;
+	Vec<4> vertClipSpace = Projection * vertEyeSpace;
+	gl_Position = vertClipSpace;
+}
+
 bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor)
 {
+
 	return false;
 }
 

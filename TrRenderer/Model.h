@@ -22,9 +22,10 @@ public:
 	TGAImage* occlusionMap;
 	TGAImage* emissionMap;
 
-	Vec3 Vert(int i);
+	Vec3 Vert(int idx);
 	Vec3 Vert(int iFace, int nthVert);
-	std::vector<int> Face(int idx);
+	// 获取face unit中的vert索引
+	std::vector<int> FaceVert(int idx);
 
 	void LoadTexture(const char* filename, const char* suffix, TGAImage& img);
 	// 通过tga文件将各个贴图读到对应贴图数据成员中
