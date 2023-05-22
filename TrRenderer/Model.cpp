@@ -112,6 +112,15 @@ std::vector<int> Model::FaceVert(int idx)
 	return vert;
 }
 
+Vec2 Model::UV(int ithFace, int nthVert)
+{
+	assert(nthVert < 3);
+	std::vector<int> face = faces[ithFace];
+	int uvIdx = face[1 + nthVert * 3];
+	Vec2 uv = uvs[uvIdx];
+	return uv;
+}
+
 // diffuse, normal, spec, tangent等纹理读取
 // 主要是加后缀找到相应文件，实际读取调用ReadTGAFile
 // tangent怎么用

@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "TGA.h"
 #include "Model.h"
+#include "Shader.h"
 #include <vector>
 
 
@@ -190,13 +191,12 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-float ld[] = { 1, 1, 1 };
 // 相机，自身位置eye，目标位置target，向上向量up
 
 //float e[] = { 1, 1, 3 };
 //float t[] = { 0, 0, 0 };
 //float u[] = { 0, 1, 0 };
-//Vec3 uLightDir(ld);
+
 //Vec3 uEye(e);
 //Vec3 uCenter(t); 
 //Vec3 uUp(u);
@@ -236,21 +236,27 @@ int main()
     float farplane = -5.0f;
     Projection = Mat4Perspective(DefaultCam.fovy, DefaultCam.aspect, nearplane, farplane);
     // 创建一个z-buffer
-    float mx = std::numeric_limits<float>::max();
+    float mx = (std::numeric_limits<float>::max)(); // ???
     std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
     Model model("obj\floor.obj");
+    float ld[] = { 1, 1, 1 };
+    Vec3 lightDir(ld);
+    DefaultShader shader(model, lightDir);
         // 遍历所有的faces
         for(int i = 0; i < model.GetNumFaces(); i++)
         { 
+            // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
+            Vec<4> clipVert[3];
             // 对三角形的每个顶点调用顶点着色器
             // face unit结构 v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
             std::vector<int> faceVertsIdx = model.FaceVert(i);
             for (int j = 0; j < faceVertsIdx.size(); j++)
             {
-                Vec3 vert = model.Vert(faceVertsIdx[j]);
+                shader.VertexShader(i, j, clipVert[j]);
             }
             // 光栅化
+            
         }
     // 用创建的frame buffer将结果写入tga文件保存
 }

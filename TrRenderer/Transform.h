@@ -1,5 +1,8 @@
 #pragma once
 #include "Maths.h"
+#include "Shader.h"
+#include "TGA.h"
+#include <cmath>
 
 // http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
 // baseline：按照gl的规则来实现transform
@@ -35,3 +38,7 @@ Mat<4, 4> Projection;
 // 参数x和y表示视口的左下角坐标，w和h表示视口的宽度和高度
 // Viewport矩阵的第一列表示x轴的变换，第二列表示y轴的变换，第三列表示z轴的变换，第四列表示平移变换
 Mat<4, 4> Viewport;
+
+Vec3 Barycentric(const Vec2 tri[3], const Vec2 p);
+
+void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::vector<float>& zbuffer);

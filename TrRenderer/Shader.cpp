@@ -30,6 +30,10 @@ DefaultShader::~DefaultShader()
 
 void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 {
+	varUV.SetCol(nthVert, model.UV(ithFace, nthVert));
+	std::vector<int> faceVertsIdx = model.FaceVert(ithFace);
+	Vec3 vert = model.Vert(faceVertsIdx[nthVert]);
+	VertexShader(vert, gl_Position);
 }
 
 void DefaultShader::VertexShader(Vec3 vert, Vec<4>& gl_Position)

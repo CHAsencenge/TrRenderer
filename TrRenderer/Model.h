@@ -26,6 +26,7 @@ public:
 	Vec3 Vert(int iFace, int nthVert);
 	// 获取face unit中的vert索引
 	std::vector<int> FaceVert(int idx);
+	Vec2 UV(int ithFace, int nthVert);
 
 	void LoadTexture(const char* filename, const char* suffix, TGAImage& img);
 	// 通过tga文件将各个贴图读到对应贴图数据成员中

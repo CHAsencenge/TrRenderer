@@ -95,6 +95,72 @@ Mat<4, 4> Mat4Viewport(int x, int y, int w, int h)
 {
 	Mat<4, 4> mat;
 
-	return Mat<4, 4>();
+	return mat;
+}
+
+// 见06_解读_
+// 
+Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
+{
+	Vec3 res;
+	Vec3 v1 = { tri[2].e[0] - tri[0].e[0], tri[1].e[0] - tri[0].e[0], tri[0].e[0] - p.e[0] };
+	Vec3 v2 = { tri[2].e[1] - tri[0].e[1], tri[1].e[1] - tri[0].e[1], tri[0].e[1] - p.e[1] };
+	Vec3 orthoVec = Cross(v1, v2);
+	if (std::abs(orthoVec.e[2]) < 1)
+		return Vec3(-1.0f, 1.0f, 1.0f);
+	return Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
+}
+
+// 光栅化方案：包围盒内逐个点依据重心坐标判断是否在三角形内，在三角形内则填充颜色
+void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::vector<float>& zbuffer)
+{
+	// 透视除法
+	// NDC
+	Vec3 ndcVerts[3];
+	for (int i = 0; i < 3; i++)
+	{
+		ndcVerts[i].e[0] = clipVerts[i].e[0] / clipVerts[i].e[3];
+		ndcVerts[i].e[1] = clipVerts[i].e[1] / clipVerts[i].e[3];
+		ndcVerts[i].e[2] = clipVerts[i].e[2] / clipVerts[i].e[3];
+	}
+	// 对顶点做viewport变换
+	Vec3 screenVerts[3];
+	for (int i = 0; i < 3; i++)
+	{
+		screenVerts[i].e[0] = ndcVerts[i].e[0] * (image.Width() / 2.0f) + (image.Width() / 2.0f);
+		screenVerts[i].e[1] = ndcVerts[i].e[1] * (image.Height() / 2.0f) + (image.Height() / 2.0f);
+		screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+	}
+	// 计算光栅化范围，考虑image范围限制
+	float boundingBoxMinX = (std::numeric_limits<float>::max)();
+	float boundingBoxMinY = (std::numeric_limits<float>::max)();
+	float boundingBoxMaxX = (std::numeric_limits<float>::min)();
+	float boundingBoxMaxY = (std::numeric_limits<float>::min)();
+	// 根据三个顶点确定包围盒范围
+	for (int i = 0; i < 3; i++)
+	{
+		boundingBoxMinX = std::max(0.0f, std::min(boundingBoxMinX, screenVerts[i].e[0]));
+		boundingBoxMinY = std::max(0.0f, std::min(boundingBoxMinY, screenVerts[i].e[1]));
+		boundingBoxMaxX = std::min(image.Width() - 1.0f, std::max(boundingBoxMaxX, screenVerts[i].e[0]));
+		boundingBoxMaxY = std::min(image.Height() - 1.0f, std::max(boundingBoxMaxY, screenVerts[i].e[1]));
+	}
+	// 遍历光栅化范围xy
+	Vec2 screenVerts2D[] = { screenVerts[0].ReduceDimension<2>(), screenVerts[1].ReduceDimension<2>(), screenVerts[2].ReduceDimension<2>() };
+	for (int i = (int)boundingBoxMinX; i <= (int)boundingBoxMaxX; i++)
+	{
+		for (int j = (int)boundingBoxMinY; j <= (int)boundingBoxMaxY; j++)
+		{
+			Vec2 p = { i, j };
+			Vec3 bcScreen = Barycentric(screenVerts2D, p);
+			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)
+				continue;
+			// fragment shader中计算颜色
+			TGAColor color;
+			shader.FragmentShader(bcScreen, color);
+			image.Set(i, j, color);
+		}
+	}
+	// 
+	//
 }
 
