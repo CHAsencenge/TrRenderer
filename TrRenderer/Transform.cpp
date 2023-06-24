@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Transform.h"
 
 // 相机固定在(0, 0, 0)，看向-z轴方向，反向旋转场景
@@ -153,11 +154,11 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	}
 	// 遍历光栅化范围xy
 	Vec2 screenVerts2D[] = { screenVerts[0].ReduceDimension<2>(), screenVerts[1].ReduceDimension<2>(), screenVerts[2].ReduceDimension<2>() };
-	for (int i = (int)boundingBoxMinX; i <= (int)boundingBoxMaxX; i++)
+	for (int i = static_cast<int>(boundingBoxMinX); i <= static_cast<int>(boundingBoxMaxX); i++)
 	{
-		for (int j = (int)boundingBoxMinY; j <= (int)boundingBoxMaxY; j++)
+		for (int j = static_cast<int>(boundingBoxMinY); j <= static_cast<int>(boundingBoxMaxY); j++)
 		{
-			Vec2 p = { i, j };
+			Vec2 p = { static_cast<float>(i), static_cast<float>(j) };
 			Vec3 bcScreen = Barycentric(screenVerts2D, p);
 			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)
 				continue;

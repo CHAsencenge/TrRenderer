@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Maths.h"
 
 float Dot(const Vec3& m, const Vec3& n)

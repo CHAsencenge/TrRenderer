@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "TGA.h"
 
 // 使用ifstream读文件
