@@ -55,10 +55,10 @@ Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
 // 构造GL_PROJECTION matrix
 // fovy yz面上的开角（不是半角，所以计算三角函数时需要先除以2）
 // aspect 宽高比
-Mat<4, 4> Mat4Perspective(float fovy, float aspect, float near, float far)
+Mat<4, 4> Mat4Perspective(float fovY, float aspect, float near, float far)
 {
 	Mat<4, 4> mat;
-	float top = near * tan(fovy / 2);
+	float top = near * tan(fovY / 2);
 	float right = aspect * top;
 	mat.rows[0] = { near/right, 0, 0, 0 };
 	mat.rows[1] = { 0, near/top, 0, 0 };

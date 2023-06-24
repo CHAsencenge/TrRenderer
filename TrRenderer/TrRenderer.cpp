@@ -223,18 +223,18 @@ int main()
     // build model view projection矩阵
     // 
     // 初始化相机参数，创建相机
-    float fovy = PI / 3.0f;
+    float fovY = PI / 3.0f;
     float aspect = 4.0f / 3.0f;
     float e[] = { 5, 0, 0 };
     float t[] = { 0, 0, 0 };
     float u[] = { 0, 1, 0 };
-    Camera DefaultCam(e, t, u, fovy, aspect);
+    Camera DefaultCam(e, t, u, fovY, aspect);
     DefaultCam.SetMatLookAt();
     ModelView = DefaultCam.GetMatLookAt();
 
     float nearplane = -2.0f;
     float farplane = -5.0f;
-    Projection = Mat4Perspective(DefaultCam.fovy, DefaultCam.aspect, nearplane, farplane);
+    Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, nearplane, farplane);
     // 创建一个z-buffer
     float mx = (std::numeric_limits<float>::max)(); // ???
     std::vector<float> zbuf(width * height, mx);

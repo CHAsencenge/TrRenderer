@@ -9,24 +9,18 @@ public:
 	Camera() 
 	{
 		// 带f后缀以单精度处理
-		fovy = PI / 3.0f;
+		fovY = PI / 3.0f;
 		aspect = 4.0f / 3.0f;
-		float e[] = { 5, 0, 0 };
-		float t[] = { 0, 0, 0 };
-		float u[] = { 0, 1, 0 };
+		// constexpr编译时确定值，运行时不产生开销，优化
+		constexpr float e[] = { 5, 0, 0 };
+		constexpr float t[] = { 0, 0, 0 };
+		constexpr float u[] = { 0, 1, 0 };
 		eye = e;
 		target = t;
 		up = u;
 	}
-	Camera(Vec3 e, Vec3 t, Vec3 u, float asp, float fov)
-	{
-		eye = e;
-		target = t;
-		up = u;
-		fovy = fov;
-		aspect = asp;
-	}
-	~Camera();
+	Camera(Vec3 e, Vec3 t, Vec3 u, float asp, float fov);
+	~Camera() = default;
 
 	// 根据朝向计算此相机的坐标轴
 	void CalcAxis();
@@ -35,7 +29,7 @@ public:
 	Mat<4, 4> GetMatLookAt() const;
 
 public:
-	float fovy;
+	float fovY;
 	float aspect;
 	Vec3 eye;
 	Vec3 target;

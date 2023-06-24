@@ -7,11 +7,7 @@ Camera::Camera(Vec3 e, Vec3 t, Vec3 u, float asp, float fov)
 	target = t;
 	up = u;
 	aspect = asp;
-	fovy = fov;
-}
-
-Camera::~Camera()
-{
+	fovY = fov;
 }
 
 void Camera::CalcAxis()
