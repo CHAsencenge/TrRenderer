@@ -99,15 +99,22 @@ Mat<4, 4> Mat4Viewport(int x, int y, int w, int h)
 }
 
 // 见06_解读_
-// 
+// 包围盒内逐个点判断重心坐标是否满足在三角形内，如在三角形内则填充颜色，否则不填充
 Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 {
 	Vec3 res;
+	// P = A + uAB + vAC
+	// 是求u，v的过程
+	// uAB(x) + vAC(x) + PA(x) = 0
+	// uAB(y) + vAC(y) + PA(y) = 0
+	// 找正交于两向量的向量[u v 1]，在计算中仅需两向量求cross
+	//
 	Vec3 v1 = { tri[2].e[0] - tri[0].e[0], tri[1].e[0] - tri[0].e[0], tri[0].e[0] - p.e[0] };
 	Vec3 v2 = { tri[2].e[1] - tri[0].e[1], tri[1].e[1] - tri[0].e[1], tri[0].e[1] - p.e[1] };
 	Vec3 orthoVec = Cross(v1, v2);
 	if (std::abs(orthoVec.e[2]) < 1)
 		return Vec3(-1.0f, 1.0f, 1.0f);
+	// P = (1-u-v)A + uB + vC
 	return Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
 }
 
