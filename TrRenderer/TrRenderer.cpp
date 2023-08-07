@@ -255,10 +255,9 @@ int main()
             {
                 shader.VertexShader(i, j, clipVert[j]);
             }
-            shader.ComputeTBN();            
             // 光栅化
             Triangle(clipVert, shader, framebuf, zbuf);
-            
+            framebuf.WriteTGAFile("output.tga");
         }
     // 用创建的frame buffer将结果写入tga文件保存
 }

@@ -44,6 +44,9 @@ public:
 	float GetOcclusionByUV(Vec2 uv);
 	float GetSpecularByUV(Vec2 uv);
 
+	TGAImage* GetSpecularMap(){ return specularMap; }
+	TGAImage* GetDiffuseMap(){ return diffuseMap; }
+
 	std::vector<int> GetFaceByIndex(int idx);
 
 private:
