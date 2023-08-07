@@ -419,6 +419,22 @@ Vec<nrow> operator* (const Mat<nrow, ncol>& mat, const Vec<ncol1>& vec)
 	return ret;
 }
 
+template<int nrow, int ncol, int ncol1>
+Mat<nrow, ncol1> operator* (const Mat<nrow, ncol>& mat, const Mat<ncol, ncol1>& mat1)
+{
+	Mat<nrow, ncol1> ret;
+	for (int c = 0; c < ncol1; c++)
+	{
+		Vec<nrow> vec;
+		for (int i = 0; i < nrow; i++)
+		{
+			vec[i] = mat.rows[i] * mat1.GetCol().e[i];
+		}
+		ret.SetCol(c, vec);
+	}
+	return ret;
+}
+
 template<int nelement>
 template<int n>
 inline Vec<n> Vec<nelement>::ReduceDimension()

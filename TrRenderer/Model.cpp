@@ -122,6 +122,25 @@ Vec2 Model::UV(int ithFace, int nthVert)
 	return uv;
 }
 
+Vec3 Model::Normal(int ithFace, int nthVert)
+{
+	assert(nthVert < 3);
+	std::vector<int> face = faces[ithFace];
+	int normalIdx = face[1 + nthVert * 3];
+	Vec3 norm = norms[normalIdx];
+	return norm;
+}
+
+// 用四舍五入做采样，可扩展成双线性采样等
+Vec3 Model::NormalByUV(Vec2 UV)
+{
+	int texelX = round(UV.e[0] * normalMap->Width());
+	int texelY = round(UV.e[1] * normalMap->Height());
+	TGAColor c = normalMap->Get(texelX, texelY);
+	// [0, 255] 映射到 [-1, 1]
+	
+}
+
 // diffuse, normal, spec, tangent等纹理读取
 // 主要是加后缀找到相应文件，实际读取调用ReadTGAFile
 // tangent怎么用

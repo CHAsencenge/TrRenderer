@@ -37,16 +37,19 @@ public:
 	virtual void VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position) override;
 	virtual void VertexShader(Vec3 vert, Vec<4>& gl_Position) override;
 	virtual bool FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor) override;
+	virtual void ComputeTBN();
 
 private:
 	Model model;
 	// view coordinates下的信息
 	Vec3 uniformLightDir;
-	// 为什么是Mat的，以三角形为单位来三个三个执行Vertex Shader，存储写入的信息供给Frag Shader
+	// 为什么是Mat的，以三角形为单位来执行Vertex Shader，存储写入的信息供给Frag Shader
 	Mat<3, 3> matVertexVerts;
 	Mat<2, 3> matVertexUVs;
 	Mat<3, 3> matVertexNormals;
 	// view coordinate下的三角形
 	Mat<3, 3> viewCoordTriangle;
+	// 每个顶点对应一个TBN
+	std::vector<Mat<3, 3>> TBN;
 
 };

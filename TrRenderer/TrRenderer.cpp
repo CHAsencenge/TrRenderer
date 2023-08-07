@@ -255,6 +255,7 @@ int main()
             {
                 shader.VertexShader(i, j, clipVert[j]);
             }
+            shader.ComputeTBN();            
             // 光栅化
             Triangle(clipVert, shader, framebuf, zbuf);
             
