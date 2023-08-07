@@ -12,8 +12,8 @@ typedef struct Cubemap
 class IShader
 {
 public:
-	IShader();
-	~IShader();
+	IShader() {}
+	~IShader() {}
 
 	// π©fragment shader π”√
 	static TGAColor Sample2D(TGAImage& img, Vec2 uv);
@@ -32,7 +32,7 @@ class DefaultShader : public IShader
 {
 public:
 	DefaultShader(const Model& m, Vec3& lightDir);
-	~DefaultShader();
+	~DefaultShader() {}
 
 	virtual void VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position) override;
 	virtual void VertexShader(Vec3 vert, Vec<4>& gl_Position) override;

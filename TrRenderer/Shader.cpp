@@ -4,13 +4,6 @@
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
 
-IShader::IShader()
-{
-}
-
-IShader::~IShader()
-{
-}
 
 // 用floot函数将float类型的采样点坐标向下取整
 TGAColor IShader::Sample2D(TGAImage& img, Vec2 uv)
@@ -24,9 +17,6 @@ DefaultShader::DefaultShader(const Model& m, Vec3& lightDir) : model(m)
 	uniformLightDir = (ModelView * lightDir.AddDimension1(0.0f)).ReduceDimension<3>().Normalize();
 }
 
-DefaultShader::~DefaultShader()
-{
-}
 
 
 void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
@@ -47,7 +37,10 @@ void DefaultShader::VertexShader(Vec3 vert, Vec<4>& gl_Position)
 
 bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor)
 {
-
+	// 法线插值
+	// UV插值
+	// 
+	// 返回值确定此片元是否被丢弃
 	return false;
 }
 
