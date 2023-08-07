@@ -66,7 +66,9 @@ public:
 
 	bool ReadRLEData(std::ifstream& in);
 
-	bool WriteTGAFile(const char* filename, bool rle = true);
+	bool UnloadRLEData(std::ofstream &out);
+
+	bool WriteTGAFile(const char* filename, bool vflip, bool rle = true);
 
 	TGAColor Get(int x, int y);
 	bool Set(int x, int y, TGAColor& c);

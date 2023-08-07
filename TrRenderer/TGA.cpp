@@ -166,8 +166,42 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 	return false;
 }
 
-bool TGAImage::WriteTGAFile(const char* filename, bool rle)
+bool TGAImage::UnloadRLEData(std::ofstream& out)
 {
+	return true;
+}
+
+bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
+{
+	constexpr std::uint8_t developer_area_ref[4] = {0, 0, 0, 0};
+	constexpr std::uint8_t extension_area_ref[4] = {0, 0, 0, 0};
+	
+	std::ofstream out;
+	out.open(filename, std::ios::binary);
+	if (!out.is_open()) {
+		std::cerr << "can't open file " << filename << "\n";
+		return false;
+	}
+	TGAHeader header = {};
+	header.bitsPerPixel = bytesPerPixel<<3;
+	header.width  = width;
+	header.height = height;
+	header.dataType = bytesPerPixel==GRAYSCALE?(rle?11:3):(rle?10:2);
+	header.imageDescriptor = vflip ? 0x00 : 0x20; // top-left or bottom-left origin
+	out.write(reinterpret_cast<const char *>(&header), sizeof(header));
+
+	if (!rle) {
+		out.write(reinterpret_cast<const char *>(data), width*height*bytesPerPixel);
+		if (!out.good()) {
+			std::cerr << "can't unload raw data\n";
+			return false;
+		}
+	} else if (!UnloadRLEData(out)) {
+		std::cerr << "can't unload rle data\n";
+		return false;
+	}
+	out.write(reinterpret_cast<const char *>(developer_area_ref), sizeof(developer_area_ref));
+	
 	return false;
 }
 
