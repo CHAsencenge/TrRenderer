@@ -236,7 +236,7 @@ int main()
     float farplane = -5.0f;
     Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, nearplane, farplane);
     // 创建一个z-buffer
-    float mx = (std::numeric_limits<float>::max)(); // ???
+    float mx = (std::numeric_limits<float>::max)(); 
     std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
     Model model("obj\floor.obj");
@@ -249,13 +249,14 @@ int main()
             // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
             Vec<4> clipVert[3];
             // 对三角形的每个顶点调用顶点着色器
-            // face unit结构 v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
+            // face unit结构 v1 / vt1 / vn1    v2 / vt2 / vn2    v3 / vt3 / vn3
             std::vector<int> faceVertsIdx = model.FaceVert(i);
             for (int j = 0; j < faceVertsIdx.size(); j++)
             {
                 shader.VertexShader(i, j, clipVert[j]);
             }
             // 光栅化
+            Triangle(clipVert, shader, framebuf, zbuf);
             
         }
     // 用创建的frame buffer将结果写入tga文件保存

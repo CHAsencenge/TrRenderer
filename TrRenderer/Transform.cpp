@@ -101,6 +101,8 @@ Mat<4, 4> Mat4Viewport(int x, int y, int w, int h)
 
 // 见06_解读_
 // 包围盒内逐个点判断重心坐标是否满足在三角形内，如在三角形内则填充颜色，否则不填充
+// 输入：三个（构成一个三角形的）屏幕空间的二维点，和一个二维点p
+// 输出：点p相对于ABC三个点的插值坐标
 Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 {
 	Vec3 res;
@@ -164,7 +166,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 				continue;
 			// fragment shader中计算颜色
 			TGAColor color;
-			shader.FragmentShader(bcScreen, color);
+			bool bDiscard = shader.FragmentShader(bcScreen, color);
 			image.Set(i, j, color);
 		}
 	}
