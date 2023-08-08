@@ -258,5 +258,7 @@ int main()
             Triangle(clipVert, shader, framebuf, zbuf);
         }
     // 用创建的frame buffer将结果写入tga文件保存
-    framebuf.WriteTGAFile("output.tga", false);
+    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false);
+
+    // std::cin.get();
 }

@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "TGA.h"
 
+#include <string>
+
 // 使用ifstream读文件
 bool TGAImage::ReadTGAFile(const char* filename)
 {
@@ -62,6 +64,7 @@ bool TGAImage::ReadTGAFile(const char* filename)
 	}
 	else if (header.dataType == 10 || header.dataType == 11)
 	{
+		std::cout << "TGAImage::ReadRLEData" << filename << std::endl;
 		if (!ReadRLEData(in))
 		{
 			in.close();
@@ -129,6 +132,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			{
 				// non-repeated data blocks
 				in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel);
+				std::cout << "chunk data non-repeated: "<< reinterpret_cast<char*>(colorBuffer.bgra) << std::endl;
 				if (!in.good())
 				{
 					std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 1\n";
@@ -148,6 +152,11 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			// why subtract 127 rather than 128? one data block uses 10000000 or 10000001? 
 			chunkHeader -= 127;
 			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // repeated data block, read once
+			for (int i = 0; i < sizeof(colorBuffer.bgra) / sizeof(colorBuffer.bgra[0]); i++)
+			{
+				std::cout << static_cast<int>(colorBuffer.bgra[i]) << " ";
+			}
+			std::cout << std::endl;
 			if (!in.good())
 			{
 				std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 2\n";
@@ -169,13 +178,13 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 }
 
 // 将经过运行长度编码（RLE）的数据从TGA图像文件中解压缩并写入到输出文件流中
-// width * height * bytesPerPixel
+// out stream data length: width * height * bytesPerPixel
 bool TGAImage::UnloadRLEData(std::ofstream& out)
 {
 	unsigned long pixelCount = width * height;
 	unsigned long currentPixel = 0;
 
-	uint8_t maxChunkLength = 128;
+	uint8_t maxChunkLength = 128; // can not express more in one byte
 	
 	while (currentPixel < pixelCount)
 	{
@@ -183,19 +192,50 @@ bool TGAImage::UnloadRLEData(std::ofstream& out)
 		unsigned long currentByte = currentPixel * bytesPerPixel;
 		uint8_t runLength = 1;
 		unsigned char chunkHeader = 0;
+		// non-repeated
 		bool bRaw = true;
 
 		while(currentPixel + runLength < pixelCount && runLength < maxChunkLength)
 		{
 			bool bEqual = true;
-			for(int consecutive = 0; bEqual && consecutive < bytesPerPixel; consecutive++)
+			// if this data color is equal to the next data color
+			for(int batchByte = 0; bEqual && batchByte < bytesPerPixel; batchByte++)
 			{
-				
+				// dataB1 dataG1 dataR1 dataA1 dataB2 dataG2 dataR2 dataA2
+				// check equal for each color channel
+				bEqual = data[currentByte + batchByte] == data[currentByte + batchByte + bytesPerPixel];
 			}
+			currentByte += bytesPerPixel;
+			if (runLength == 1)
+			{
+				bRaw = !bEqual;
+			}
+			// break for non-repeated data
+			if (bRaw && bEqual)
+			{
+				runLength--;
+				break;
+			}
+			// break for repeated data
+			if(!bRaw && !bEqual)
+			{
+				break;
+			}
+			
+			runLength++;
+		}
+		currentPixel += runLength;
+		out.put(bRaw? runLength - 1 : runLength + 127);
+		if (!out.good()) {
+			std::cerr << "can't dump the tga file : out stream put fail\n";
+			return false;
+		}
+		out.write(reinterpret_cast<const char *>(data + chunkStart), (bRaw ? runLength * bytesPerPixel : bytesPerPixel));
+		if (!out.good()) {
+			std::cerr << "can't dump the tga file : out stream write fail\n";
+			return false;
 		}
 	}
-		
-		
 	return true;
 }
 
@@ -203,6 +243,7 @@ bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
 {
 	constexpr std::uint8_t developer_area_ref[4] = {0, 0, 0, 0};
 	constexpr std::uint8_t extension_area_ref[4] = {0, 0, 0, 0};
+	constexpr std::uint8_t footer[18] = {'T','R','U','E','V','I','S','I','O','N','-','X','F','I','L','E','.','\0'};
 	
 	std::ofstream out;
 	out.open(filename, std::ios::binary);
@@ -224,17 +265,45 @@ bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
 	
 	if (!rle) {
 		out.write(reinterpret_cast<const char *>(data), width*height*bytesPerPixel);
-		if (!out.good()) {
+		if (!out.good())
+		{
 			std::cerr << "can't unload raw data\n";
 			return false;
 		}
-	} else if (!UnloadRLEData(out)) {
+	}
+	else if (!UnloadRLEData(out))
+	{
 		std::cerr << "can't unload rle data\n";
 		return false;
 	}
 	out.write(reinterpret_cast<const char *>(developer_area_ref), sizeof(developer_area_ref));
+	if (!out.good()) {
+		std::cerr << "can't dump the tga file developer_area_ref\n";
+		return false;
+	}
+	out.write(reinterpret_cast<const char *>(extension_area_ref), sizeof(extension_area_ref));
+	if (!out.good()) {
+		std::cerr << "can't dump the tga file extension_area_ref\n";
+		return false;
+	}
+	out.write(reinterpret_cast<const char *>(footer), sizeof(footer));
+	if (!out.good()) {
+		std::cerr << "can't dump the tga file footer\n";
+		return false;
+	}
+
+	out.close();
+
+	/*std::ifstream infile(filename, std::ios::binary);
+	std::string line;
+	while (getline(infile, line))
+	{
+		std::cout << line << std::endl;
+	}
+	infile.close();*/
 	
-	return false;
+	std::cout << "TGAImage::WriteTGAFile end\n";
+	return true;
 }
 
 TGAColor TGAImage::Get(int x, int y)
