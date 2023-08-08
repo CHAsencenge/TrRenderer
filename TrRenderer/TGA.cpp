@@ -19,7 +19,7 @@ bool TGAImage::ReadTGAFile(const char* filename)
 	TGAHeader header;
 	// istream& read(char* s, streamsize n);
 	// s是指向字符数组的指针，用于存储读取的数据；n是要读取的字节数
-	in.read((char*)&header, sizeof(header));
+	in.read(reinterpret_cast<char*>(&header), sizeof(header));
 	// 是否读取成功
 	if (!in.good())
 	{

@@ -94,20 +94,23 @@ protected:
 	int bytesPerPixel;
 };
 
-class TGAHeader
+// 将当前的对齐方式压栈，并将对齐方式设置为1字节对齐。也就是说，结构体的成员将按照一个字节的边界进行对齐，不会有任何填充字节
+#pragma pack(push,1)
+struct TGAHeader
 {
-public:
-	char idLength;   // ID长度
-	char colorMapType;   // 颜色映射类型
-	char dataType;   // 图像类型，包括无压缩真彩色、无压缩索引色、无压缩黑白图像、RLE压缩真彩色、RLE压缩索引色和RLE压缩黑白图像
-	short colorMapOrigin;   // 颜色映射表的起始索引
-	short colorMapLength;   // 颜色映射表的长度
-	char bitsPerColorMapItem;   // 颜色映射表中每个颜色项的位数
-	short xOrigin;   // 图像X坐标的起始位置
-	short yOrigin;   // 图像Y坐标的起始位置
-	short width;   // 图像的宽度
-	short height;   // 图像的高度
-	char bitsPerPixel;   // 每个像素的位数
-	char imageDescriptor;   // 图像描述字节(管图像方向)
+
+	uint8_t idLength;   // ID长度
+	uint8_t colorMapType;   // 颜色映射类型
+	uint8_t dataType;   // 图像类型，包括无压缩真彩色、无压缩索引色、无压缩黑白图像、RLE压缩真彩色、RLE压缩索引色和RLE压缩黑白图像
+	uint16_t  colorMapOrigin;   // 颜色映射表的起始索引
+	uint16_t  colorMapLength;   // 颜色映射表的长度
+	uint8_t bitsPerColorMapItem;   // 颜色映射表中每个颜色项的位数
+	uint16_t  xOrigin;   // 图像X坐标的起始位置
+	uint16_t  yOrigin;   // 图像Y坐标的起始位置
+	uint16_t  width;   // 图像的宽度
+	uint16_t  height;   // 图像的高度
+	uint8_t bitsPerPixel;   // 每个像素的位数
+	uint8_t imageDescriptor;   // 图像描述字节(管图像方向)
 };
+#pragma pack(pop)
 
