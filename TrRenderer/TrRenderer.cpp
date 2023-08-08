@@ -205,7 +205,6 @@ extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
 extern Mat<4, 4> Viewport;
 
-
 // 项目属性---链接器---系统---子系统---控制台
 int main()
 {
@@ -259,5 +258,5 @@ int main()
             Triangle(clipVert, shader, framebuf, zbuf);
         }
     // 用创建的frame buffer将结果写入tga文件保存
-    framebuf.WriteTGAFile("output.tga");
+    framebuf.WriteTGAFile("output.tga", false);
 }

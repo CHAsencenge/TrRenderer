@@ -138,7 +138,9 @@ Vec3 Model::NormalByUV(Vec2 UV)
 	int texelY = round(UV.e[1] * normalMap->Height());
 	TGAColor c = normalMap->Get(texelX, texelY);
 	// [0, 255] 映射到 [-1, 1]
-	
+	Vec<3> res = {static_cast<float>(c.bgra[2]), static_cast<float>(c.bgra[1]), static_cast<float>(c.bgra[0])};
+	res = res * 2.0f / 255.0f - Vec<3>{1, 1, 1};
+	return res;
 }
 
 // diffuse, normal, spec, tangent等纹理读取

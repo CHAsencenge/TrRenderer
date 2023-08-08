@@ -28,6 +28,11 @@
 // 
 // M_view = M_R * M_T (以下函数的mat)
 
+
+Mat<4, 4> ModelView;
+Mat<4, 4> Projection;
+Mat<4, 4> Viewport;
+
 // pending discard
 Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
 {

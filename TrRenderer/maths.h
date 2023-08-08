@@ -195,7 +195,7 @@ inline Vec<nelement + 1> Vec<nelement>::AddDimension1(float value)
 template<int nrow, int ncol>
 inline Mat<nrow, ncol>::Mat()
 {
-	rows[nrow] = { {} };
+	// rows[nrow] = { {} };
 }
 
 //template<int nrow, int ncol>
@@ -314,7 +314,7 @@ inline Vec<nrow> Mat<nrow, ncol>::GetCol(const int idx) const
 // 双目运算，不定义为类成员函数
 
 // Vec
-template<int nelement>
+/*template<int nelement>
 Vec<nelement> operator+(const Vec<nelement>& m, const Vec<nelement>& n);
 template<int nelement>
 Vec<nelement> operator-(const Vec<nelement>& m, const Vec<nelement>& n);
@@ -325,7 +325,7 @@ Vec<nelement> operator*(float t, const Vec<nelement>& n);
 template<int nelement>
 Vec<nelement> operator*(const Vec<nelement>& n, float t);
 template<int nelement>
-Vec<nelement> operator/(Vec<nelement>& n, float t);
+Vec<nelement> operator/(Vec<nelement>& n, float t);*/
 
 
 
@@ -371,7 +371,7 @@ Vec<nelement> operator+(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
 template<int nelement>
 Vec<nelement> operator-(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
 {
-	Vec<nelement> vec = { 0 };
+	Vec<nelement> vec;
 	for (int i = 0; i < nelement; i++)
 	{
 		vec.e[i] = lhs[i] - rhs[i];
@@ -404,7 +404,7 @@ T UniformVec(T& Vec);
 template<typename T>
 inline T UniformVec(T& Vec)
 {
-	return T / T.Norm();
+	return Vec / Vec.Norm();
 }
 
 // 矩阵乘向量
@@ -428,7 +428,7 @@ Mat<nrow, ncol1> operator* (const Mat<nrow, ncol>& mat, const Mat<ncol, ncol1>& 
 		Vec<nrow> vec;
 		for (int i = 0; i < nrow; i++)
 		{
-			vec[i] = mat.rows[i] * mat1.GetCol().e[i];
+			vec[i] = mat.rows[i] * mat1.GetCol(c);
 		}
 		ret.SetCol(c, vec);
 	}
