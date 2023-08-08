@@ -121,19 +121,20 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data\n";
 			return false;
 		}
-		// 如果最高位为0，则表示当前数据块是一个非重复数据块，Data中包含多个字节，表示连续的非重复数据值
+		// if highest bit is 0, data block contains multiple consecutive non-repeat data
 		if (chunkHeader < 128) 
 		{
-			chunkHeader++;
+			chunkHeader++; // why? read chunk+1 times?
 			for (int n = 0; n < chunkHeader; n++)
 			{
-				// 需要一直往后读
+				// non-repeated data blocks
 				in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel);
 				if (!in.good())
 				{
 					std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 1\n";
 					return false;
 				}
+				// a channel per byte
 				for (int i = 0; i < bytesPerPixel; i++)
 				{
 					data[currentByte++] = colorBuffer.bgra[i];
@@ -141,11 +142,12 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 				currentPixel++;
 			}
 		}
-		// 如果最高位为1，则表示当前数据块是一个重复数据块，Data中只包含一个字节，表示重复的数据值
+		// if highest bit is 1, repeated data
 		else 
 		{
+			// why subtract 127 rather than 128? one data block uses 10000000 or 10000001? 
 			chunkHeader -= 127;
-			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // 无需一直往后读
+			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // repeated data block, read once
 			if (!in.good())
 			{
 				std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 2\n";
@@ -166,8 +168,34 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 	return true;
 }
 
+// 将经过运行长度编码（RLE）的数据从TGA图像文件中解压缩并写入到输出文件流中
+// width * height * bytesPerPixel
 bool TGAImage::UnloadRLEData(std::ofstream& out)
 {
+	unsigned long pixelCount = width * height;
+	unsigned long currentPixel = 0;
+
+	uint8_t maxChunkLength = 128;
+	
+	while (currentPixel < pixelCount)
+	{
+		unsigned long chunkStart = currentPixel * bytesPerPixel;
+		unsigned long currentByte = currentPixel * bytesPerPixel;
+		uint8_t runLength = 1;
+		unsigned char chunkHeader = 0;
+		bool bRaw = true;
+
+		while(currentPixel + runLength < pixelCount && runLength < maxChunkLength)
+		{
+			bool bEqual = true;
+			for(int consecutive = 0; bEqual && consecutive < bytesPerPixel; consecutive++)
+			{
+				
+			}
+		}
+	}
+		
+		
 	return true;
 }
 
@@ -183,13 +211,17 @@ bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
 		return false;
 	}
 	TGAHeader header = {};
-	header.bitsPerPixel = bytesPerPixel<<3;
+	header.bitsPerPixel = bytesPerPixel << 3;
 	header.width  = width;
 	header.height = height;
 	header.dataType = bytesPerPixel==GRAYSCALE?(rle?11:3):(rle?10:2);
 	header.imageDescriptor = vflip ? 0x00 : 0x20; // top-left or bottom-left origin
 	out.write(reinterpret_cast<const char *>(&header), sizeof(header));
-
+	if (!out.good()) {
+		std::cerr << "can't dump the tga file\n";
+		return false;
+	}
+	
 	if (!rle) {
 		out.write(reinterpret_cast<const char *>(data), width*height*bytesPerPixel);
 		if (!out.good()) {
