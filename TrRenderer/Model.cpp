@@ -87,6 +87,14 @@ Model::Model(const char* filename)
 
 Model::~Model()
 {
+	delete diffuseMap;
+	diffuseMap = nullptr;
+
+	delete normalMap;
+	normalMap = nullptr;
+
+	delete specularMap;
+	specularMap = nullptr;
 }
 
 Vec3 Model::Vert(int idx)
@@ -161,6 +169,9 @@ void Model::LoadTexture(const char* filename, const char* suffix, TGAImage& img)
 
 void Model::CreateMap(const char* filename)
 {
+	diffuseMap = new TGAImage(512, 512);
+	normalMap = new TGAImage(512, 512);
+	specularMap = new TGAImage(512, 512);
 	// ∂¡»°diffuseµ»Œ∆¿Ì
 	LoadTexture(filename, "_diffuse.tga", *diffuseMap);
 	LoadTexture(filename, "_nm_tangent.tga", *normalMap);

@@ -88,7 +88,7 @@ public:
 protected:
 	// unsigned char指针通常用于处理二进制数据，例如读取和修改图像数据、音频数据等
 	// 处理二进制数据需要使用unsigned char指针来确保数据的正确性
-	unsigned char* data;
+	unsigned char* data = nullptr;
 	int width;
 	int height;
 	int bytesPerPixel;

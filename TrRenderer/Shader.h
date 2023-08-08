@@ -31,7 +31,7 @@ private:
 class DefaultShader : public IShader
 {
 public:
-	DefaultShader(const Model& m, Vec3& lightDir);
+	DefaultShader(Model& m, Vec3& lightDir);
 	~DefaultShader() {}
 
 	virtual void VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position) override;
@@ -39,7 +39,7 @@ public:
 	virtual bool FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor) override;
 
 private:
-	Model model;
+	Model* model;
 	// view coordinates下的信息
 	Vec3 uniformLightDir;
 	// 为什么是Mat的，以三角形为单位来执行Vertex Shader，存储写入的信息供给Frag Shader

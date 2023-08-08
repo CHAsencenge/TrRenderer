@@ -210,10 +210,10 @@ int main()
 {
     int width = 800, height = 600;
     window_init(width, height, L"TrRenderer");
-    while (1)
+    /*while (1)
     {
         std::cout << "console hello" << std::endl;
-    }
+    }*/
     std::cout << "console hello" << std::endl;
 
     // 静态图生成
@@ -238,7 +238,7 @@ int main()
     float mx = (std::numeric_limits<float>::max)(); 
     std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
-    Model model("obj\floor.obj");
+    Model model("obj\\floor.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir);
