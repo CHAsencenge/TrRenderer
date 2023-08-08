@@ -82,7 +82,15 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	// 分通道计算叠加光照效果后的颜色
 	float diffuseIntensity = std::max(0.0f, Dot(SampleNormalmapES, uniformLightDir));
 	Vec<3> reflectDir = SampleNormalmapES * (Dot(SampleNormalmapES, uniformLightDir) * 2) - uniformLightDir;
-	float specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5 + Sample2D(*model->GetSpecularMap(), fragUV).bgra[0]);
+	float specularIntensity;
+	if (model->GetSpecularMap() != nullptr)
+	{
+		specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5 + Sample2D(*model->GetSpecularMap(), fragUV).bgra[0]);
+	}
+	else
+	{
+		specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5);
+	}
 	TGAColor baseColor = Sample2D(*model->GetDiffuseMap(), fragUV);
 	for(int i = 0; i < 3; i++)
 	{

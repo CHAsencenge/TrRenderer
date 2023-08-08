@@ -87,14 +87,23 @@ Model::Model(const char* filename)
 
 Model::~Model()
 {
-	delete diffuseMap;
-	diffuseMap = nullptr;
+	if (diffuseMap != nullptr)
+	{
+		delete diffuseMap;
+		diffuseMap = nullptr;
+	}
 
-	delete normalMap;
-	normalMap = nullptr;
+	if (normalMap != nullptr)
+	{
+		delete normalMap;
+		normalMap = nullptr;
+	}
 
-	delete specularMap;
-	specularMap = nullptr;
+	if (specularMap != nullptr)
+	{
+		delete specularMap;
+		specularMap = nullptr;
+	}
 }
 
 Vec3 Model::Vert(int idx)
@@ -154,7 +163,7 @@ Vec3 Model::NormalByUV(Vec2 UV)
 // diffuse, normal, spec, tangent等纹理读取
 // 主要是加后缀找到相应文件，实际读取调用ReadTGAFile
 // tangent怎么用
-void Model::LoadTexture(const char* filename, const char* suffix, TGAImage& img)
+void Model::LoadTexture(const char* filename, const char* suffix, TGAImage*& img)
 {
 	std::string texFile(filename);
 	size_t dot = texFile.find_last_of(".");
@@ -163,7 +172,12 @@ void Model::LoadTexture(const char* filename, const char* suffix, TGAImage& img)
 		// suffix要带.tga后缀
 		texFile = texFile.substr(0, dot) + std::string(suffix);
 		// 读纹理到img
-		img.ReadTGAFile(texFile.c_str());
+		bool bReadSuccess = img->ReadTGAFile(texFile.c_str());
+		if (!bReadSuccess)
+		{
+			delete img;
+			img = nullptr;
+		}
 	}
 }
 
@@ -173,9 +187,9 @@ void Model::CreateMap(const char* filename)
 	normalMap = new TGAImage(512, 512);
 	specularMap = new TGAImage(512, 512);
 	// 读取diffuse等纹理
-	LoadTexture(filename, "_diffuse.tga", *diffuseMap);
-	LoadTexture(filename, "_nm_tangent.tga", *normalMap);
-	LoadTexture(filename, "_spec.tga", *specularMap);
+	LoadTexture(filename, "_diffuse.tga", diffuseMap);
+	LoadTexture(filename, "_nm_tangent.tga", normalMap);
+	LoadTexture(filename, "_spec.tga", specularMap);
 }
 
 int Model::GetNumVerts()

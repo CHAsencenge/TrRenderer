@@ -30,7 +30,7 @@ public:
 	Vec3 Normal(int ithFace, int nthVert);
 	Vec3 NormalByUV(Vec2 UV);
 
-	void LoadTexture(const char* filename, const char* suffix, TGAImage& img);
+	void LoadTexture(const char* filename, const char* suffix, TGAImage*& img);
 	// 通过tga文件将各个贴图读到对应贴图数据成员中
 	void CreateMap(const char* filename);
 

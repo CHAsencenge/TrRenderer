@@ -128,7 +128,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			for (int n = 0; n < chunkHeader; n++)
 			{
 				// 需要一直往后读
-				in.read((char*)colorBuffer.bgra, bytesPerPixel);
+				in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel);
 				if (!in.good())
 				{
 					std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 1\n";
@@ -145,7 +145,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 		else 
 		{
 			chunkHeader -= 127;
-			in.read((char*)colorBuffer.bgra, bytesPerPixel); // 无需一直往后读
+			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // 无需一直往后读
 			if (!in.good())
 			{
 				std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 2\n";
@@ -163,7 +163,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 		
 	}
 
-	return false;
+	return true;
 }
 
 bool TGAImage::UnloadRLEData(std::ofstream& out)
