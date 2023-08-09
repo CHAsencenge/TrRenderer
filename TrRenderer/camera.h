@@ -36,10 +36,10 @@ public:
 	Vec3 up;
 
 private:
-	// 计算出的eye space坐标轴方向
-	Vec3 x;
-	Vec3 y;
-	Vec3 z;
+	// eye space axis (basis)
+	Vec3 i;
+	Vec3 j;
+	Vec3 k;
 
 	Mat<4, 4> matLookAt;
 

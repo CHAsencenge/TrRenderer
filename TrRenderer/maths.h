@@ -335,7 +335,7 @@ float operator*(const Vec<nelement>& lhs, const Vec<nelement>& rhs)
 	float ret = 0;
 	for (int i = 0; i < nelement; i++)
 	{
-		ret = lhs[i] * rhs[i];
+		ret += lhs[i] * rhs[i];
 	}
 	return ret;
 }
@@ -385,7 +385,7 @@ Vec<nelement> operator/(const Vec<nelement>& lhs, float m)
 	Vec<nelement> vec;
 	for (int i = 0; i < nelement; i++)
 	{
-		vec.e[i] = lhs.e[i] * m;
+		vec.e[i] = lhs.e[i] / m;
 	}
 	return vec;
 }

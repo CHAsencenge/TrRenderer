@@ -179,6 +179,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	{
 		for (int j = static_cast<int>(boundingBoxMinY); j <= static_cast<int>(boundingBoxMaxY); j++)
 		{
+			std::cout << "Triangle pixel " << i << " " << j << std::endl;
 			Vec2 p = { static_cast<float>(i), static_cast<float>(j) };
 			Vec3 bcScreen = Barycentric(screenVerts2D, p);
 			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)

@@ -109,7 +109,7 @@ Model::~Model()
 
 Vec3 Model::Vert(int idx)
 {
-	return verts[idx];
+	return verts[idx-1];
 }
 
 Vec3 Model::Vert(int iFace, int nthVert)
@@ -136,7 +136,7 @@ Vec2 Model::UV(int ithFace, int nthVert)
 	assert(nthVert < 3);
 	std::vector<int> face = faces[ithFace];
 	int uvIdx = face[1 + nthVert * 3];
-	Vec2 uv = uvs[uvIdx];
+	Vec2 uv = uvs[uvIdx-1];
 	return uv;
 }
 
