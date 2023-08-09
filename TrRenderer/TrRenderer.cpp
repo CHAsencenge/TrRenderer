@@ -12,6 +12,7 @@
 #include "TGA.h"
 #include "Model.h"
 #include "Shader.h"
+#include "ClassUtils.h"
 #include <vector>
 
 
@@ -230,6 +231,7 @@ int main()
     Camera DefaultCam(e, t, u, fovY, aspect);
     DefaultCam.SetMatLookAt();
     ModelView = DefaultCam.GetMatLookAt();
+    TrUtils::PrintMat(ModelView, "main ");
 
     float nearplane = -2.0f;
     float farplane = -5.0f;

@@ -14,7 +14,7 @@ public:
         }
         for (int i = 0; i < ncol; i++)
         {
-            TrDebug::PrintArray(mat.rows, false);
+            TrDebug::PrintArray(mat.rows[i].e, false);
         }
     }
 };
