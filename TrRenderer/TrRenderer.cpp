@@ -208,7 +208,7 @@ extern Mat<4, 4> Viewport;
 // 项目属性---链接器---系统---子系统---控制台
 int main()
 {
-    int width = 800, height = 600;
+    int width = 600, height = 600;
     window_init(width, height, L"TrRenderer");
     /*while (1)
     {
@@ -218,7 +218,7 @@ int main()
 
     // 静态图生成
     // 创建一个TGAImage类型的frame buffer
-    TGAImage framebuf(width, height);
+    TGAImage framebuf(width, height, 4);
     // build model view projection矩阵
     // 
     // 初始化相机参数，创建相机
@@ -258,7 +258,7 @@ int main()
             Triangle(clipVert, shader, framebuf, zbuf);
         }
     // 用创建的frame buffer将结果写入tga文件保存
-    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false);
+    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, true);
 
     // std::cin.get();
 }

@@ -55,7 +55,11 @@ public:
 		height = h;
 		// bytesPerPixel实际会在ReadRLEData时计算
 		bytesPerPixel = bpp;
-		data = nullptr;
+		int len = width * height * bpp;
+	}
+
+	~TGAImage()
+	{
 	}
 
 	// 读TGA文件
