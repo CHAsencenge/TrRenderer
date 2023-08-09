@@ -234,13 +234,13 @@ int main()
     TrUtils::PrintMat(ModelView, "main ");
 
     float nearplane = -2.0f;
-    float farplane = -5.0f;
-    Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, nearplane, farplane);
+    float farplane = -10.0f;
+    Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
     // 创建一个z-buffer
     float mx = (std::numeric_limits<float>::max)(); 
     std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
-    Model model("obj\\floor.obj");
+    Model model("obj\\boggie\\eyes.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir);

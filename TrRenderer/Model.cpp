@@ -145,7 +145,7 @@ Vec3 Model::Normal(int ithFace, int nthVert)
 	assert(nthVert < 3);
 	std::vector<int> face = faces[ithFace];
 	int normalIdx = face[2 + nthVert * 3];
-	Vec3 norm = norms[normalIdx-1];
+	Vec3 norm = norms[normalIdx - 1];
 	return norm;
 }
 

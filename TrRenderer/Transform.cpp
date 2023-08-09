@@ -120,9 +120,13 @@ Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 	Vec3 v1 = { tri[2].e[0] - tri[0].e[0], tri[1].e[0] - tri[0].e[0], tri[0].e[0] - p.e[0] };
 	Vec3 v2 = { tri[2].e[1] - tri[0].e[1], tri[1].e[1] - tri[0].e[1], tri[0].e[1] - p.e[1] };
 	Vec3 orthoVec = Cross(v1, v2);
-	if (std::abs(orthoVec.e[2]) < 1)
-		return Vec3(-1.0f, 1.0f, 1.0f);
+	
+	/*if (std::abs(orthoVec.e[2]) < 1)
+		return Vec3(-1.0f, 1.0f, 1.0f);*/
+	
 	// P = (1-u-v)A + uB + vC
+	res = Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
+	TrDebug::PrintArray(res.e, false, "Barycentric");
 	return Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
 }
 
@@ -186,6 +190,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 				continue;
 			// fragment shader÷–º∆À„—’…´
 			TGAColor color;
+			std::cout << "Triangle pixel FragmentShader " << i << " " << j << std::endl;
 			bool bDiscard = shader.FragmentShader(bcScreen, color);
 			image.Set(i, j, color);
 		}

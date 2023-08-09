@@ -37,11 +37,14 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 	Vec3 vert = model->Vert(faceVertsIdx[nthVert]);
 	Vec<4> vertHomo = vert.AddDimension1(1);
 	Vec<4> vertEyeSpace = ModelView * vertHomo;
+	TrDebug::PrintArray(vertEyeSpace, false, "DefaultShader::VertexShader vertEyeSpace");
 
 	// 记录的顶点坐标在视图空间
 	matVertexVerts.SetCol(nthVert, vertEyeSpace.ReduceDimension<3>());
 	Vec<4> vertClipSpace = Projection * vertEyeSpace;
 	gl_Position = vertClipSpace;
+	TrDebug::PrintArray(vertClipSpace, false, "DefaultShader::VertexShader vertClipSpace");
+
 }
 
 void DefaultShader::VertexShader(Vec3 vert, Vec<4>& gl_Position)
@@ -97,7 +100,7 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 		specularIntensity = std::pow(max(-reflectDir.e[2], 0.0f), 5);
 	}
 	TGAColor baseColor = Sample2D(*model->GetDiffuseMap(), fragUV);
-	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
+	TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
 	for(int i = 0; i < 3; i++)
 	{
 		gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
