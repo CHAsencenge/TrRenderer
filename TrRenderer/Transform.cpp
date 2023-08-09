@@ -137,6 +137,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 		ndcVerts[i].e[0] = clipVerts[i].e[0] / clipVerts[i].e[3];
 		ndcVerts[i].e[1] = clipVerts[i].e[1] / clipVerts[i].e[3];
 		ndcVerts[i].e[2] = clipVerts[i].e[2] / clipVerts[i].e[3];
+		TrDebug::PrintArray(ndcVerts[i].e, false, "Triangle ndcVerts: ");
 	}
 	// 对顶点做viewport变换
 	Vec3 screenVerts[3];
@@ -145,6 +146,8 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 		screenVerts[i].e[0] = ndcVerts[i].e[0] * (image.Width() / 2.0f) + (image.Width() / 2.0f);
 		screenVerts[i].e[1] = ndcVerts[i].e[1] * (image.Height() / 2.0f) + (image.Height() / 2.0f);
 		screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+
+		TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
 	}
 	// 计算光栅化范围，考虑image范围限制
 	float boundingBoxMinX = (std::numeric_limits<float>::max)();

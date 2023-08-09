@@ -5,8 +5,12 @@
 namespace TrDebug
 {
     template <typename T, typename CastType = int>
-    void PrintArray(T& inArray, bool needCast = false)
+    void PrintArray(T& inArray, bool needCast = false, const char* prefix = "")
     {
+        if (strcmp(prefix, "") != 0)
+        {
+            std::cout << prefix << std::endl;
+        }
         for (int i = 0; i < sizeof(inArray)/ sizeof(inArray[0]); i++)
         {
             if (needCast)

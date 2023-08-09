@@ -65,12 +65,13 @@ Model::Model(const char* filename)
 		// f v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
 		else if (!line.compare(0, 2, "f "))
 		{
+			std::cout << "Model::Model " << filename << " " << line << std::endl;
 			iss >> trash;
 			int f[3];
 			std::vector<int> face;
 			int count = 0;
 			// 一般来说一行会while3次
-			while (iss >> f[0] >> trash >> f[1] >> trash >> f[2] >> trash)
+			while (iss >> f[0] >> trash >> f[1] >> trash >> f[2])
 			{
 				count++;
 				printf("Model::Model face line while count %d\n", count);
@@ -143,8 +144,8 @@ Vec3 Model::Normal(int ithFace, int nthVert)
 {
 	assert(nthVert < 3);
 	std::vector<int> face = faces[ithFace];
-	int normalIdx = face[1 + nthVert * 3];
-	Vec3 norm = norms[normalIdx];
+	int normalIdx = face[2 + nthVert * 3];
+	Vec3 norm = norms[normalIdx-1];
 	return norm;
 }
 
@@ -194,12 +195,12 @@ void Model::CreateMap(const char* filename)
 
 int Model::GetNumVerts()
 {
-	return 0;
+	return verts.size();
 }
 
 int Model::GetNumFaces()
 {
-	return 0;
+	return faces.size();
 }
 
 Vec3 Model::GetDiffuseByUV(Vec2 uv)
@@ -234,5 +235,5 @@ float Model::GetSpecularByUV(Vec2 uv)
 
 std::vector<int> Model::GetFaceByIndex(int idx)
 {
-	return std::vector<int>();
+	return faces[idx];
 }
