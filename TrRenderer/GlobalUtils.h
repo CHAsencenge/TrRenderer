@@ -1,3 +1,5 @@
+// no custom class referenced
+
 #pragma once
 #include <bitset>
 #include <iostream>

@@ -129,16 +129,20 @@ Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 // 光栅化方案：包围盒内逐个点依据重心坐标判断是否在三角形内，在三角形内则填充颜色
 void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::vector<float>& zbuffer)
 {
+	
 	// 透视除法
 	// NDC
 	Vec3 ndcVerts[3];
 	for (int i = 0; i < 3; i++)
 	{
+		TrDebug::PrintArray(clipVerts[i].e, false, "Triangle clipVerts: ");
+		
 		ndcVerts[i].e[0] = clipVerts[i].e[0] / clipVerts[i].e[3];
 		ndcVerts[i].e[1] = clipVerts[i].e[1] / clipVerts[i].e[3];
 		ndcVerts[i].e[2] = clipVerts[i].e[2] / clipVerts[i].e[3];
 		TrDebug::PrintArray(ndcVerts[i].e, false, "Triangle ndcVerts: ");
 	}
+	
 	// 对顶点做viewport变换
 	Vec3 screenVerts[3];
 	for (int i = 0; i < 3; i++)
@@ -149,11 +153,13 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 
 		TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
 	}
+	
 	// 计算光栅化范围，考虑image范围限制
 	float boundingBoxMinX = (std::numeric_limits<float>::max)();
 	float boundingBoxMinY = (std::numeric_limits<float>::max)();
 	float boundingBoxMaxX = (std::numeric_limits<float>::min)();
 	float boundingBoxMaxY = (std::numeric_limits<float>::min)();
+	
 	// 根据三个顶点确定包围盒范围
 	for (int i = 0; i < 3; i++)
 	{
@@ -161,7 +167,12 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 		boundingBoxMinY = std::max(0.0f, std::min(boundingBoxMinY, screenVerts[i].e[1]));
 		boundingBoxMaxX = std::min(image.Width() - 1.0f, std::max(boundingBoxMaxX, screenVerts[i].e[0]));
 		boundingBoxMaxY = std::min(image.Height() - 1.0f, std::max(boundingBoxMaxY, screenVerts[i].e[1]));
+		std::cout << "Triangle boundingBoxMinX: " << boundingBoxMinX << std::endl;
+		std::cout << "Triangle boundingBoxMinY: " << boundingBoxMinY << std::endl;
+		std::cout << "Triangle boundingBoxMaxX: " << boundingBoxMaxX << std::endl;
+		std::cout << "Triangle boundingBoxMaxY: " << boundingBoxMaxY << std::endl;
 	}
+	
 	// 遍历光栅化范围xy
 	Vec2 screenVerts2D[] = { screenVerts[0].ReduceDimension<2>(), screenVerts[1].ReduceDimension<2>(), screenVerts[2].ReduceDimension<2>() };
 	for (int i = static_cast<int>(boundingBoxMinX); i <= static_cast<int>(boundingBoxMaxX); i++)

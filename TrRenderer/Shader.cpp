@@ -23,6 +23,7 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 {
 	// 在调用VertexShader时，从model中获取顶点的UV和法线等信息来构造相应矩阵
 	matVertexUVs.SetCol(nthVert, model->UV(ithFace, nthVert));
+	TrUtils::PrintMat(matVertexUVs);
 	
 	// 顶点法线从模型空间转到视图空间
 	Vec<4> vertNormalAD = model->Normal(ithFace, nthVert).AddDimension1(0);
@@ -92,7 +93,7 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 		specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5);
 	}
 	TGAColor baseColor = Sample2D(*model->GetDiffuseMap(), fragUV);
-	TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
+	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
 	for(int i = 0; i < 3; i++)
 	{
 		gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
