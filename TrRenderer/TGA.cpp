@@ -4,6 +4,8 @@
 #include <bitset>
 #include <string>
 
+#include "GlobalUtils.h"
+
 // 使用ifstream读文件
 bool TGAImage::ReadTGAFile(const char* filename)
 {
@@ -25,43 +27,18 @@ bool TGAImage::ReadTGAFile(const char* filename)
 	in.read(reinterpret_cast<char*>(&header), sizeof(header));
 	
 	std::cout << "TGAImage::ReadTGAFile: " << std::endl;
-	std::bitset<8> idLengthBits(header.idLength);
-	std::bitset<8> colorMapTypeBits(header.colorMapType);
-	std::bitset<8> dataTypeBits(header.dataType);
-	std::bitset<16> colorMapOriginBits(header.colorMapOrigin);
-	std::bitset<16> colorMapLengthBits(header.colorMapLength);
-	std::bitset<8> bitsPerColorMapItemBits(header.bitsPerColorMapItem);
-	std::bitset<16> xOriginBits(header.xOrigin);
-	std::bitset<16> yOriginBits(header.yOrigin);
-	std::bitset<16> widthBits(header.width);
-	std::bitset<16> heightBits(header.height);
-	std::bitset<8> bitsPerPixelBits(header.bitsPerPixel);
-	std::bitset<8> imageDescriptorBits(header.imageDescriptor);
-	std::cout << idLengthBits << std::endl;
-	std::cout << colorMapTypeBits << std::endl;
-	std::cout << dataTypeBits << std::endl;
-	std::cout << colorMapOriginBits << std::endl;
-	std::cout << colorMapLengthBits << std::endl;
-	std::cout << bitsPerColorMapItemBits << std::endl;
-	std::cout << xOriginBits << std::endl;
-	std::cout << yOriginBits << std::endl;
-	std::cout << widthBits << std::endl;
-	std::cout << heightBits << std::endl;
-	std::cout << bitsPerPixelBits << std::endl;
-	std::cout << imageDescriptorBits << std::endl;
-	
-	/*std::cout << header.idLength << std::endl;
-	std::cout << header.colorMapType << std::endl;
-	std::cout << header.dataType << std::endl;
-	std::cout << header.colorMapOrigin << std::endl;
-	std::cout << header.colorMapLength << std::endl;
-	std::cout << header.bitsPerColorMapItem << std::endl;
-	std::cout << header.xOrigin << std::endl;
-	std::cout << header.yOrigin << std::endl;
-	std::cout << header.width << std::endl;
-	std::cout << header.height << std::endl;
-	std::cout << header.bitsPerPixel << std::endl;
-	std::cout << header.imageDescriptor << std::endl;*/
+	TrDebug::PrintBits("header.idLength ", header.idLength);
+	TrDebug::PrintBits("header.colorMapType ", header.colorMapType);
+	TrDebug::PrintBits("header.dataType ", header.dataType);
+	TrDebug::PrintBits("header.colorMapOrigin ", header.colorMapOrigin);
+	TrDebug::PrintBits("header.colorMapLength ", header.colorMapLength);
+	TrDebug::PrintBits("header.bitsPerColorMapItem ", header.bitsPerColorMapItem);
+	TrDebug::PrintBits("header.xOrigin ", header.xOrigin);
+	TrDebug::PrintBits("header.yOrigin ", header.yOrigin);
+	TrDebug::PrintBits("header.width ", header.width);
+	TrDebug::PrintBits("header.height ", header.height);
+	TrDebug::PrintBits("header.bitsPerPixel ", header.bitsPerPixel);
+	TrDebug::PrintBits("header.imageDescriptor ", header.imageDescriptor);
 	
 	// 是否读取成功
 	if (!in.good())
@@ -197,11 +174,9 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			// why subtract 127 rather than 128? one data block uses 10000000 or 10000001? 
 			chunkHeader -= 127;
 			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // repeated data block, read once
-			for (int i = 0; i < sizeof(colorBuffer.bgra) / sizeof(colorBuffer.bgra[0]); i++)
-			{
-				std::cout << static_cast<int>(colorBuffer.bgra[i]) << " ";
-			}
-			std::cout << std::endl;
+			
+			TrDebug::PrintArray<unsigned char[4], int>(colorBuffer.bgra, true);
+			
 			if (!in.good())
 			{
 				std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 2\n";
@@ -301,8 +276,9 @@ bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
 		return false;
 	}
 	TGAHeader header = {};
-	std::bitset<8> bytesPerPixelBits(bytesPerPixel);
-	std::cout << "TGAImage::WriteTGAFile bytesPerPixel " << bytesPerPixelBits << std::endl;
+	
+	TrDebug::PrintBits("bytesPerPixel ", bytesPerPixel);
+	
 	header.bitsPerPixel = bytesPerPixel << 3;
 	header.width  = width;
 	header.height = height;
@@ -311,30 +287,18 @@ bool TGAImage::WriteTGAFile(const char* filename, bool vflip, bool rle)
 	out.write(reinterpret_cast<const char *>(&header), sizeof(header));
 
 	std::cout << "TGAImage::WriteTGAFile: " << std::endl;
-	std::bitset<8> idLengthBits(header.idLength);
-	std::bitset<8> colorMapTypeBits(header.colorMapType);
-	std::bitset<8> dataTypeBits(header.dataType);
-	std::bitset<16> colorMapOriginBits(header.colorMapOrigin);
-	std::bitset<16> colorMapLengthBits(header.colorMapLength);
-	std::bitset<8> bitsPerColorMapItemBits(header.bitsPerColorMapItem);
-	std::bitset<16> xOriginBits(header.xOrigin);
-	std::bitset<16> yOriginBits(header.yOrigin);
-	std::bitset<16> widthBits(header.width);
-	std::bitset<16> heightBits(header.height);
-	std::bitset<8> bitsPerPixelBits(header.bitsPerPixel);
-	std::bitset<8> imageDescriptorBits(header.imageDescriptor);
-	std::cout << idLengthBits << std::endl;
-	std::cout << colorMapTypeBits << std::endl;
-	std::cout << dataTypeBits << std::endl;
-	std::cout << colorMapOriginBits << std::endl;
-	std::cout << colorMapLengthBits << std::endl;
-	std::cout << bitsPerColorMapItemBits << std::endl;
-	std::cout << xOriginBits << std::endl;
-	std::cout << yOriginBits << std::endl;
-	std::cout << widthBits << std::endl;
-	std::cout << heightBits << std::endl;
-	std::cout << bitsPerPixelBits << std::endl;
-	std::cout << imageDescriptorBits << std::endl;
+	TrDebug::PrintBits("header.idLength ", header.idLength);
+	TrDebug::PrintBits("header.colorMapType ", header.colorMapType);
+	TrDebug::PrintBits("header.dataType ", header.dataType);
+	TrDebug::PrintBits("header.colorMapOrigin ", header.colorMapOrigin);
+	TrDebug::PrintBits("header.colorMapLength ", header.colorMapLength);
+	TrDebug::PrintBits("header.bitsPerColorMapItem ", header.bitsPerColorMapItem);
+	TrDebug::PrintBits("header.xOrigin ", header.xOrigin);
+	TrDebug::PrintBits("header.yOrigin ", header.yOrigin);
+	TrDebug::PrintBits("header.width ", header.width);
+	TrDebug::PrintBits("header.height ", header.height);
+	TrDebug::PrintBits("header.bitsPerPixel ", header.bitsPerPixel);
+	TrDebug::PrintBits("header.imageDescriptor ", header.imageDescriptor);
 	
 	if (!out.good()) {
 		std::cerr << "can't dump the tga file\n";

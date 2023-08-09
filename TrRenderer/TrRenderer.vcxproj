@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GlobalUtils.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Maths.h" />
     <ClInclude Include="Model.h" />
