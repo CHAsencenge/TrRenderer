@@ -175,7 +175,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			chunkHeader -= 127;
 			in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel); // repeated data block, read once
 			
-			TrDebug::PrintArray<unsigned char[4], int>(colorBuffer.bgra, true);
+			// TrDebug::PrintArray<unsigned char[4], int>(colorBuffer.bgra, true);
 			
 			if (!in.good())
 			{
@@ -193,14 +193,13 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 		}
 		
 	}
-
 	return true;
 }
 
 // out stream data length: width * height * bytesPerPixel
 bool TGAImage::UnloadRLEData(std::ofstream& out)
 {
-	
+	// TrDebug::PrintUnSignedCharColorRGBA(data, "TGAImage color data: ");
 	unsigned long pixelCount = width * height;
 	unsigned long currentPixel = 0;
 
@@ -251,6 +250,7 @@ bool TGAImage::UnloadRLEData(std::ofstream& out)
 			return false;
 		}
 		out.write(reinterpret_cast<const char *>(data + chunkStart), (bRaw ? runLength * bytesPerPixel : bytesPerPixel));
+		// std::cout << "TGAImage::UnloadRLEData write data: " << currentPixel << " " << static_cast<int>(*(data + chunkStart)) << " " << bRaw << std::endl;
 		if (!out.good()) {
 			std::cerr << "can't dump the tga file : out stream write fail\n";
 			return false;
@@ -360,6 +360,14 @@ bool TGAImage::Set(int x, int y, TGAColor& c)
 		return false;
 	}
 	memcpy(data + (x + y * width) * bytesPerPixel, c.bgra, bytesPerPixel);
+
+	/*std::cout << "TGAImage::Set "
+	<< static_cast<int>(c.bgra[0]) << " "
+	<< static_cast<int>(c.bgra[1]) << " "
+	<< static_cast<int>(c.bgra[2]) << " "
+	<< static_cast<int>(c.bgra[3]) << " "
+	<< std::endl;*/
+	
 	return true;
 }
 
@@ -370,5 +378,12 @@ bool TGAImage::Set(int x, int y, const TGAColor& c)
 		return false;
 	}
 	memcpy(data + (x + y * width) * bytesPerPixel, c.bgra, bytesPerPixel);
+	/*std::cout << "TGAImage::Set "
+	<< static_cast<int>(c.bgra[0]) << " "
+	<< static_cast<int>(c.bgra[1]) << " "
+	<< static_cast<int>(c.bgra[2]) << " "
+	<< static_cast<int>(c.bgra[3]) << " "
+	<< std::endl;*/
+	
 	return true;
 }

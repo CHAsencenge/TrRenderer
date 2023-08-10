@@ -126,7 +126,7 @@ Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 	
 	// P = (1-u-v)A + uB + vC
 	res = Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
-	TrDebug::PrintArray(res.e, false, "Barycentric");
+	// TrDebug::PrintArray(res.e, false, "Barycentric");
 	return Vec3(1.f-(orthoVec.e[0]+orthoVec.e[1])/orthoVec.e[2], orthoVec.e[1]/ orthoVec.e[2], orthoVec.e[0] / orthoVec.e[2]);
 }
 
@@ -139,12 +139,12 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	Vec3 ndcVerts[3];
 	for (int i = 0; i < 3; i++)
 	{
-		TrDebug::PrintArray(clipVerts[i].e, false, "Triangle clipVerts: ");
+		// TrDebug::PrintArray(clipVerts[i].e, false, "Triangle clipVerts: ");
 		
 		ndcVerts[i].e[0] = clipVerts[i].e[0] / clipVerts[i].e[3];
 		ndcVerts[i].e[1] = clipVerts[i].e[1] / clipVerts[i].e[3];
 		ndcVerts[i].e[2] = clipVerts[i].e[2] / clipVerts[i].e[3];
-		TrDebug::PrintArray(ndcVerts[i].e, false, "Triangle ndcVerts: ");
+		// TrDebug::PrintArray(ndcVerts[i].e, false, "Triangle ndcVerts: ");
 	}
 	
 	// 对顶点做viewport变换
@@ -155,7 +155,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 		screenVerts[i].e[1] = ndcVerts[i].e[1] * (image.Height() / 2.0f) + (image.Height() / 2.0f);
 		screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
 
-		TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
+		// TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
 	}
 	
 	// 计算光栅化范围，考虑image范围限制
@@ -183,14 +183,14 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	{
 		for (int j = static_cast<int>(boundingBoxMinY); j <= static_cast<int>(boundingBoxMaxY); j++)
 		{
-			std::cout << "Triangle pixel " << i << " " << j << std::endl;
+			// std::cout << "Triangle pixel " << i << " " << j << std::endl;
 			Vec2 p = { static_cast<float>(i), static_cast<float>(j) };
 			Vec3 bcScreen = Barycentric(screenVerts2D, p);
 			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)
 				continue;
 			// fragment shader中计算颜色
 			TGAColor color;
-			std::cout << "Triangle pixel FragmentShader " << i << " " << j << std::endl;
+			// std::cout << "Triangle pixel FragmentShader " << i << " " << j << std::endl;
 			bool bDiscard = shader.FragmentShader(bcScreen, color);
 			image.Set(i, j, color);
 		}

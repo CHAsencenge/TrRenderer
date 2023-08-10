@@ -24,28 +24,28 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 {
 	// 在调用VertexShader时，从model中获取顶点的UV和法线等信息来构造相应矩阵
 	matVertexUVs.SetCol(nthVert, model->UV(ithFace, nthVert));
-	std::cout << "DefaultShader::VertexShader " << ithFace << " " << nthVert << std::endl;
-	TrUtils::PrintMat(matVertexUVs, "DefaultShader::VertexShader matVertexUVs");
+	// std::cout << "DefaultShader::VertexShader " << ithFace << " " << nthVert << std::endl;
+	// TrUtils::PrintMat(matVertexUVs, "DefaultShader::VertexShader matVertexUVs");
 	
 	// 顶点法线从模型空间转到视图空间
 	Vec<4> vertNormalAD = model->Normal(ithFace, nthVert).AddDimension1(0);
-	TrDebug::PrintArray(vertNormalAD, false, "DefaultShader::VertexShader vertNormalAD");
+	// TrDebug::PrintArray(vertNormalAD, false, "DefaultShader::VertexShader vertNormalAD");
 	matVertexNormals.SetCol(nthVert, (ModelView * vertNormalAD).ReduceDimension<3>());
-	TrUtils::PrintMat(matVertexNormals, "DefaultShader::VertexShader matVertexNormals");
+	// TrUtils::PrintMat(matVertexNormals, "DefaultShader::VertexShader matVertexNormals");
 	
 	std::vector<int> faceVertsIdx = model->FaceVert(ithFace);
 	Vec3 vert = model->Vert(faceVertsIdx[nthVert]);
 	Vec<4> vertHomo = vert.AddDimension1(1);
-	TrDebug::PrintArray(vertHomo.e, false, "DefaultShader::VertexShader vertHomo");
+	// TrDebug::PrintArray(vertHomo.e, false, "DefaultShader::VertexShader vertHomo");
 
 	Vec<4> vertEyeSpace = ModelView * vertHomo;
-	TrDebug::PrintArray(vertEyeSpace.e, false, "DefaultShader::VertexShader vertEyeSpace");
+	// TrDebug::PrintArray(vertEyeSpace.e, false, "DefaultShader::VertexShader vertEyeSpace");
 
 	// 记录的顶点坐标在视图空间
 	matVertexVerts.SetCol(nthVert, vertEyeSpace.ReduceDimension<3>());
 	Vec<4> vertClipSpace = Projection * vertEyeSpace;
 	gl_Position = vertClipSpace;
-	TrDebug::PrintArray(vertClipSpace.e, false, "DefaultShader::VertexShader vertClipSpace");
+	// TrDebug::PrintArray(vertClipSpace.e, false, "DefaultShader::VertexShader vertClipSpace");
 
 }
 
@@ -72,7 +72,7 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	InvertA.SetCol(0, matVertexVerts.GetCol(1) - matVertexVerts.GetCol(0));
 	InvertA.SetCol(1, matVertexVerts.GetCol(2) - matVertexVerts.GetCol(0));
 	InvertA.SetCol(2, fragNormalES);
-	InvertA = InvertA.Inverse();
+	InvertA = InvertA.Invert();
 	
 	Mat<3, 2> UVDiff;
 	UVDiff.SetCol(0, (matVertexUVs.GetCol(1) - matVertexUVs.GetCol(0)).AddDimension1(0));
@@ -102,7 +102,7 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 		specularIntensity = std::pow(max(-reflectDir.e[2], 0.0f), 5);
 	}
 	TGAColor baseColor = Sample2D(*model->GetDiffuseMap(), fragUV);
-	TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
+	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
 	for(int i = 0; i < 3; i++)
 	{
 		gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);

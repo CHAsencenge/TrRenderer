@@ -65,7 +65,7 @@ Model::Model(const char* filename)
 		// f v1 / vt1 / vn1 v2 / vt2 / vn2 v3 / vt3 / vn3
 		else if (!line.compare(0, 2, "f "))
 		{
-			std::cout << "Model::Model " << filename << " " << line << std::endl;
+			// std::cout << "Model::Model " << filename << " " << line << std::endl;
 			iss >> trash;
 			int f[3];
 			std::vector<int> face;
@@ -74,7 +74,7 @@ Model::Model(const char* filename)
 			while (iss >> f[0] >> trash >> f[1] >> trash >> f[2])
 			{
 				count++;
-				printf("Model::Model face line while count %d\n", count);
+				// printf("Model::Model face line while count %d\n", count);
 				face.push_back(f[0]);
 				face.push_back(f[1]);
 				face.push_back(f[2]);

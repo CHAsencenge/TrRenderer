@@ -33,5 +33,20 @@ namespace TrDebug
         std::bitset<sizeof(inStruct)*8> bits(inStruct);
         std::cout << prefix << bits << std::endl;
     }
+
+    inline void PrintUnSignedCharColorRGBA(unsigned char* data, const char* prefix = "")
+    {
+        if(strcmp(prefix, "") != 0)
+        {
+            std::cout << prefix << std::endl;
+        }
+        unsigned char* p = data;
+        while(*p != '\0')
+        {
+            std::cout << static_cast<int>(*p) << " " << static_cast<int>(*(p+1)) << " " << static_cast<int>(*(p+2)) << " " << static_cast<int>(*(p+3)) << std::endl;
+            p = p + 4;
+        }
+    }
+    
     
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 
+
 template<int nelement>
 class Vec
 {
@@ -93,19 +94,34 @@ public:
 		}
 		return *this;
 	}
+
+	Mat<nrow, ncol> AdjugateTranspose() const
+	{
+		Mat<nrow, ncol> ret;
+		for (int i = 0; i < nrow; i++)
+		{
+			for(int j = 0; j < ncol; j++)
+			{
+				ret[i][j] = Cofactor(i, j);
+			}
+		}
+		return ret;
+	}
+	
 	
 	Vec<ncol>& operator[](int i);
 	const Vec<ncol>& operator[](int i) const;
 
 	Mat<nrow, ncol> Transpose() const;
-	Mat<nrow, ncol> Inverse() const;
-	Mat<nrow, ncol> InverseTranspose() const;
+	Mat<nrow, ncol> Invert() const;
+	Mat<nrow, ncol> InvertTranspose() const;
 	// 余子式
 	float Minor(int row, int col) const;
 	// 代数余子式
 	float Cofactor(int row, int col) const;
 	// 行列式
 	float Det() const;
+	
 	static Mat<nrow, ncol> Identity();
 	void SetCol(const int idx, const Vec<nrow>& v);
 	Vec<nrow> GetCol(const int idx) const;
@@ -116,7 +132,7 @@ public:
 // 辅助计算矩阵Det的结构体
 template<int n> struct dt
 {
-	static float Det(Mat<n, n>& mat)
+	static float Det(const Mat<n, n>& mat)
 	{
 		float ret = 0;
 		for (int i = 0; i < n; i++)
@@ -130,7 +146,7 @@ template<int n> struct dt
 // 特化版本，结束条件
 template<> struct dt<1>
 {
-	static float Det(Mat<1, 1>& mat)
+	static float Det(const Mat<1, 1>& mat)
 	{
 		return mat[0][0];
 	}
@@ -234,15 +250,17 @@ inline Mat<nrow, ncol> Mat<nrow, ncol>::Transpose() const
 }
 
 template<int nrow, int ncol>
-inline Mat<nrow, ncol> Mat<nrow, ncol>::Inverse() const
+inline Mat<nrow, ncol> Mat<nrow, ncol>::Invert() const
 {
-	return Mat<nrow, ncol>();
+	return InvertTranspose().Transpose();
 }
 
 template<int nrow, int ncol>
-inline Mat<nrow, ncol> Mat<nrow, ncol>::InverseTranspose() const
+inline Mat<nrow, ncol> Mat<nrow, ncol>::InvertTranspose() const
 {
-	return Mat<nrow, ncol>();
+	Mat<nrow, ncol> ret;
+	ret = AdjugateTranspose(); 
+	return ret / (ret[0] * rows[0]);
 }
 
 template<int nrow, int ncol>
@@ -431,6 +449,20 @@ Mat<nrow, ncol1> operator* (const Mat<nrow, ncol>& mat, const Mat<ncol, ncol1>& 
 			vec[i] = mat.rows[i] * mat1.GetCol(c);
 		}
 		ret.SetCol(c, vec);
+	}
+	return ret;
+}
+
+template <int nrow, int ncol>
+Mat<nrow, ncol> operator / (const Mat<nrow, ncol>& mat, const float rhs)
+{
+	Mat<nrow, ncol> ret(mat);
+	for(int i = 0; i < nrow; i++)
+	{
+		for (int j = 0; j < ncol; j++)
+		{
+			ret[i][j] = mat[i][j] / rhs;
+		}
 	}
 	return ret;
 }

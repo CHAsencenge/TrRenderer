@@ -209,8 +209,8 @@ extern Mat<4, 4> Viewport;
 // 项目属性---链接器---系统---子系统---控制台
 int main()
 {
-    int width = 600, height = 600;
-    window_init(width, height, L"TrRenderer");
+    int width = 1200, height = 1200;
+    // window_init(width, height, L"TrRenderer");
     /*while (1)
     {
         std::cout << "console hello" << std::endl;
@@ -225,7 +225,7 @@ int main()
     // 初始化相机参数，创建相机
     float fovY = PI / 3.0f;
     float aspect = 4.0f / 3.0f;
-    float e[] = { 0, 3, 5 };
+    float e[] = { 0, 1.5f, -1 };
     float t[] = { 0, 0, 0 };
     float u[] = { 0, 1, 0 };
     Camera DefaultCam(e, t, u, fovY, aspect);
@@ -233,17 +233,19 @@ int main()
     ModelView = DefaultCam.GetMatLookAt();
     TrUtils::PrintMat(ModelView, "main ");
 
-    float nearplane = -2.0f;
+    float nearplane = -0.5f;
     float farplane = -10.0f;
     Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
     // 创建一个z-buffer
     float mx = (std::numeric_limits<float>::max)(); 
     std::vector<float> zbuf(width * height, mx);
+    std::cout << "check-1" << std::endl;
     // 遍历读取输入的obj，创建model和shader
     Model model("obj\\boggie\\head.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir);
+    std::cout << "check0" << std::endl;
         // 遍历所有的faces
         for(int i = 0; i < model.GetNumFaces(); i++)
         { 
@@ -256,6 +258,7 @@ int main()
             {
                 shader.VertexShader(i, j, clipVert[j]);
             }
+            std::cout << "check1" << std::endl;
             // 光栅化
             Triangle(clipVert, shader, framebuf, zbuf);
         }
