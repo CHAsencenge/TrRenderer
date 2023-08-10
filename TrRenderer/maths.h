@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <vector>
 #include <iostream>
 #include <cassert>
 
@@ -91,6 +92,23 @@ public:
 			{
 				rows[i][j] = other.rows[i][j];
 			}
+		}
+		return *this;
+	}
+
+	Mat(std::vector<Vec<nrow>>& vecs)
+	{
+		for(int i = 0; i < ncol; i++)
+		{
+			SetCol(i, vecs[i]);
+		}
+	}
+
+	Mat<nrow, ncol>& operator=(const std::vector<Vec<nrow>>& vecs)
+	{
+		for(int i = 0; i < ncol; i++)
+		{
+			SetCol(i, vecs[i]);
 		}
 		return *this;
 	}

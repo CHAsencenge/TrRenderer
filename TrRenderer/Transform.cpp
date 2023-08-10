@@ -31,7 +31,9 @@
 
 Mat<4, 4> ModelView;
 Mat<4, 4> Projection;
+Mat<4, 4> ReversedZ;
 Mat<4, 4> Viewport;
+
 
 // pending discard
 Mat<4, 4> Mat4Lookat(Vec<3> eye, Vec<3> target, Vec<3> up)
@@ -154,7 +156,9 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 	{
 		screenVerts[i].e[0] = ndcVerts[i].e[0] * (image.Width() / 2.0f) + (image.Width() / 2.0f);
 		screenVerts[i].e[1] = ndcVerts[i].e[1] * (image.Height() / 2.0f) + (image.Height() / 2.0f);
-		screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+		// screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+		screenVerts[i].e[2] = ndcVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+		
 
 		// TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
 	}
@@ -193,14 +197,14 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 				continue;
 			}
 
-			// depth test
-			if (defaultShader->GetZBuf()[i][j] < bcScreen[2])
+			// depth test, reversed z
+			if (defaultShader->GetZBuf()[i][j] > bcScreen.e[2])
 			{
-				// std::cout << "check1" << std::endl;
+				std::cout << "check1" << defaultShader->GetZBuf()[i][j] << " " << bcScreen.e[2] << std::endl;
 				continue;
 			}
 
-			defaultShader->SetZBuf(i, j, bcScreen[2]);
+			defaultShader->SetZBuf(i, j, bcScreen.e[2]);
 			
 			// fragment shader中计算颜色
 			TGAColor color;
@@ -211,6 +215,6 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 	}
 	// 
 	//
-	std::cout << "count: " << count << std::endl;
+	// std::cout << "count: " << count << std::endl;
 }
 

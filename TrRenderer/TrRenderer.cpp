@@ -204,6 +204,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
+extern Mat<4, 4> ReversedZ;
 extern Mat<4, 4> Viewport;
 
 // 项目属性---链接器---系统---子系统---控制台
@@ -231,15 +232,18 @@ int main()
     Camera DefaultCam(e, t, u, fovY, aspect);
     DefaultCam.SetMatLookAt();
     ModelView = DefaultCam.GetMatLookAt();
-    TrUtils::PrintMat(ModelView, "main ");
+    TrUtils::PrintMat(ModelView, "main ModelView");
+
+    ReversedZ = std::vector<Vec<4>>{Vec<4>(1,0,0,0), Vec<4>(0,1,0,0), Vec<4>(0,0,-1,0), Vec<4>(0,0,1,1)};
+
 
     float nearplane = -0.5f;
     float farplane = -10.0f;
     Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
     
-    // 创建一个z-buffer
+    // 创建一个 reversed z-buffer
     float mx = (std::numeric_limits<float>::max)(); 
-    std::vector<std::vector<float>> zbuf (width, std::vector<float>(height, 1.0f));
+    std::vector<std::vector<float>> zbuf (width, std::vector<float>(height, 0.0f));
     float** zbuf1 = new float*[width];
     for(int i = 0; i < width; i++)
     {
@@ -248,7 +252,7 @@ int main()
     
     
     // 遍历读取输入的obj，创建model和shader
-    Model model("obj\\boggie\\head.obj");
+    Model model("obj\\boggie\\body.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir, zbuf, zbuf1);
@@ -271,7 +275,5 @@ int main()
     }
     
     // 用创建的frame buffer将结果写入tga文件保存
-    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, true);
-
-    // std::cin.get();
+    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, false);
 }

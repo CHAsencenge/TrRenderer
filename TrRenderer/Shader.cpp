@@ -4,6 +4,7 @@
 
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
+extern Mat<4, 4> ReversedZ;
 
 
 // 用floot函数将float类型的采样点坐标向下取整
@@ -46,6 +47,9 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 	// 记录的顶点坐标在视图空间
 	matVertexVerts.SetCol(nthVert, vertEyeSpace.ReduceDimension<3>());
 	Vec<4> vertClipSpace = Projection * vertEyeSpace;
+
+	// Reversed Z after projection
+	vertClipSpace = ReversedZ * vertClipSpace;
 	gl_Position = vertClipSpace;
 	// TrDebug::PrintArray(vertClipSpace.e, false, "DefaultShader::VertexShader vertClipSpace");
 
@@ -64,6 +68,7 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	
 	// UV插值
 	Vec<2> fragUV = matVertexUVs * barycenter;
+	// Vec<2> fragUV = matVertexUVs.GetCol(0);
 
 	// 将法线从tangent space转到view space
 	// 要找到一个向量，这个向量首先正交于view space法线方向
@@ -107,7 +112,8 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
 	for(int i = 0; i < 3; i++)
 	{
-		gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
+		gl_FragColor.bgra[i] = baseColor.bgra[i];
+		// gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
 	}
 	
 	// 返回值确定此片元是否被丢弃
