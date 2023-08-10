@@ -131,9 +131,10 @@ Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 }
 
 // 光栅化方案：包围盒内逐个点依据重心坐标判断是否在三角形内，在三角形内则填充颜色
-void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::vector<float>& zbuffer)
+void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 {
-	
+	static int count = 0;
+	DefaultShader* defaultShader = dynamic_cast<DefaultShader*>(&shader);
 	// 透视除法
 	// NDC
 	Vec3 ndcVerts[3];
@@ -171,10 +172,10 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 		boundingBoxMinY = std::max(0.0f, std::min(boundingBoxMinY, screenVerts[i].e[1]));
 		boundingBoxMaxX = std::min(image.Width() - 1.0f, std::max(boundingBoxMaxX, screenVerts[i].e[0]));
 		boundingBoxMaxY = std::min(image.Height() - 1.0f, std::max(boundingBoxMaxY, screenVerts[i].e[1]));
-		std::cout << "Triangle boundingBoxMinX: " << boundingBoxMinX << std::endl;
+		/*std::cout << "Triangle boundingBoxMinX: " << boundingBoxMinX << std::endl;
 		std::cout << "Triangle boundingBoxMinY: " << boundingBoxMinY << std::endl;
 		std::cout << "Triangle boundingBoxMaxX: " << boundingBoxMaxX << std::endl;
-		std::cout << "Triangle boundingBoxMaxY: " << boundingBoxMaxY << std::endl;
+		std::cout << "Triangle boundingBoxMaxY: " << boundingBoxMaxY << std::endl;*/
 	}
 	
 	// 遍历光栅化范围xy
@@ -183,11 +184,24 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	{
 		for (int j = static_cast<int>(boundingBoxMinY); j <= static_cast<int>(boundingBoxMaxY); j++)
 		{
+			count++;
 			// std::cout << "Triangle pixel " << i << " " << j << std::endl;
 			Vec2 p = { static_cast<float>(i), static_cast<float>(j) };
 			Vec3 bcScreen = Barycentric(screenVerts2D, p);
 			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)
+			{
 				continue;
+			}
+
+			// depth test
+			if (defaultShader->GetZBuf()[i][j] < bcScreen[2])
+			{
+				// std::cout << "check1" << std::endl;
+				continue;
+			}
+
+			defaultShader->SetZBuf(i, j, bcScreen[2]);
+			
 			// fragment shader中计算颜色
 			TGAColor color;
 			// std::cout << "Triangle pixel FragmentShader " << i << " " << j << std::endl;
@@ -197,5 +211,6 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::
 	}
 	// 
 	//
+	std::cout << "count: " << count << std::endl;
 }
 

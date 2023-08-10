@@ -48,4 +48,4 @@ Mat<4, 4> Mat4Viewport(int x, int y, int w, int h);
 
 Vec3 Barycentric(const Vec2 tri[3], const Vec2 p);
 
-void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image, std::vector<float>& zbuffer);
+void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image);

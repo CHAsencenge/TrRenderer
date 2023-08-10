@@ -210,7 +210,7 @@ extern Mat<4, 4> Viewport;
 int main()
 {
     int width = 1200, height = 1200;
-    // window_init(width, height, L"TrRenderer");
+    window_init(width, height, L"TrRenderer");
     /*while (1)
     {
         std::cout << "console hello" << std::endl;
@@ -225,7 +225,7 @@ int main()
     // 初始化相机参数，创建相机
     float fovY = PI / 3.0f;
     float aspect = 4.0f / 3.0f;
-    float e[] = { 0, 1.5f, -1 };
+    float e[] = { 0, 1.2f, 0.55f };
     float t[] = { 0, 0, 0 };
     float u[] = { 0, 1, 0 };
     Camera DefaultCam(e, t, u, fovY, aspect);
@@ -236,32 +236,40 @@ int main()
     float nearplane = -0.5f;
     float farplane = -10.0f;
     Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
+    
     // 创建一个z-buffer
     float mx = (std::numeric_limits<float>::max)(); 
-    std::vector<float> zbuf(width * height, mx);
-    std::cout << "check-1" << std::endl;
+    std::vector<std::vector<float>> zbuf (width, std::vector<float>(height, 1.0f));
+    float** zbuf1 = new float*[width];
+    for(int i = 0; i < width; i++)
+    {
+        zbuf1[i] = new float[height];
+    }
+    
+    
     // 遍历读取输入的obj，创建model和shader
     Model model("obj\\boggie\\head.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
-    DefaultShader shader(model, lightDir);
-    std::cout << "check0" << std::endl;
-        // 遍历所有的faces
-        for(int i = 0; i < model.GetNumFaces(); i++)
-        { 
-            // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
-            Vec<4> clipVert[3];
-            // 对三角形的每个顶点调用顶点着色器
-            // face unit结构 v1 / vt1 / vn1    v2 / vt2 / vn2    v3 / vt3 / vn3
-            std::vector<int> faceVertsIdx = model.FaceVert(i);
-            for (int j = 0; j < faceVertsIdx.size(); j++)
-            {
-                shader.VertexShader(i, j, clipVert[j]);
-            }
-            std::cout << "check1" << std::endl;
-            // 光栅化
-            Triangle(clipVert, shader, framebuf, zbuf);
+    DefaultShader shader(model, lightDir, zbuf, zbuf1);
+
+    // 遍历所有的faces
+    for(int i = 0; i < model.GetNumFaces(); i++)
+    { 
+        // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
+        Vec<4> clipVert[3];
+        // 对三角形的每个顶点调用顶点着色器
+        // face unit结构 v1 / vt1 / vn1    v2 / vt2 / vn2    v3 / vt3 / vn3
+        std::vector<int> faceVertsIdx = model.FaceVert(i);
+        for (int j = 0; j < faceVertsIdx.size(); j++)
+        {
+            shader.VertexShader(i, j, clipVert[j]);
         }
+        
+        // 光栅化
+        Triangle(clipVert, shader, framebuf);
+    }
+    
     // 用创建的frame buffer将结果写入tga文件保存
     bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, true);
 

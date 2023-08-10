@@ -31,12 +31,20 @@ private:
 class DefaultShader : public IShader
 {
 public:
-	DefaultShader(Model& m, Vec3& lightDir);
+	DefaultShader(Model& m, Vec3& lightDir, std::vector<std::vector<float>>& zbuf, float** zbuf1);
 	~DefaultShader() {}
 
 	virtual void VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position) override;
 	virtual void VertexShader(Vec3 vert, Vec<4>& gl_Position) override;
 	virtual bool FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor) override;
+
+	virtual std::vector<std::vector<float>>& GetZBuf() {return zBuf;}
+
+	virtual void SetZBuf(int x, int y, float value) {zBuf[x][y] = value;}
+
+	virtual float** GetZBuf1() {return zBuf1;}
+
+	virtual void SetZBuf1(int x, int y, float value) {zBuf1[x][y] = value;}
 
 private:
 	Model* model;
@@ -48,5 +56,9 @@ private:
 	Mat<3, 3> matVertexNormals;
 	// view coordinate下的三角形
 	Mat<3, 3> viewCoordTriangle;
+
+	std::vector<std::vector<float>> zBuf;
+	float** zBuf1;
+	
 
 };
