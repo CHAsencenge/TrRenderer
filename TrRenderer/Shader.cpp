@@ -112,8 +112,8 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
 	for(int i = 0; i < 3; i++)
 	{
-		gl_FragColor.bgra[i] = baseColor.bgra[i];
-		// gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
+		// gl_FragColor.bgra[i] = baseColor.bgra[i];
+		gl_FragColor.bgra[i] = std::min<int>(10 + baseColor.bgra[i] * (diffuseIntensity + specularIntensity), 255);
 	}
 	
 	// 返回值确定此片元是否被丢弃

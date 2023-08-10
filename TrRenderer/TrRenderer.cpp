@@ -226,7 +226,7 @@ int main()
     // 初始化相机参数，创建相机
     float fovY = PI / 3.0f;
     float aspect = 4.0f / 3.0f;
-    float e[] = { 0, 1.2f, 0.55f };
+    float e[] = { 0, 0.9f, 0.45f };
     float t[] = { 0, 0, 0 };
     float u[] = { 0, 1, 0 };
     Camera DefaultCam(e, t, u, fovY, aspect);
@@ -252,6 +252,7 @@ int main()
     
     
     // 遍历读取输入的obj，创建model和shader
+    // obj\\boggie\\body.obj
     Model model("obj\\boggie\\body.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);

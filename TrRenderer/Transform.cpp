@@ -157,7 +157,7 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 		screenVerts[i].e[0] = ndcVerts[i].e[0] * (image.Width() / 2.0f) + (image.Width() / 2.0f);
 		screenVerts[i].e[1] = ndcVerts[i].e[1] * (image.Height() / 2.0f) + (image.Height() / 2.0f);
 		// screenVerts[i].e[2] = -clipVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
-		screenVerts[i].e[2] = ndcVerts[i].e[2]; // 添加负号的原因，见Transform.h中的统一标准
+		screenVerts[i].e[2] = ndcVerts[i].e[2];
 		
 
 		// TrDebug::PrintArray(screenVerts[i].e, false, "Triangle screenVerts: ");
@@ -192,19 +192,28 @@ void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
 			// std::cout << "Triangle pixel " << i << " " << j << std::endl;
 			Vec2 p = { static_cast<float>(i), static_cast<float>(j) };
 			Vec3 bcScreen = Barycentric(screenVerts2D, p);
+			
+			// interpolate depth of depth comparison
+			float InterpDepth = 0;
+			for(int i = 0; i < 3; i++)
+			{
+				InterpDepth += bcScreen.e[i] * screenVerts[i].e[2];
+			}
+			InterpDepth /= 3.0f;
+			
 			if (bcScreen.e[0] < 0 || bcScreen.e[1] < 0 || bcScreen.e[2] < 0)
 			{
 				continue;
 			}
 
 			// depth test, reversed z
-			if (defaultShader->GetZBuf()[i][j] > bcScreen.e[2])
+			if (defaultShader->GetZBuf()[i][j] > InterpDepth)
 			{
-				std::cout << "check1" << defaultShader->GetZBuf()[i][j] << " " << bcScreen.e[2] << std::endl;
+				// std::cout << "check1" << defaultShader->GetZBuf()[i][j] << " " << bcScreen.e[2] << std::endl;
 				continue;
 			}
 
-			defaultShader->SetZBuf(i, j, bcScreen.e[2]);
+			defaultShader->SetZBuf(i, j, InterpDepth);
 			
 			// fragment shader中计算颜色
 			TGAColor color;
