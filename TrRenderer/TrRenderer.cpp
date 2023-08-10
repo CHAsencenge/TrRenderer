@@ -225,7 +225,7 @@ int main()
     // 初始化相机参数，创建相机
     float fovY = PI / 3.0f;
     float aspect = 4.0f / 3.0f;
-    float e[] = { 5, 0, 0 };
+    float e[] = { 0, 3, 5 };
     float t[] = { 0, 0, 0 };
     float u[] = { 0, 1, 0 };
     Camera DefaultCam(e, t, u, fovY, aspect);
@@ -240,7 +240,7 @@ int main()
     float mx = (std::numeric_limits<float>::max)(); 
     std::vector<float> zbuf(width * height, mx);
     // 遍历读取输入的obj，创建model和shader
-    Model model("obj\\boggie\\eyes.obj");
+    Model model("obj\\boggie\\head.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir);

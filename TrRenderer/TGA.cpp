@@ -154,7 +154,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 			{
 				// non-repeated data blocks
 				in.read(reinterpret_cast<char*>(colorBuffer.bgra), bytesPerPixel);
-				std::cout << "chunk data non-repeated: "<< reinterpret_cast<char*>(colorBuffer.bgra) << std::endl;
+				// std::cout << "chunk data non-repeated: "<< reinterpret_cast<char*>(colorBuffer.bgra) << std::endl;
 				if (!in.good())
 				{
 					std::cerr << "TGAImage::ReadRLEData: an error occured while reading the data 1\n";
@@ -200,11 +200,7 @@ bool TGAImage::ReadRLEData(std::ifstream& in)
 // out stream data length: width * height * bytesPerPixel
 bool TGAImage::UnloadRLEData(std::ofstream& out)
 {
-	if (data)
-	{
-		delete[] data;
-	}
-	data = new unsigned char[width * height * bytesPerPixel];
+	
 	unsigned long pixelCount = width * height;
 	unsigned long currentPixel = 0;
 

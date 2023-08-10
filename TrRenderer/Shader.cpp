@@ -36,14 +36,16 @@ void DefaultShader::VertexShader(int ithFace, int nthVert, Vec<4>& gl_Position)
 	std::vector<int> faceVertsIdx = model->FaceVert(ithFace);
 	Vec3 vert = model->Vert(faceVertsIdx[nthVert]);
 	Vec<4> vertHomo = vert.AddDimension1(1);
+	TrDebug::PrintArray(vertHomo.e, false, "DefaultShader::VertexShader vertHomo");
+
 	Vec<4> vertEyeSpace = ModelView * vertHomo;
-	TrDebug::PrintArray(vertEyeSpace, false, "DefaultShader::VertexShader vertEyeSpace");
+	TrDebug::PrintArray(vertEyeSpace.e, false, "DefaultShader::VertexShader vertEyeSpace");
 
 	// 记录的顶点坐标在视图空间
 	matVertexVerts.SetCol(nthVert, vertEyeSpace.ReduceDimension<3>());
 	Vec<4> vertClipSpace = Projection * vertEyeSpace;
 	gl_Position = vertClipSpace;
-	TrDebug::PrintArray(vertClipSpace, false, "DefaultShader::VertexShader vertClipSpace");
+	TrDebug::PrintArray(vertClipSpace.e, false, "DefaultShader::VertexShader vertClipSpace");
 
 }
 

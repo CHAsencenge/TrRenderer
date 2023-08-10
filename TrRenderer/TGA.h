@@ -56,6 +56,8 @@ public:
 		// bytesPerPixel实际会在ReadRLEData时计算
 		bytesPerPixel = bpp;
 		int len = width * height * bpp;
+		
+		data = new unsigned char[len];
 	}
 
 	~TGAImage()
