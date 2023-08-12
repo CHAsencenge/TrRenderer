@@ -307,17 +307,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 {
     std::cout << "WinMain" << std::endl;
     
-    /*try
-    {
-        InitDirect3DApp theApp(hInstance);
-        if (!theApp.Initialize())
-            return 0;
+    // use hInstance to create a Renderer inst
 
-        return theApp.Run();
-    }
-    catch (DxException& e)
-    {
-        MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
-        return 0;
-    }*/
+    // Renderer initialize
+
+    // Renderer main loop
+
+    // catch exception and return
 }
