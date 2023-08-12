@@ -2,19 +2,114 @@
 //
 
 #include "pch.h"
-#include "framework.h"
+#include "TrSoftwareRenderer/framework.h"
 #include "TrRenderer.h"
+#include "TrSoftwareRenderer/Window.h"
+#include "TrSoftwareRenderer/Maths.h"
+#include "TrSoftwareRenderer/Transform.h"
+#include "TrSoftwareRenderer/Camera.h"
+#include "TrSoftwareRenderer/TGA.h"
+#include "TrSoftwareRenderer/Model.h"
+#include "TrSoftwareRenderer/Shader.h"
+#include "TrSoftwareRenderer/ClassUtils.h"
+#include <Windows.h>
 #include <iostream>
-#include "Window.h"
-#include "Maths.h"
-#include "Transform.h"
-#include "Camera.h"
-#include "TGA.h"
-#include "Model.h"
-#include "Shader.h"
-#include "ClassUtils.h"
 #include <vector>
 
+
+
+// 相机，自身位置eye，目标位置target，向上向量up
+
+extern Mat<4, 4> ModelView;
+extern Mat<4, 4> Projection;
+extern Mat<4, 4> ReversedZ;
+extern Mat<4, 4> Viewport;
+
+// Configuration Property---Linker---System---SubSystem---Console
+int main(int argc, char* argv[])
+{
+    std::cout << "main" << std::endl;
+    int width = 1200, height = 1200;
+    window_init(width, height, L"TrRenderer");
+    /*while (1)
+    {
+        std::cout << "console hello" << std::endl;
+    }*/
+    std::cout << argv << std::endl;
+
+    // 静态图生成
+    // 创建一个TGAImage类型的frame buffer
+    TGAImage framebuf(width, height, 4);
+    // build model view projection矩阵
+    // 
+    // 初始化相机参数，创建相机
+    float fovY = PI / 3.0f;
+    float aspect = 4.0f / 3.0f;
+    float e[] = { 0, 0.9f, 0.45f };
+    float t[] = { 0, 0, 0 };
+    float u[] = { 0, 1, 0 };
+    Camera DefaultCam(e, t, u, fovY, aspect);
+    DefaultCam.SetMatLookAt();
+    ModelView = DefaultCam.GetMatLookAt();
+    TrUtils::PrintMat(ModelView, "main ModelView");
+
+    ReversedZ = std::vector<Vec<4>>{Vec<4>(1,0,0,0), Vec<4>(0,1,0,0), Vec<4>(0,0,-1,0), Vec<4>(0,0,1,1)};
+
+
+    float nearplane = -0.5f;
+    float farplane = -10.0f;
+    Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
+    
+    // 创建一个 reversed z-buffer
+    std::vector<std::vector<float>> zbuf (width, std::vector<float>(height, 0.0f));
+    float** zbuf1 = new float*[width];
+    for(int i = 0; i < width; i++)
+    {
+        zbuf1[i] = new float[height];
+    }
+    
+    
+    // 遍历读取输入的obj，创建model和shader
+    // obj\\boggie\\body.obj
+    Model model("obj\\boggie\\body.obj");
+    float ld[] = { 1, 1, 1 };
+    Vec3 lightDir(ld);
+    DefaultShader shader(model, lightDir, zbuf, zbuf1);
+
+    // 遍历所有的faces
+    for(int i = 0; i < model.GetNumFaces(); i++)
+    { 
+        // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
+        Vec<4> clipVert[3];
+        // 对三角形的每个顶点调用顶点着色器
+        // face unit结构 v1 / vt1 / vn1    v2 / vt2 / vn2    v3 / vt3 / vn3
+        std::vector<int> faceVertsIdx = model.FaceVert(i);
+        for (int j = 0; j < faceVertsIdx.size(); j++)
+        {
+            shader.VertexShader(i, j, clipVert[j]);
+        }
+        
+        // 光栅化
+        Triangle(clipVert, shader, framebuf);
+    }
+
+    // 绘制到窗口
+    window_draw_bgra(framebuf.GetRawBGRAData());
+    
+    // 用创建的frame buffer将结果写入tga文件保存
+    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, false);
+
+    
+    while (1)
+    {
+        Sleep(500);
+    }
+    return 0;
+}
+
+
+
+// -----------------------------------------------------------------------------------------
 
 #define MAX_LOADSTRING 100
 
@@ -30,7 +125,12 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
-// 项目属性---链接器---系统---子系统---窗口
+/* note:
+ * Unicode: uses multiple bytes to present characters
+ * supports characters from various scripts and languages (Latin, Chinese, Arabic)
+ */
+
+// Configuration Property---Linker---System---SubSystem---Window
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -40,6 +140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 在此处放置代码。
+    std::cout << "wWinMain" << std::endl;
 
     // 初始化全局字符串
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -192,88 +293,30 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-// 相机，自身位置eye，目标位置target，向上向量up
+// -----------------------------------------------------------------------------------------
 
-extern Mat<4, 4> ModelView;
-extern Mat<4, 4> Projection;
-extern Mat<4, 4> ReversedZ;
-extern Mat<4, 4> Viewport;
+/* note:
+* ANSI: uses a single byte to present each character
+* ANSI character set is based on the ASCII character set (english, digits, some special)
+* ANSI encoding is limited in its ability to represent non-Latin characters
+ */
 
-// 项目属性---链接器---系统---子系统---控制台
-int main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
+    PSTR cmdLine, int showCmd)
 {
-    int width = 1200, height = 1200;
-    window_init(width, height, L"TrRenderer");
-    /*while (1)
+    std::cout << "WinMain" << std::endl;
+    
+    /*try
     {
-        std::cout << "console hello" << std::endl;
+        InitDirect3DApp theApp(hInstance);
+        if (!theApp.Initialize())
+            return 0;
+
+        return theApp.Run();
+    }
+    catch (DxException& e)
+    {
+        MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
+        return 0;
     }*/
-    std::cout << "console hello" << std::endl;
-
-    // 静态图生成
-    // 创建一个TGAImage类型的frame buffer
-    TGAImage framebuf(width, height, 4);
-    // build model view projection矩阵
-    // 
-    // 初始化相机参数，创建相机
-    float fovY = PI / 3.0f;
-    float aspect = 4.0f / 3.0f;
-    float e[] = { 0, 0.9f, 0.45f };
-    float t[] = { 0, 0, 0 };
-    float u[] = { 0, 1, 0 };
-    Camera DefaultCam(e, t, u, fovY, aspect);
-    DefaultCam.SetMatLookAt();
-    ModelView = DefaultCam.GetMatLookAt();
-    TrUtils::PrintMat(ModelView, "main ModelView");
-
-    ReversedZ = std::vector<Vec<4>>{Vec<4>(1,0,0,0), Vec<4>(0,1,0,0), Vec<4>(0,0,-1,0), Vec<4>(0,0,1,1)};
-
-
-    float nearplane = -0.5f;
-    float farplane = -10.0f;
-    Projection = Mat4Perspective(DefaultCam.fovY, DefaultCam.aspect, abs(nearplane), abs(farplane));
-    
-    // 创建一个 reversed z-buffer
-    float mx = (std::numeric_limits<float>::max)(); 
-    std::vector<std::vector<float>> zbuf (width, std::vector<float>(height, 0.0f));
-    float** zbuf1 = new float*[width];
-    for(int i = 0; i < width; i++)
-    {
-        zbuf1[i] = new float[height];
-    }
-    
-    
-    // 遍历读取输入的obj，创建model和shader
-    // obj\\boggie\\body.obj
-    Model model("obj\\boggie\\body.obj");
-    float ld[] = { 1, 1, 1 };
-    Vec3 lightDir(ld);
-    DefaultShader shader(model, lightDir, zbuf, zbuf1);
-
-    // 遍历所有的faces
-    for(int i = 0; i < model.GetNumFaces(); i++)
-    { 
-        // vertex shader算出的顶点的clip space坐标会写入到这里，相当于gl_Position
-        Vec<4> clipVert[3];
-        // 对三角形的每个顶点调用顶点着色器
-        // face unit结构 v1 / vt1 / vn1    v2 / vt2 / vn2    v3 / vt3 / vn3
-        std::vector<int> faceVertsIdx = model.FaceVert(i);
-        for (int j = 0; j < faceVertsIdx.size(); j++)
-        {
-            shader.VertexShader(i, j, clipVert[j]);
-        }
-        
-        // 光栅化
-        Triangle(clipVert, shader, framebuf);
-    }
-
-    // 绘制到窗口
-    window_draw_bgra(framebuf.GetRawBGRAData());
-    
-    // 用创建的frame buffer将结果写入tga文件保存
-    bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, false);
-
-    while (1)
-    {
-    }
 }

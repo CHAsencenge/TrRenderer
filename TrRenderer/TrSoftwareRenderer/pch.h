@@ -1,4 +1,5 @@
 #pragma once
 #include "Macro.h"
 #include "GlobalUtils.h"
-// #include "ClassUtils.h"
+
+// each cpp file should include pch.h in the first line
