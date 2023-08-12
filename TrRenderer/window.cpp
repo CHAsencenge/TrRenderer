@@ -61,6 +61,7 @@ static void register_window_class()
 	assert(atom != 0);
 }
 
+// bitmap header
 static void init_bm_header(BITMAPINFOHEADER& bi, int width, int height)
 {
 	memset(&bi, 0, sizeof(BITMAPINFOHEADER));
@@ -201,6 +202,7 @@ static void window_display()
 
 }
 
+// input format: RGBA
 void window_draw(unsigned char* framebuffer)
 {
 	// int i, j;
@@ -212,6 +214,23 @@ void window_draw(unsigned char* framebuffer)
 			window->window_fb[index] = framebuffer[index + 2];
 			window->window_fb[index + 1] = framebuffer[index + 1];
 			window->window_fb[index + 2] = framebuffer[index];
+		}
+	}
+	window_display();
+}
+
+// input format: BGRA
+// bitmap uses bgra standard
+void window_draw_bgra(unsigned char* framebuffer)
+{
+	for (int i = 0; i < window->height; i++)
+	{
+		for (int j = 0; j < window->width; j++)
+		{
+			int index = (i * window->width + j) * 4;
+			window->window_fb[index] = framebuffer[index];
+			window->window_fb[index + 1] = framebuffer[index + 1];
+			window->window_fb[index + 2] = framebuffer[index + 2];
 		}
 	}
 	window_display();

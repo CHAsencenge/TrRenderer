@@ -9,11 +9,11 @@ typedef struct Cubemap
 }Cubemap_t;
 
 // 基类写成接口类，提供方法供各种子类实现
-class IShader
+class ShaderBase
 {
 public:
-	IShader() {}
-	~IShader() {}
+	ShaderBase() {}
+	~ShaderBase() {}
 
 	// 供fragment shader使用
 	static TGAColor Sample2D(TGAImage& img, Vec2 uv);
@@ -28,7 +28,7 @@ public:
 private:
 };
 
-class DefaultShader : public IShader
+class DefaultShader : public ShaderBase
 {
 public:
 	DefaultShader(Model& m, Vec3& lightDir, std::vector<std::vector<float>>& zbuf, float** zbuf1);

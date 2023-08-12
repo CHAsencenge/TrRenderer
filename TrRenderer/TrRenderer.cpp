@@ -194,14 +194,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 // 相机，自身位置eye，目标位置target，向上向量up
 
-//float e[] = { 1, 1, 3 };
-//float t[] = { 0, 0, 0 };
-//float u[] = { 0, 1, 0 };
-
-//Vec3 uEye(e);
-//Vec3 uCenter(t); 
-//Vec3 uUp(u);
-
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;
 extern Mat<4, 4> ReversedZ;
@@ -274,7 +266,14 @@ int main()
         // 光栅化
         Triangle(clipVert, shader, framebuf);
     }
+
+    // 绘制到窗口
+    window_draw_bgra(framebuf.GetRawBGRAData());
     
     // 用创建的frame buffer将结果写入tga文件保存
     bool bWriteTGAFile = framebuf.WriteTGAFile("output.tga", false, false);
+
+    while (1)
+    {
+    }
 }

@@ -8,7 +8,7 @@ extern Mat<4, 4> ReversedZ;
 
 
 // 用floot函数将float类型的采样点坐标向下取整
-TGAColor IShader::Sample2D(TGAImage& img, Vec2 uv)
+TGAColor ShaderBase::Sample2D(TGAImage& img, Vec2 uv)
 {
 	return img.Get(floor(uv.e[0] * img.Width()), floor(uv.e[1] * img.Height()));
 }

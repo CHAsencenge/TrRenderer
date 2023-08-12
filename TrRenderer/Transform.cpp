@@ -133,7 +133,7 @@ Vec3 Barycentric(const Vec2 tri[3], const Vec2 p)
 }
 
 // 光栅化方案：包围盒内逐个点依据重心坐标判断是否在三角形内，在三角形内则填充颜色
-void Triangle(const Vec<4> clipVerts[3], IShader& shader, TGAImage& image)
+void Triangle(const Vec<4> clipVerts[3], ShaderBase& shader, TGAImage& image)
 {
 	static int count = 0;
 	DefaultShader* defaultShader = dynamic_cast<DefaultShader*>(&shader);

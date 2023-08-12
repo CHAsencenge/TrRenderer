@@ -24,3 +24,7 @@ void window_draw(unsigned char* framebuffer);
 void msg_dispatch();
 // vec2 get_mouse_pos();
 float platform_get_time(void);
+
+void window_draw_bgra(unsigned char* framebuffer);
+
+
