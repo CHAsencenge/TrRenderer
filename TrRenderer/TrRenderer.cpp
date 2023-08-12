@@ -2,6 +2,7 @@
 //
 
 #include "pch.h"
+// todo: define macros to isolate unused codes in precompile phase
 #include "TrSoftwareRenderer/framework.h"
 #include "TrRenderer.h"
 #include "TrSoftwareRenderer/Window.h"

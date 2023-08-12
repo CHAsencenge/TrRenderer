@@ -122,7 +122,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)TrSoftwareRenderer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -143,6 +143,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="TrD3D12Renderer\D3D12Renderer.h" />
+    <ClInclude Include="TrD3D12Renderer\D3D12RendererBase.h" />
+    <ClInclude Include="TrD3D12Renderer\D3D12Util.h" />
+    <ClInclude Include="TrD3D12Renderer\GameTimer.h" />
     <ClInclude Include="TrRenderer.h" />
     <ClInclude Include="TrSoftwareRenderer\Camera.h" />
     <ClInclude Include="TrSoftwareRenderer\ClassUtils.h" />
@@ -160,6 +164,10 @@
     <ClInclude Include="TrSoftwareRenderer\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="TrD3D12Renderer\D3D12Renderer.cpp" />
+    <ClCompile Include="TrD3D12Renderer\D3D12RendererBase.cpp" />
+    <ClCompile Include="TrD3D12Renderer\D3D12Util.cpp" />
+    <ClCompile Include="TrD3D12Renderer\GameTimer.cpp" />
     <ClCompile Include="TrRenderer.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>

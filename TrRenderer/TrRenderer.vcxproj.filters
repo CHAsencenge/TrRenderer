@@ -7,7 +7,8 @@
     </Filter>
     <Filter Include="core">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+      <Extensions>
+      </Extensions>
     </Filter>
     <Filter Include="platform">
       <UniqueIdentifier>{43a3e461-7589-4980-a9af-7a4a7f587308}</UniqueIdentifier>
@@ -15,18 +16,27 @@
     <Filter Include="shader">
       <UniqueIdentifier>{7675c853-a8c9-4ed6-8b3c-78522aa12b93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TrD3D12Renderer">
+      <UniqueIdentifier>{f5872611-562f-4583-aff6-b4d4e3f920ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TrD3D12Renderer\Public">
+      <UniqueIdentifier>{95c04e21-9010-4d2a-80cf-46e2533eccf1}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="TrD3D12Renderer\Private">
+      <UniqueIdentifier>{dd74a020-9f17-48f9-805e-b969405b90c9}</UniqueIdentifier>
+      <Extensions>cpp;</Extensions>
+    </Filter>
     <Filter Include="TrSoftwareRenderer">
       <UniqueIdentifier>{e6286651-54df-4f06-88a1-247902aa1c27}</UniqueIdentifier>
     </Filter>
     <Filter Include="TrSoftwareRenderer\Public">
       <UniqueIdentifier>{5aa59f47-a574-47ea-851c-4461f1046adf}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="TrSoftwareRenderer\Private">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="TrD3D12Renderer">
-      <UniqueIdentifier>{f5872611-562f-4583-aff6-b4d4e3f920ab}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +83,12 @@
       <Filter>TrSoftwareRenderer\Public</Filter>
     </ClInclude>
     <ClInclude Include="TrRenderer.h" />
+    <ClInclude Include="TrD3D12Renderer\D3D12RendererBase.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="TrD3D12Renderer\GameTimer.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -100,6 +116,18 @@
       <Filter>TrSoftwareRenderer\Private</Filter>
     </ClCompile>
     <ClCompile Include="TrRenderer.cpp" />
+    <ClCompile Include="TrD3D12Renderer\D3D12RendererBase.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrD3D12Renderer\GameTimer.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrD3D12Renderer\D3D12Util.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrD3D12Renderer\D3D12Renderer.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TrRenderer.rc">
