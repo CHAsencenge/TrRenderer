@@ -78,7 +78,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -147,6 +146,7 @@
     <ClInclude Include="TrD3D12Renderer\D3D12RendererBase.h" />
     <ClInclude Include="TrD3D12Renderer\D3D12Util.h" />
     <ClInclude Include="TrD3D12Renderer\GameTimer.h" />
+    <ClInclude Include="TrD3D12Renderer\VertexBase.h" />
     <ClInclude Include="TrRenderer.h" />
     <ClInclude Include="TrSoftwareRenderer\Camera.h" />
     <ClInclude Include="TrSoftwareRenderer\ClassUtils.h" />
@@ -168,6 +168,7 @@
     <ClCompile Include="TrD3D12Renderer\D3D12RendererBase.cpp" />
     <ClCompile Include="TrD3D12Renderer\D3D12Util.cpp" />
     <ClCompile Include="TrD3D12Renderer\GameTimer.cpp" />
+    <ClCompile Include="TrD3D12Renderer\VertexBase.cpp" />
     <ClCompile Include="TrRenderer.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
