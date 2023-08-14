@@ -27,7 +27,7 @@ public:
 private:
 
     virtual void LoadPipeline();
-    virtual void LoadAssets();
+    virtual void LoadAssets(const std::wstring filename);
 
     // populate: add datas to...
     virtual void PopulateCommandList();

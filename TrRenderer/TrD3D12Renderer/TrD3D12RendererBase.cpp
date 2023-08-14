@@ -113,8 +113,68 @@ void TrD3D12RendererBase::LoadPipeline()
     ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
 }
 
-void TrD3D12RendererBase::LoadAssets()
+/* note:
+ * upload heap: used for the resources that need to be updated frequently by the cpu, is optimized for cpu write
+ * (constant buffers, dynamic vertex buffers)
+ * default heap: read-only or rarely updated by the cpu, is optimized for gpu read
+ * (static vertex buffers, index buffers)
+ */
+void TrD3D12RendererBase::LoadAssets(const std::wstring filename)
 {
+    // create root signature (resources used for xxx)
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    /// the input assembler input layout is not allowed to be set when creating a root signature
+    /// input layout must be specified when setting the pso using the IASetVertexBuffers and IASetIndexBuffer
+    rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    /// output buffer of the serialized desc data
+    Microsoft::WRL::ComPtr<ID3DBlob> signature;
+    Microsoft::WRL::ComPtr<ID3DBlob> error;
+    /// convert the root signature description into a serialized form
+    ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    /// create the root signature from the serialized data
+    ThrowIfFailed(mDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
+
+    // create the pipeline state, which includes compiling and loading shaders
+    Microsoft::WRL::ComPtr<ID3DBlob> vertexShader;
+    Microsoft::WRL::ComPtr<ID3DBlob> pixelShader;
+
+#if defined(_DEBUG)
+    // d3dcompiler.h
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    UINT compileFlags = 0;
+#endif
+    // todo: flexible shader read
+    ThrowIfFailed(D3DCompileFromFile(filename.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr));
+    ThrowIfFailed(D3DCompileFromFile(filename.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr));
+    
+    // define the vertex input layout
+    D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
+    {
+        /* note:
+         * SemanticIndex differentiates between multiple elements with the same semantic name
+         * InpputSlot identifies the vertex buffer binding slot from which the data sourced
+         */
+        {"POSITION", 0 ,DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+    };
+    
+    // describe and create graphics pipeline state object
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+    psoDesc.pRootSignature = mRootSignature.Get();
+    psoDesc.VS = {reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize()};
+    psoDesc.PS = {reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer(), pixelShader->GetBufferSize())};
+    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc.SampleMask = UINT_MAX;
+
+    // create the command list
+
+
+    // create vertex buffer
+
+
+    // 
 }
 
 void TrD3D12RendererBase::PopulateCommandList()

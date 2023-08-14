@@ -12,6 +12,7 @@
 #include "d3d12sdklayers.h"
 #include <winerror.h>
 #include <exception>
+#include <d3dcompiler.h>
 
 
 
