@@ -1,36 +1,37 @@
 #include "pch.h"
-#include "D3D12RendererBase.h"
+#include "TrD3D12RendererBase.h"
 
 
 
-D3D12RendererBase::D3D12RendererBase(UINT width, UINT height, std::wstring name)
+TrD3D12RendererBase::TrD3D12RendererBase(UINT width, UINT height, std::wstring name)
 {
-    
+    mWidth = width;
+    mHeight = height;
 }
 
-D3D12RendererBase::~D3D12RendererBase()
+TrD3D12RendererBase::~TrD3D12RendererBase()
 {
 }
 
-void D3D12RendererBase::Initialize()
+void TrD3D12RendererBase::Initialize()
 {
     LoadPipeline();
     LoadAssets();
 }
 
-void D3D12RendererBase::Update()
+void TrD3D12RendererBase::Update()
 {
 }
 
-void D3D12RendererBase::Render()
+void TrD3D12RendererBase::Render()
 {
 }
 
-void D3D12RendererBase::Destroy()
+void TrD3D12RendererBase::Destroy()
 {
 }
 
-void D3D12RendererBase::LoadPipeline()
+void TrD3D12RendererBase::LoadPipeline()
 {
     // enable debug layer
     Microsoft::WRL::ComPtr<ID3D12Debug> debugger;
@@ -71,24 +72,31 @@ void D3D12RendererBase::LoadPipeline()
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
     ThrowIfFailed(mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
 
-    
-    
+    // describe and create swap chain
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    swapChainDesc.BufferCount = SwapFrameCount;
+    swapChainDesc.BufferDesc.Width = mWidth;
+    swapChainDesc.BufferDesc.Height = mHeight;
+    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // UNORM means unsigned normalized
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.OutputWindow = 
       
 }
 
-void D3D12RendererBase::LoadAssets()
+void TrD3D12RendererBase::LoadAssets()
 {
 }
 
-void D3D12RendererBase::PopulateCommandList()
+void TrD3D12RendererBase::PopulateCommandList()
 {
 }
 
-void D3D12RendererBase::WaitForPreviousFrame()
+void TrD3D12RendererBase::WaitForPreviousFrame()
 {
 }
 
-void D3D12RendererBase::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)
+void TrD3D12RendererBase::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)
 {
     *ppAdapter = nullptr;
     for(UINT adapterIndex = 0; ; adapterIndex++)

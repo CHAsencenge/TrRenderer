@@ -5,18 +5,18 @@
 
 # pragma once
 
-#include "D3D12Util.h"
+#include "TrD3D12Util.h"
 
-class D3D12RendererBase
+class TrD3D12RendererBase
 {
 public:
-    D3D12RendererBase(UINT width, UINT height, std::wstring name);
-    D3D12RendererBase(const D3D12RendererBase& other) = delete;
-    D3D12RendererBase(const D3D12RendererBase&& other) = delete;
-    D3D12RendererBase& operator=(const D3D12RendererBase& other) = delete;
-    D3D12RendererBase& operator=(const D3D12RendererBase&& other) = delete;
+    TrD3D12RendererBase(UINT width, UINT height, std::wstring name);
+    TrD3D12RendererBase(const TrD3D12RendererBase& other) = delete;
+    TrD3D12RendererBase(const TrD3D12RendererBase&& other) = delete;
+    TrD3D12RendererBase& operator=(const TrD3D12RendererBase& other) = delete;
+    TrD3D12RendererBase& operator=(const TrD3D12RendererBase&& other) = delete;
     
-    virtual ~D3D12RendererBase();
+    virtual ~TrD3D12RendererBase();
 public:
     virtual void Initialize();
     virtual void Update();
@@ -73,7 +73,8 @@ private:
     // settings
     // Warp: Windows Advanced Rasterization Platform, software-based rasterizer, rendering graphics using the CPU instead of a dedicated GPU
     BOOL mbUseWarpDevice = false;
-
+    UINT mWidth;
+    UINT mHeight;
 
     
 };

@@ -83,16 +83,16 @@
       <Filter>TrSoftwareRenderer\Public</Filter>
     </ClInclude>
     <ClInclude Include="TrRenderer.h" />
-    <ClInclude Include="TrD3D12Renderer\D3D12RendererBase.h">
+    <ClInclude Include="TrD3D12Renderer\TrD3D12RendererBase.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
     <ClInclude Include="TrD3D12Renderer\GameTimer.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
-    <ClInclude Include="TrD3D12Renderer\D3D12Renderer.h">
+    <ClInclude Include="TrD3D12Renderer\TrD3D12Renderer.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
-    <ClInclude Include="TrD3D12Renderer\D3D12Util.h">
+    <ClInclude Include="TrD3D12Renderer\TrD3D12Util.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
     <ClInclude Include="TrD3D12Renderer\VertexBase.h">
@@ -125,16 +125,16 @@
       <Filter>TrSoftwareRenderer\Private</Filter>
     </ClCompile>
     <ClCompile Include="TrRenderer.cpp" />
-    <ClCompile Include="TrD3D12Renderer\D3D12RendererBase.cpp">
+    <ClCompile Include="TrD3D12Renderer\TrD3D12RendererBase.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
     <ClCompile Include="TrD3D12Renderer\GameTimer.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
-    <ClCompile Include="TrD3D12Renderer\D3D12Util.cpp">
+    <ClCompile Include="TrD3D12Renderer\TrD3D12Util.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
-    <ClCompile Include="TrD3D12Renderer\D3D12Renderer.cpp">
+    <ClCompile Include="TrD3D12Renderer\TrD3D12Renderer.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
     <ClCompile Include="TrD3D12Renderer\VertexBase.cpp">
