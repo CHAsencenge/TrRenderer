@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="TrD3D12Renderer\d3dx12.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12Renderer.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12RendererBase.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12Util.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="TrSoftwareRenderer\TGA.h" />
     <ClInclude Include="TrSoftwareRenderer\Transform.h" />
     <ClInclude Include="TrSoftwareRenderer\Window.h" />
+    <ClInclude Include="TrWindowApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrD3D12Renderer\TrD3D12Renderer.cpp" />
@@ -817,6 +819,7 @@
       <SDLCheck>true</SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="TrWindowApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="TrRenderer.ico" />

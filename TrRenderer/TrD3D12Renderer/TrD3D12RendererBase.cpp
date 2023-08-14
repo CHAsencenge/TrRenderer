@@ -80,8 +80,37 @@ void TrD3D12RendererBase::LoadPipeline()
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // UNORM means unsigned normalized
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.OutputWindow = 
-      
+    // todo: TrWindowApp::GetHwnd()
+    swapChainDesc.OutputWindow = TrWindowApp::GetHwnd();
+    // todo: MultiSample
+    swapChainDesc.SampleDesc.Count = 1;
+    swapChainDesc.Windowed = TRUE;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+    ThrowIfFailed(factory->CreateSwapChain(mDevice.Get(), &swapChainDesc, swapChain.GetAddressOf()));
+    ThrowIfFailed(swapChain.As(&mSwapChain));
+    ThrowIfFailed(factory->CreateSwapChain(mDevice.Get(), &swapChainDesc, reinterpret_cast<IDXGISwapChain**>(mSwapChain.GetAddressOf())));
+
+    mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
+
+    // create descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    rtvHeapDesc.NumDescriptors = SwapFrameCount;
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    ThrowIfFailed(mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRtvHeap)));
+    mRtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+    // create frame resources
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart()); // get cpu heap start handle, need d3dx12.h
+
+    for(UINT n = 0; n < SwapFrameCount; n++)
+    {
+        ThrowIfFailed(mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n])));
+        mDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
+        rtvHandle.Offset(1, mRtvDescriptorSize); // Offset is declared in d3dx12.h
+    }
+
+    ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
 }
 
 void TrD3D12RendererBase::LoadAssets()

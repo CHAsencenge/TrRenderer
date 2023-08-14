@@ -4,7 +4,7 @@
  */
 
 # pragma once
-
+#include "../TrWindowApp.h"
 #include "TrD3D12Util.h"
 
 class TrD3D12RendererBase

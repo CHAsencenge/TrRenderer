@@ -98,6 +98,10 @@
     <ClInclude Include="TrD3D12Renderer\VertexBase.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
+    <ClInclude Include="TrWindowApp.h" />
+    <ClInclude Include="TrD3D12Renderer\d3dx12.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -140,6 +144,7 @@
     <ClCompile Include="TrD3D12Renderer\VertexBase.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
+    <ClCompile Include="TrWindowApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TrRenderer.rc">

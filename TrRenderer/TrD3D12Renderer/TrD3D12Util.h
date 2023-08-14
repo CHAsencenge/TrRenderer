@@ -1,8 +1,12 @@
 #pragma once
 
+#include <windows.h>
+#include <wrl.h>
 #include "minwindef.h"
+#include <DirectXMath.h>
 #include <string>
-#include "d3d12.h"
+#include <d3d12.h>
+#include "d3dx12.h"
 #include <wrl/client.h>
 #include "dxgi1_4.h"
 #include "d3d12sdklayers.h"
@@ -37,8 +41,8 @@ public:
 #ifndef ThrowIfFailed
 #define ThrowIfFailed(x)                                              \
 {                                                                     \
-HRESULT hr__ = (x);                                               \
-std::wstring wfn = AnsiToWString(__FILE__);                       \
-if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); } \
+    HRESULT hr__ = (x);                                               \
+    std::wstring wfn = AnsiToWString(__FILE__);                       \
+    if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); } \
 }
 #endif

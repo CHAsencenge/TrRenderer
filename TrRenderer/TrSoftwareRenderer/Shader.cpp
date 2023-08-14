@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "Shader.h"
+
+#include <minwindef.h>
+
 #include "ClassUtils.h"
 
 extern Mat<4, 4> ModelView;
