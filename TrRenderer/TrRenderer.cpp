@@ -13,7 +13,6 @@
 #include "TrSoftwareRenderer/Model.h"
 #include "TrSoftwareRenderer/Shader.h"
 #include "TrSoftwareRenderer/ClassUtils.h"
-#include <Windows.h>
 #include <iostream>
 #include <vector>
 

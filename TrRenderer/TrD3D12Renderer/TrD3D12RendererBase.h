@@ -1,80 +1,36 @@
-/* note:
- * DXGI: DirectX Graphics Infrastructure
- * IID_PPV_ARGS: ComPtr -> RIID + void**
- */
+// todo: pure virtual interface 
+#pragma once
 
-# pragma once
-#include "../TrWindowApp.h"
 #include "TrD3D12Util.h"
+
 
 class TrD3D12RendererBase
 {
+
 public:
-    TrD3D12RendererBase(UINT width, UINT height, std::wstring name);
-    TrD3D12RendererBase(const TrD3D12RendererBase& other) = delete;
-    TrD3D12RendererBase(const TrD3D12RendererBase&& other) = delete;
-    TrD3D12RendererBase& operator=(const TrD3D12RendererBase& other) = delete;
-    TrD3D12RendererBase& operator=(const TrD3D12RendererBase&& other) = delete;
-    
-    virtual ~TrD3D12RendererBase();
+
+#pragma region pipeline
+	virtual void Initialize() = 0;
+	virtual void Update() = 0;
+	virtual void Render() = 0;
+	virtual void Destroy() = 0;
+#pragma endregion
+
+	
 public:
-    virtual void Initialize();
-    virtual void Update();
-    virtual void Render();
-    virtual void Destroy();
+	std::wstring GetAssetFullPath(LPCWSTR assetName);
 
 
 private:
+	/**note: 
+	 * std::wstring : work with unicode or wide character strings
+	 * LPCWSTR : windows specific type , stands for long pointer to constant wide string
+	 * a pointer to a null-ternimated ('\0') array of wide characters (const wchar_t*)
+	*/
+	std::wstring mAssetsPath;
 
-    virtual void LoadPipeline();
-    virtual void LoadAssets(const std::wstring filename);
+	UINT mWidth;
+	UINT mHeight;
+	float mAspectRatio = 3.0f / 4.0f;
 
-    // populate: add datas to...
-    virtual void PopulateCommandList();
-
-    virtual void WaitForPreviousFrame();
-
-    // device is singleton to adapter
-    static void GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter);
-
-private:
-    /* note:
-     * const variable can not be modified after initialization. The value is determined at runtime
-     * constexpr variable's value is evaluated at compile time. It must be initialized with a constant expression and a value.
-     */
-    static constexpr UINT SwapFrameCount = 2;
-
-    // pipeline objects
-    D3D12_VIEWPORT mViewport;
-    D3D12_RECT mScissorRect;
-    Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
-    Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-    Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
-    Microsoft::WRL::ComPtr<ID3D12CommandList> mCommandList;
-    
-    Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    UINT mRtvDescriptorSize;
-
-    // app resources
-    Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
-
-    // synchronization objects
-    UINT64 mFenceValue;
-    Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
-    HANDLE mFenceEvent;  // handle to object fence
-
-    UINT mFrameIndex;
-
-    // settings
-    // Warp: Windows Advanced Rasterization Platform, software-based rasterizer, rendering graphics using the CPU instead of a dedicated GPU
-    BOOL mbUseWarpDevice = false;
-    UINT mWidth;
-    UINT mHeight;
-
-    
 };

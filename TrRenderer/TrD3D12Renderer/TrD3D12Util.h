@@ -7,12 +7,16 @@
 #include <string>
 #include <d3d12.h>
 #include "d3dx12.h"
-#include <wrl/client.h>
-#include "dxgi1_4.h"
+#include <dxgi1_6.h>
 #include "d3d12sdklayers.h"
 #include <winerror.h>
 #include <exception>
 #include <d3dcompiler.h>
+
+#include <vector>
+#include <memory>
+#include <shellapi.h>
+#include <winnt.h>
 
 
 
