@@ -7,16 +7,16 @@
 #include "../TrWindowApp.h"
 #include "TrD3D12Util.h"
 
-class TrD3D12TriangleRenderer : public TrD3D12RendererBase
+class TrD3D12RendererRaster : public TrD3D12RendererBase
 {
 public:
-    TrD3D12TriangleRenderer(UINT width, UINT height, std::wstring name);
-    TrD3D12TriangleRenderer(const TrD3D12TriangleRenderer& other) = delete;
-    TrD3D12TriangleRenderer(const TrD3D12TriangleRenderer&& other) = delete;
-    TrD3D12TriangleRenderer& operator=(const TrD3D12TriangleRenderer& other) = delete;
-    TrD3D12TriangleRenderer& operator=(const TrD3D12TriangleRenderer&& other) = delete;
+    TrD3D12RendererRaster(UINT width, UINT height, std::wstring name);
+    TrD3D12RendererRaster(const TrD3D12RendererRaster& other) = delete;
+    TrD3D12RendererRaster(const TrD3D12RendererRaster&& other) = delete;
+    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster& other) = delete;
+    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster&& other) = delete;
     
-    virtual ~TrD3D12TriangleRenderer();
+    virtual ~TrD3D12RendererRaster();
 public:
     virtual void Initialize() override;
     virtual void Update() override;

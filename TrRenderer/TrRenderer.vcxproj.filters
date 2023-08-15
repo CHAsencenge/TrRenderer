@@ -102,7 +102,7 @@
     <ClInclude Include="TrD3D12Renderer\TrD3D12RendererBase.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
-    <ClInclude Include="TrD3D12Renderer\TrD3D12TriangleRenderer.h">
+    <ClInclude Include="TrD3D12Renderer\TrD3D12RendererRaster.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
   </ItemGroup>
@@ -148,7 +148,7 @@
     <ClCompile Include="TrD3D12Renderer\TrD3D12RendererBase.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
-    <ClCompile Include="TrD3D12Renderer\TrD3D12TriangleRenderer.cpp">
+    <ClCompile Include="TrD3D12Renderer\TrD3D12RendererRaster.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,37 +1,35 @@
 #include "pch.h"
-#include "TrD3D12TriangleRenderer.h"
+#include "TrD3D12RendererRaster.h"
 #include "VertexBase.h"
 
 
-TrD3D12TriangleRenderer::TrD3D12TriangleRenderer(UINT width, UINT height, std::wstring name)
-{
-    mWidth = width;
-    mHeight = height;
-}
-
-TrD3D12TriangleRenderer::~TrD3D12TriangleRenderer()
+TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring name)
 {
 }
 
-void TrD3D12TriangleRenderer::Initialize()
+TrD3D12RendererRaster::~TrD3D12RendererRaster()
+{
+}
+
+void TrD3D12RendererRaster::Initialize()
 {
     LoadPipeline();
     LoadAssets(GetAssetFullPath(L"shader.hlsl"));
 }
 
-void TrD3D12TriangleRenderer::Update()
+void TrD3D12RendererRaster::Update()
 {
 }
 
-void TrD3D12TriangleRenderer::Render()
+void TrD3D12RendererRaster::Render()
 {
 }
 
-void TrD3D12TriangleRenderer::Destroy()
+void TrD3D12RendererRaster::Destroy()
 {
 }
 
-void TrD3D12TriangleRenderer::LoadPipeline()
+void TrD3D12RendererRaster::LoadPipeline()
 {
     // enable debug layer
     Microsoft::WRL::ComPtr<ID3D12Debug> debugger;
@@ -119,7 +117,7 @@ void TrD3D12TriangleRenderer::LoadPipeline()
  * default heap: read-only or rarely updated by the cpu, is optimized for gpu read
  * (static vertex buffers, index buffers)
  */
-void TrD3D12TriangleRenderer::LoadAssets(const std::wstring filename)
+void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
 {
     // create root signature (resources used for xxx)
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -194,15 +192,15 @@ void TrD3D12TriangleRenderer::LoadAssets(const std::wstring filename)
     ThrowIfFailed(mDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mVertexBuffer)));
 }
 
-void TrD3D12TriangleRenderer::PopulateCommandList()
+void TrD3D12RendererRaster::PopulateCommandList()
 {
 }
 
-void TrD3D12TriangleRenderer::WaitForPreviousFrame()
+void TrD3D12RendererRaster::WaitForPreviousFrame()
 {
 }
 
-void TrD3D12TriangleRenderer::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)
+void TrD3D12RendererRaster::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)
 {
     *ppAdapter = nullptr;
     for(UINT adapterIndex = 0; ; adapterIndex++)

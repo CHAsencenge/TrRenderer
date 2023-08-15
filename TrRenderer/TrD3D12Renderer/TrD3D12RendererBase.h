@@ -8,6 +8,9 @@ class TrD3D12RendererBase
 {
 
 public:
+	TrD3D12RendererBase(UINT width, UINT height);
+	virtual ~TrD3D12RendererBase();
+
 
 #pragma region pipeline
 	virtual void Initialize() = 0;
@@ -19,7 +22,7 @@ public:
 	
 public:
 	std::wstring GetAssetFullPath(LPCWSTR assetName);
-
+	void ParseCommandLineArgs(WCHAR* argv[], int argc);
 
 private:
 	/**note: 
@@ -31,6 +34,6 @@ private:
 
 	UINT mWidth;
 	UINT mHeight;
-	float mAspectRatio = 3.0f / 4.0f;
+	float mAspectRatio;
 
 };

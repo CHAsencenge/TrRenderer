@@ -145,7 +145,7 @@
     <ClInclude Include="TrD3D12Renderer\d3dx12.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12Renderer.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12RendererBase.h" />
-    <ClInclude Include="TrD3D12Renderer\TrD3D12TriangleRenderer.h" />
+    <ClInclude Include="TrD3D12Renderer\TrD3D12RendererRaster.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12Util.h" />
     <ClInclude Include="TrD3D12Renderer\GameTimer.h" />
     <ClInclude Include="TrD3D12Renderer\VertexBase.h" />
@@ -169,7 +169,7 @@
   <ItemGroup>
     <ClCompile Include="TrD3D12Renderer\TrD3D12Renderer.cpp" />
     <ClCompile Include="TrD3D12Renderer\TrD3D12RendererBase.cpp" />
-    <ClCompile Include="TrD3D12Renderer\TrD3D12TriangleRenderer.cpp" />
+    <ClCompile Include="TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
     <ClCompile Include="TrD3D12Renderer\TrD3D12Util.cpp" />
     <ClCompile Include="TrD3D12Renderer\GameTimer.cpp" />
     <ClCompile Include="TrD3D12Renderer\VertexBase.cpp" />

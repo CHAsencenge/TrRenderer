@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "TrD3D12Renderer/TrD3D12Util.h"
+#include "TrD3D12Renderer/TrD3D12RendererRaster.h"
 
 
 
@@ -304,15 +305,10 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
  */
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-    PSTR cmdLine, int showCmd)
+    LPSTR cmdLine, int showCmd)
 {
     std::cout << "WinMain" << std::endl;
     
-    // use hInstance to create a Renderer inst
-
-    // Renderer initialize
-
-    // Renderer main loop
-
-    // catch exception and return
+    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
+    return TrWindowApp::Initialize(&Renderer, hInstance, showCmd);
 }
