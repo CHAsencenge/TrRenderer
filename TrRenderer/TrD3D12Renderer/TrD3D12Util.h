@@ -1,22 +1,20 @@
 #pragma once
-
 #include <windows.h>
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include <winnt.h>
 #include <wrl.h>
-#include "minwindef.h"
 #include <DirectXMath.h>
 #include <string>
-#include <d3d12.h>
 #include "d3dx12.h"
 #include <dxgi1_6.h>
-#include "d3d12sdklayers.h"
-#include <winerror.h>
 #include <exception>
-#include <d3dcompiler.h>
-
 #include <vector>
 #include <memory>
+#include <comdef.h>
+#include <iostream>
+#include <stdexcept>
 #include <shellapi.h>
-#include <winnt.h>
 
 
 
@@ -51,3 +49,23 @@ public:
     if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); } \
 }
 #endif
+
+inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
+{
+    if (path == nullptr)
+    {
+        throw std::exception();
+    }
+
+    DWORD size = GetModuleFileName(nullptr, path, pathSize);
+    if (size == 0 || size == pathSize)
+    {
+        throw std::exception();
+    }
+
+    WCHAR* lastSlash = wcsrchr(path, L'\\');
+    if (lastSlash)
+    {
+        *(lastSlash + 1) = L'\0';
+    }
+}

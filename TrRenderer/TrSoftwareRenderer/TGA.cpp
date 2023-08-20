@@ -1,4 +1,4 @@
-#include "pch.h"
+
 #include "TGA.h"
 
 #include <bitset>

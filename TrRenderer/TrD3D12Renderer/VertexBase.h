@@ -1,4 +1,5 @@
-#include <DirectXMath.h>
+#pragma once
+#include "TrD3D12Util.h"
 
 class VertexBase
 {

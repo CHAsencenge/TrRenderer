@@ -1,5 +1,7 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
+#include "Macro.h"
+#include "GlobalUtils.h"
 
 typedef struct window
 {

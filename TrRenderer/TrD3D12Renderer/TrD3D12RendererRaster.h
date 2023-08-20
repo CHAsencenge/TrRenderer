@@ -4,24 +4,29 @@
  */
 
 # pragma once
-#include "../TrWindowApp.h"
 #include "TrD3D12Util.h"
+#include "TrD3D12RendererBase.h"
+
+class TrWindowApp;
 
 class TrD3D12RendererRaster : public TrD3D12RendererBase
 {
 public:
-    TrD3D12RendererRaster(UINT width, UINT height, std::wstring name);
+
+    TrD3D12RendererRaster(UINT width, UINT height, std::wstring title);
     TrD3D12RendererRaster(const TrD3D12RendererRaster& other) = delete;
     TrD3D12RendererRaster(const TrD3D12RendererRaster&& other) = delete;
     TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster& other) = delete;
     TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster&& other) = delete;
-    
-    virtual ~TrD3D12RendererRaster();
+   
 public:
-    virtual void Initialize() override;
-    virtual void Update() override;
-    virtual void Render() override;
-    virtual void Destroy() override;
+    virtual void OnInitialize() override;
+    virtual void OnUpdate() override;
+    virtual void OnRender() override;
+    virtual void OnDestroy() override;
+
+    virtual void OnKeyDown(UINT8 wParam) override;
+    virtual void OnKeyUp(UINT8 wParam) override;
 
 
 private:

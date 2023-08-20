@@ -61,16 +61,7 @@
     <ClInclude Include="TrSoftwareRenderer\Model.h">
       <Filter>TrSoftwareRenderer\Public</Filter>
     </ClInclude>
-    <ClInclude Include="TrSoftwareRenderer\pch.h">
-      <Filter>TrSoftwareRenderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="TrSoftwareRenderer\Resource.h">
-      <Filter>TrSoftwareRenderer\Public</Filter>
-    </ClInclude>
     <ClInclude Include="TrSoftwareRenderer\Shader.h">
-      <Filter>TrSoftwareRenderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="TrSoftwareRenderer\targetver.h">
       <Filter>TrSoftwareRenderer\Public</Filter>
     </ClInclude>
     <ClInclude Include="TrSoftwareRenderer\TGA.h">
@@ -116,9 +107,6 @@
     <ClCompile Include="TrSoftwareRenderer\Model.cpp">
       <Filter>TrSoftwareRenderer\Private</Filter>
     </ClCompile>
-    <ClCompile Include="TrSoftwareRenderer\pch.cpp">
-      <Filter>TrSoftwareRenderer\Private</Filter>
-    </ClCompile>
     <ClCompile Include="TrSoftwareRenderer\Shader.cpp">
       <Filter>TrSoftwareRenderer\Private</Filter>
     </ClCompile>
@@ -153,16 +141,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TrRenderer.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="TrRenderer.ico">
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="TrSoftwareRenderer\small.ico">
       <Filter>资源文件</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders.hlsl">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

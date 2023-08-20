@@ -1,12 +1,17 @@
-#include "pch.h"
+#include "TrD3D12Util.h"
 #include "TrD3D12RendererBase.h"
 
 
-TrD3D12RendererBase::TrD3D12RendererBase(UINT width, UINT height)
+TrD3D12RendererBase::TrD3D12RendererBase(UINT width, UINT height, std::wstring title)
 {
 	mWidth = width;
 	mHeight = height;
+	mTitle = title;
 	mAspectRatio = static_cast<float>(width) / static_cast<float>(height);
+
+	WCHAR assetsPath[512];
+	GetAssetsPath(assetsPath, _countof(assetsPath));
+	mAssetsPath = assetsPath;
 }
 
 TrD3D12RendererBase::~TrD3D12RendererBase()

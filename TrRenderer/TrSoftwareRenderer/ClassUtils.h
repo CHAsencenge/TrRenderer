@@ -1,4 +1,6 @@
 #pragma once
+#include "Macro.h"
+#include "GlobalUtils.h"
 #include "Maths.h"
 
 class TrUtils

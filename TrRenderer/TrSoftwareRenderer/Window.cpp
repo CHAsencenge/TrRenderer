@@ -1,4 +1,4 @@
-#include "pch.h"
+
 #include "Window.h"
 #include <cassert>
 #include <cstdio>

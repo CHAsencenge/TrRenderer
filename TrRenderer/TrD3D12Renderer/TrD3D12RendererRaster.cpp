@@ -1,31 +1,37 @@
-#include "pch.h"
+
 #include "TrD3D12RendererRaster.h"
 #include "VertexBase.h"
+#include "../TrWindowApp.h"
 
 
-TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring name)
+TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring title) : TrD3D12RendererBase(width, height, title)
 {
+    
 }
 
-TrD3D12RendererRaster::~TrD3D12RendererRaster()
-{
-}
-
-void TrD3D12RendererRaster::Initialize()
+void TrD3D12RendererRaster::OnInitialize()
 {
     LoadPipeline();
     LoadAssets(GetAssetFullPath(L"shader.hlsl"));
 }
 
-void TrD3D12RendererRaster::Update()
+void TrD3D12RendererRaster::OnUpdate()
 {
 }
 
-void TrD3D12RendererRaster::Render()
+void TrD3D12RendererRaster::OnRender()
 {
 }
 
-void TrD3D12RendererRaster::Destroy()
+void TrD3D12RendererRaster::OnDestroy()
+{
+}
+
+void TrD3D12RendererRaster::OnKeyDown(UINT8 wParam)
+{
+}
+
+void TrD3D12RendererRaster::OnKeyUp(UINT8 wParam)
 {
 }
 

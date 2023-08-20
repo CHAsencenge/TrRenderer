@@ -1,9 +1,9 @@
-#include "pch.h"
-#include "Shader.h"
 
-#include <minwindef.h>
+#include "Shader.h"
+#include <windows.h>
 
 #include "ClassUtils.h"
+
 
 extern Mat<4, 4> ModelView;
 extern Mat<4, 4> Projection;

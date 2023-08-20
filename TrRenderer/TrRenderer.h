@@ -1,3 +1,2 @@
 #pragma once
-
-#include "TrSoftwareRenderer/Resource.h"
+#include "TrD3D12Renderer/TrD3D12Util.h"

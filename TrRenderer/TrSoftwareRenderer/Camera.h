@@ -1,6 +1,7 @@
 #pragma once
 // 还是需要include预编译头
-#include "pch.h"
+#include "Macro.h"
+#include "GlobalUtils.h"
 #include "Maths.h"
 
 class Camera

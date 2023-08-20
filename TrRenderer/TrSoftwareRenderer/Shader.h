@@ -1,4 +1,6 @@
 #pragma once
+#include "Macro.h"
+#include "GlobalUtils.h"
 #include "Model.h"
 #include "Maths.h"
 #include <cmath>

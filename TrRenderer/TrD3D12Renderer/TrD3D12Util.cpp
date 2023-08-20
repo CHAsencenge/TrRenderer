@@ -1,6 +1,4 @@
-#include "pch.h"
 #include "TrD3D12Util.h"
-#include <comdef.h>
 
 DxException::DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber) :
 ErrorCode(hr),

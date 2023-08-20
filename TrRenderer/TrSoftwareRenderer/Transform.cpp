@@ -1,4 +1,4 @@
-#include "pch.h"
+
 #include "Transform.h"
 
 // 相机固定在(0, 0, 0)，看向-z轴方向，反向旋转场景
