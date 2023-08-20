@@ -77,22 +77,19 @@ void TrD3D12RendererRaster::LoadPipeline()
     ThrowIfFailed(mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
 
     // describe and create swap chain
-    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.BufferCount = SwapFrameCount;
-    swapChainDesc.BufferDesc.Width = mWidth;
-    swapChainDesc.BufferDesc.Height = mHeight;
-    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // UNORM means unsigned normalized
+    swapChainDesc.Width = mWidth;
+    swapChainDesc.Height = mHeight;
+    swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // UNORM means unsigned normalized
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    // todo: TrWindowApp::GetHwnd()
-    swapChainDesc.OutputWindow = TrWindowApp::GetHwnd();
     // todo: MultiSample
     swapChainDesc.SampleDesc.Count = 1;
-    swapChainDesc.Windowed = TRUE;
-    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-    ThrowIfFailed(factory->CreateSwapChain(mDevice.Get(), &swapChainDesc, swapChain.GetAddressOf()));
-    ThrowIfFailed(swapChain.As(&mSwapChain));
-    ThrowIfFailed(factory->CreateSwapChain(mDevice.Get(), &swapChainDesc, reinterpret_cast<IDXGISwapChain**>(mSwapChain.GetAddressOf())));
+    Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain;
+    ThrowIfFailed(factory->CreateSwapChainForHwnd(mCommandQueue.Get(), TrWindowApp::GetHwnd(), &swapChainDesc, nullptr, nullptr
+        , &swapChain));
+    ThrowIfFailed(factory->MakeWindowAssociation(TrWindowApp::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
     mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
 

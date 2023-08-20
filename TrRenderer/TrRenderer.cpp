@@ -17,7 +17,7 @@
 //#include "TrSoftwareRenderer/ClassUtils.h"
 
 
-
+#include "TrWindowApp.h"
 #include "TrD3D12Renderer/TrD3D12RendererRaster.h"
 
 
@@ -127,6 +127,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 {
     std::cout << "WinMain" << std::endl;
     
-   /* TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
-    return TrWindowApp::Run(&Renderer, hInstance, showCmd);*/
+    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
+    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
 }
