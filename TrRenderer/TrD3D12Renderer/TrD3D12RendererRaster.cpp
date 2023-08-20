@@ -12,7 +12,7 @@ TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstri
 void TrD3D12RendererRaster::OnInitialize()
 {
     LoadPipeline();
-    LoadAssets(GetAssetFullPath(L"shader.hlsl"));
+    LoadAssets(GetAssetFullPath(L"shaders.hlsl"));
 }
 
 void TrD3D12RendererRaster::OnUpdate()
@@ -90,7 +90,7 @@ void TrD3D12RendererRaster::LoadPipeline()
     ThrowIfFailed(factory->CreateSwapChainForHwnd(mCommandQueue.Get(), TrWindowApp::GetHwnd(), &swapChainDesc, nullptr, nullptr
         , &swapChain));
     ThrowIfFailed(factory->MakeWindowAssociation(TrWindowApp::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
-
+    ThrowIfFailed(swapChain.As(&mSwapChain));
     mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
 
     // create descriptor heap
@@ -163,14 +163,15 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
     
     // describe and create graphics pipeline state object
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+    psoDesc.InputLayout = {inputElementDesc, _countof(inputElementDesc)};
     psoDesc.pRootSignature = mRootSignature.Get();
-    psoDesc.VS = {reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize()};
-    psoDesc.PS = {reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer(), pixelShader->GetBufferSize())};
+    psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
+    psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.DepthStencilState.DepthEnable = false;
-    psoDesc.DepthStencilState.StencilEnable = false;
+    psoDesc.DepthStencilState.DepthEnable = FALSE;
+    psoDesc.DepthStencilState.StencilEnable = FALSE;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
