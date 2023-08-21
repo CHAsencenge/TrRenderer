@@ -103,6 +103,7 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			if (pRenderer)
 			{
 				pRenderer->OnUpdate();
+				pRenderer->OnRender();
 			}
 			return 0;
 		}

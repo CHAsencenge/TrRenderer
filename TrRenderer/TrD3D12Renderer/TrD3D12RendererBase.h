@@ -35,6 +35,10 @@ public:
 	float mAspectRatio;
 	std::wstring mTitle;
 
+	// settings
+	// Warp: Windows Advanced Rasterization Platform, software-based rasterizer, rendering graphics using the CPU instead of a dedicated GPU
+	BOOL mbUseWarpDevice = false;
+
 private:
 	/**note: 
 	 * std::wstring : work with unicode or wide character strings
@@ -43,5 +47,5 @@ private:
 	*/
 	std::wstring mAssetsPath;
 
-
+	
 };

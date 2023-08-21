@@ -14,10 +14,10 @@ class TrD3D12RendererRaster : public TrD3D12RendererBase
 public:
 
     TrD3D12RendererRaster(UINT width, UINT height, std::wstring title);
-    TrD3D12RendererRaster(const TrD3D12RendererRaster& other) = delete;
+    /*TrD3D12RendererRaster(const TrD3D12RendererRaster& other) = delete;
     TrD3D12RendererRaster(const TrD3D12RendererRaster&& other) = delete;
     TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster& other) = delete;
-    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster&& other) = delete;
+    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster&& other) = delete;*/
    
 public:
     virtual void OnInitialize() override;
@@ -50,8 +50,8 @@ private:
     static constexpr UINT SwapFrameCount = 2;
 
     // pipeline objects
-    D3D12_VIEWPORT mViewport;
-    D3D12_RECT mScissorRect;
+    CD3DX12_VIEWPORT mViewport;
+    CD3DX12_RECT mScissorRect;
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
@@ -75,8 +75,6 @@ private:
 
     UINT mFrameIndex;
 
-    // settings
-    // Warp: Windows Advanced Rasterization Platform, software-based rasterizer, rendering graphics using the CPU instead of a dedicated GPU
-    BOOL mbUseWarpDevice = false;
+
     
 };

@@ -4,9 +4,13 @@
 #include "../TrWindowApp.h"
 
 
-TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring title) : TrD3D12RendererBase(width, height, title)
+TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring title) :
+    TrD3D12RendererBase(width, height, title),
+    mFrameIndex(0),
+    mViewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
+    mScissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
+    mRtvDescriptorSize(0)
 {
-    
 }
 
 void TrD3D12RendererRaster::OnInitialize()
@@ -21,10 +25,18 @@ void TrD3D12RendererRaster::OnUpdate()
 
 void TrD3D12RendererRaster::OnRender()
 {
+    PopulateCommandList();
+    ID3D12CommandList* ppCommandLists[] = {mCommandList.Get()};
+    mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    ThrowIfFailed(mSwapChain->Present(1, 0));
+
+    WaitForPreviousFrame();
 }
 
 void TrD3D12RendererRaster::OnDestroy()
 {
+    WaitForPreviousFrame();
+    CloseHandle(mFenceEvent);
 }
 
 void TrD3D12RendererRaster::OnKeyDown(UINT8 wParam)
@@ -86,6 +98,7 @@ void TrD3D12RendererRaster::LoadPipeline()
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     // todo: MultiSample
     swapChainDesc.SampleDesc.Count = 1;
+    
     Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain;
     ThrowIfFailed(factory->CreateSwapChainForHwnd(mCommandQueue.Get(), TrWindowApp::GetHwnd(), &swapChainDesc, nullptr, nullptr
         , &swapChain));
@@ -194,14 +207,75 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
     CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
     CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
     ThrowIfFailed(mDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mVertexBuffer)));
+
+    UINT8* pVertexDataBegin;
+    CD3DX12_RANGE readRange (0, 0);
+    ThrowIfFailed(mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+    memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
+    mVertexBuffer->Unmap(0, nullptr);
+
+    mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
+    mVertexBufferView.SizeInBytes = vertexBufferSize;
+    mVertexBufferView.StrideInBytes = sizeof(VertexBase);
+
+    ThrowIfFailed(mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
+    mFenceValue = 1;
+    mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if(mFenceEvent != nullptr)
+    {
+        ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+    }
+
+    WaitForPreviousFrame();
 }
 
+/* note:
+ * RS: root signature
+ * IA: input assembler, input data to primitives
+ * OM: output merger, after pixel shader
+ */
 void TrD3D12RendererRaster::PopulateCommandList()
 {
+    // can only be reset when the associated command lists have finished execution on the GPU
+    ThrowIfFailed(mCommandAllocator->Reset());
+
+    // after ExecuteCommandList, before re-recording
+    ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
+
+    mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+    mCommandList->RSSetViewports(1, &mViewport);
+    mCommandList->RSSetScissorRects(1, &mScissorRect);
+
+    CD3DX12_RESOURCE_BARRIER present2RtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    mCommandList->ResourceBarrier(1, &present2RtBarrier);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRtvDescriptorSize);
+    mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+    // record commands
+    const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
+    mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+    mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
+    mCommandList->DrawInstanced(3, 1, 0, 0);
+    CD3DX12_RESOURCE_BARRIER rt2PresentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+    mCommandList->ResourceBarrier(1, &rt2PresentBarrier);
+
+    ThrowIfFailed(mCommandList->Close());
 }
 
 void TrD3D12RendererRaster::WaitForPreviousFrame()
 {
+    const UINT64 waitFenceValue = mFenceValue;
+    ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), waitFenceValue));
+    mFenceValue++;
+
+    if(mFence->GetCompletedValue() < waitFenceValue)
+    {
+        ThrowIfFailed(mFence->SetEventOnCompletion(waitFenceValue, mFenceEvent));
+        WaitForSingleObject(mFenceEvent, INFINITE);
+    }
+    mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
 }
 
 void TrD3D12RendererRaster::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)
