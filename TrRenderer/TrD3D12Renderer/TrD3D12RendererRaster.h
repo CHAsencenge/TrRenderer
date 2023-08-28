@@ -55,10 +55,12 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mBundleAllocator;  // additionally need a bundle allocator
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mBundle;  // additionally need a bundle
     
     Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;

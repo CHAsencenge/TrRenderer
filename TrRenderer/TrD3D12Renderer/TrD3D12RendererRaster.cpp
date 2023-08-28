@@ -125,6 +125,7 @@ void TrD3D12RendererRaster::LoadPipeline()
     }
 
     ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
+    ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_BUNDLE, IID_PPV_ARGS(&mBundleAllocator)));
 }
 
 /* note:
@@ -137,14 +138,17 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
 {
     // create root signature (resources used for xxx)
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    /// the input assembler input layout is not allowed to be set when creating a root signature
-    /// input layout must be specified when setting the pso using the IASetVertexBuffers and IASetIndexBuffer
+
+    /* note: D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+     * the root signature allows the input assembler input layout to be bound during the pipeline state object (PSO) creation
+     */
     rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     /// output buffer of the serialized desc data
     Microsoft::WRL::ComPtr<ID3DBlob> signature;
     Microsoft::WRL::ComPtr<ID3DBlob> error;
     /// convert the root signature description into a serialized form
+    /// a binary representation that can be used for creating a root signature object
     ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     /// create the root signature from the serialized data
     ThrowIfFailed(mDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
@@ -218,6 +222,15 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
     mVertexBufferView.SizeInBytes = vertexBufferSize;
     mVertexBufferView.StrideInBytes = sizeof(VertexBase);
 
+    // Create and record bundle (pre-set)
+    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_BUNDLE, mBundleAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mBundle)));
+    mBundle->SetGraphicsRootSignature(mRootSignature.Get());
+    mBundle->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    mBundle->IASetVertexBuffers(0, 1, &mVertexBufferView);
+    mBundle->DrawInstanced(3, 1, 0, 0);
+    ThrowIfFailed(mBundle->Close());
+
+    
     ThrowIfFailed(mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
     mFenceValue = 1;
     mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -254,11 +267,17 @@ void TrD3D12RendererRaster::PopulateCommandList()
     // record commands
     const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
     mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    
+    /// if no bundle
+    /*mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
-    mCommandList->DrawInstanced(3, 1, 0, 0);
-    CD3DX12_RESOURCE_BARRIER rt2PresentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    mCommandList->DrawInstanced(3, 1, 0, 0);*/
 
+    /// with bundle
+    mCommandList->ExecuteBundle(mBundle.Get());
+    
+    
+    CD3DX12_RESOURCE_BARRIER rt2PresentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     mCommandList->ResourceBarrier(1, &rt2PresentBarrier);
 
     ThrowIfFailed(mCommandList->Close());
