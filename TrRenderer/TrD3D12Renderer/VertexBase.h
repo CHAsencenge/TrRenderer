@@ -9,4 +9,12 @@ public:
     DirectX::XMFLOAT4 mColor;
 };
 
+// need uv
+class TextureVertexBase
+{
+    TextureVertexBase(DirectX::XMFLOAT3 position, DirectX::XMFLOAT2 uv);
+    DirectX::XMFLOAT3 mPosition;
+    DirectX::XMFLOAT2 mUv;
+};
+
 

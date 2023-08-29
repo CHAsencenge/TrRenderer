@@ -6,6 +6,7 @@
 # pragma once
 #include "TrD3D12Util.h"
 #include "TrD3D12RendererBase.h"
+#include "VertexBase.h"
 
 class TrWindowApp;
 
@@ -27,6 +28,9 @@ public:
 
     virtual void OnKeyDown(UINT8 wParam) override;
     virtual void OnKeyUp(UINT8 wParam) override;
+
+    void PopulateVertexBase(VertexBase* vertexArray, UINT size);
+    void PopulateTextureVertexBase(TextureVertexBase* textureVertexArray, UINT size);
 
 
 private:

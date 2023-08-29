@@ -47,6 +47,28 @@ void TrD3D12RendererRaster::OnKeyUp(UINT8 wParam)
 {
 }
 
+VertexBase* TrD3D12RendererRaster::PopulateVertexBase()
+{
+    VertexBase triangleVertices[] =
+        {
+        {{ 0.0f, 0.25f * mAspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+        {{0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+        {{-0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+        };
+    return triangleVertices;
+}
+
+TextureVertexBase* TrD3D12RendererRaster::PopulateTextureVertexBase()
+{
+    TextureVertexBase triangleVertices[] =
+        {
+        { { 0.0f, 0.25f * mAspectRatio, 0.0f }, { 0.5f, 0.0f } },
+        { { 0.25f, -0.25f * mAspectRatio, 0.0f }, { 1.0f, 1.0f } },
+        { { -0.25f, -0.25f * mAspectRatio, 0.0f }, { 0.0f, 1.0f } }
+        };
+    return triangleVertices;
+}
+
 void TrD3D12RendererRaster::LoadPipeline()
 {
     // enable debug layer
@@ -200,12 +222,9 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
     ThrowIfFailed(mCommandList->Close());
     
     // create vertex buffer
-    VertexBase triangleVertices[] =
-        {
-        {{ 0.0f, 0.25f * mAspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-        {{0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-        {{-0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-        };
+    // VertexBase* triangleVertices = PopulateVertexBase();
+    TextureVertexBase* triangleVertices = PopulateTextureVertexBase();
+    
     UINT vertexBufferSize = sizeof(triangleVertices);
 
     CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
