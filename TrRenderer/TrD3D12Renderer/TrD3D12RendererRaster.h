@@ -29,14 +29,13 @@ public:
     virtual void OnKeyDown(UINT8 wParam) override;
     virtual void OnKeyUp(UINT8 wParam) override;
 
-    void PopulateVertexBase(VertexBase* vertexArray, UINT size);
-    void PopulateTextureVertexBase(TextureVertexBase* textureVertexArray, UINT size);
-
 
 private:
 
     virtual void LoadPipeline();
     virtual void LoadAssets(const std::wstring filename);
+    virtual void LoadAssetsTexture(const std::wstring filename);
+    
 
     // populate: add datas to...
     virtual void PopulateCommandList();
@@ -46,12 +45,17 @@ private:
     // device is singleton to adapter
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter);
 
+    std::vector<UINT8> GenerateTextureData();
+
 private:
     /* note:
      * const variable can not be modified after initialization. The value is determined at runtime
      * constexpr variable's value is evaluated at compile time. It must be initialized with a constant expression and a value.
      */
     static constexpr UINT SwapFrameCount = 2;
+    static const UINT TextureWidth = 256;
+    static const UINT TextureHeight = 256;
+    static const UINT TexturePixelSize = 4; 
 
     // pipeline objects
     CD3DX12_VIEWPORT mViewport;
@@ -69,10 +73,14 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     UINT mRtvDescriptorSize;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
+    UINT mSrvDescriptorSize;
 
     // app resources
     Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+    
+    Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
 
     // synchronization objects
     UINT64 mFenceValue;
@@ -84,3 +92,5 @@ private:
 
     
 };
+
+
