@@ -21,6 +21,14 @@
 #include "TrD3D12Renderer/TrD3D12RendererRaster.h"
 
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <iostream>
+#include <stdexcept>
+#include <cstdlib>
+
+
 
 // 相机，自身位置eye，目标位置target，向上向量up
 
@@ -121,12 +129,70 @@
 * ANSI encoding is limited in its ability to represent non-Latin characters
  */
 
-_Use_decl_annotations_
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-    LPSTR cmdLine, int showCmd)
-{
-    std::cout << "WinMain" << std::endl;
-    
-    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
-    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
+//_Use_decl_annotations_
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
+//    LPSTR cmdLine, int showCmd)
+//{
+//    std::cout << "WinMain" << std::endl;
+//    
+//    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
+//    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
+//}
+
+
+
+
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
+
+class HelloTriangleApplication {
+public:
+    void run() {
+        initWindow();
+        initVulkan();
+        mainLoop();
+        cleanup();
+    }
+
+private:
+    GLFWwindow* window;
+
+    void initWindow() {
+        glfwInit();
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    }
+
+    void initVulkan() {
+
+    }
+
+    void mainLoop() {
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+        }
+    }
+
+    void cleanup() {
+        glfwDestroyWindow(window);
+
+        glfwTerminate();
+    }
+};
+
+int main() {
+    HelloTriangleApplication app;
+
+    try {
+        app.run();
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

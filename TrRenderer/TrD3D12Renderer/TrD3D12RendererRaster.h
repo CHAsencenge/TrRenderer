@@ -74,7 +74,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     UINT mRtvDescriptorSize;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
-    UINT mSrvDescriptorSize;
+    // UINT mSrvDescriptorSize;
 
     // app resources
     Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;

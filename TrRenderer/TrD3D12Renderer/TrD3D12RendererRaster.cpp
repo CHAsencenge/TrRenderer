@@ -16,7 +16,8 @@ TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstri
 void TrD3D12RendererRaster::OnInitialize()
 {
     LoadPipeline();
-    LoadAssets(GetAssetFullPath(L"shaders.hlsl"));
+    // LoadAssets(GetAssetFullPath(L"shaders.hlsl"));
+    LoadAssetsTexture(GetAssetFullPath(L"shaders_texture.hlsl"));
 }
 
 void TrD3D12RendererRaster::OnUpdate()
@@ -114,11 +115,17 @@ void TrD3D12RendererRaster::LoadPipeline()
     ThrowIfFailed(mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRtvHeap)));
     mRtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    srvHeapDesc.NumDescriptors = 1;
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    ThrowIfFailed(mDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvHeap)));
     
 
     // create frame resources
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart()); // get cpu heap start handle, need d3dx12.h
 
+    // create a rtv for each frame
     for(UINT n = 0; n < SwapFrameCount; n++)
     {
         ThrowIfFailed(mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n])));
@@ -179,11 +186,6 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
         {"POSITION", 0 ,DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
     };
-    /*D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
-    {
-        {"POSITION", 0 ,DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
-    };*/
     
     // describe and create graphics pipeline state object
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -214,14 +216,6 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
         {{0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
         {{-0.25f, -0.25f * mAspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
         };
-
-    /*TextureVertexBase triangleVertices[] = 
-        {
-        { { 0.0f, 0.25f * mAspectRatio, 0.0f }, { 0.5f, 0.0f } },
-        { { 0.25f, -0.25f * mAspectRatio, 0.0f }, { 1.0f, 1.0f } },
-        { { -0.25f, -0.25f * mAspectRatio, 0.0f }, { 0.0f, 1.0f } }
-        };*/
-    
     
     UINT vertexBufferSize = sizeof(triangleVertices);
 
@@ -241,7 +235,6 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
 
     // Create and record bundle (pre-set)
     ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_BUNDLE, mBundleAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mBundle)));
-    mBundle->SetGraphicsRootSignature(mRootSignature.Get());
     mBundle->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mBundle->IASetVertexBuffers(0, 1, &mVertexBufferView);
     mBundle->DrawInstanced(3, 1, 0, 0);
@@ -262,38 +255,45 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
 void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
 {
     // create root signature (resources used for xxx)
-    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-
-    CD3DX12_DESCRIPTOR_RANGE ranges[1];
-    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    if(FAILED(mDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+    {
+        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;        
+    }
     
-    CD3DX12_ROOT_PARAMETER rootParameters[1];
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    
+    CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    
+    CD3DX12_ROOT_PARAMETER1   rootParameters[1];
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-    sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
     sampler.MipLODBias = 0;
     sampler.MaxAnisotropy = 0;
     sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-    sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-    sampler.MinLOD = 0; // 0 is the most detailed mipmap level, any level higher than that is less detailed
+    sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+    sampler.MinLOD = 0.0f; // 0 is the most detailed mipmap level, any level higher than that is less detailed
     sampler.MaxLOD = D3D12_FLOAT32_MAX;  // no upper limit
     sampler.ShaderRegister = 0;
     sampler.RegisterSpace = 0;
     sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
     // populate root signature desc
-    rootSignatureDesc.Init(1, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     /// output buffer of the serialized desc data
     Microsoft::WRL::ComPtr<ID3DBlob> signature;
     Microsoft::WRL::ComPtr<ID3DBlob> error;
     /// convert the root signature description into a serialized form
     /// a binary representation that can be used for creating a root signature object
-    ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
     /// create the root signature from the serialized data
     ThrowIfFailed(mDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 
@@ -337,14 +337,14 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     
     // create the command list
     ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
-    ThrowIfFailed(mCommandList->Close());
+    // ThrowIfFailed(mCommandList->Close());
     
     // create vertex buffer
     // todo: find a more flexible way to populate vertex
     TextureVertexBase triangleVertices[] = 
         {
         { { 0.0f, 0.25f * mAspectRatio, 0.0f }, { 0.5f, 0.0f } },
-        { { 0.25f, -0.25f * mAspectRatio, 0.0f }, { 1.0f, 1.0f } },
+        { { 0.55f, -0.25f * mAspectRatio, 0.0f }, { 1.0f, 1.0f } },
         { { -0.25f, -0.25f * mAspectRatio, 0.0f }, { 0.0f, 1.0f } }
         };
     
@@ -379,8 +379,9 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
     // texture
+    CD3DX12_HEAP_PROPERTIES texHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     ThrowIfFailed(mDevice->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+        &texHeapProps,
         D3D12_HEAP_FLAG_NONE,
         &textureDesc,
         D3D12_RESOURCE_STATE_COPY_DEST,
@@ -391,31 +392,39 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     const UINT64 uploadBufferSize = GetRequiredIntermediateSize(mTexture.Get(), 0, 1);
 
     // texture upload heap
+    CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
     ThrowIfFailed(mDevice->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        &uploadHeapProps,
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+        &uploadBufferDesc,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&textureUploadHeap)));
 
     // copy texture data to the intermediate upload heap, then from the upload heap to the Texture2D
-    D3D12_SUBRESOURCE_DATA textureData = {};
     std::vector<UINT8> data = GenerateTextureData();
+    D3D12_SUBRESOURCE_DATA textureData = {};
     textureData.pData = &data[0];
     textureData.RowPitch = TextureWidth * TexturePixelSize;
     textureData.SlicePitch = TextureWidth * TextureHeight * TexturePixelSize; // meaning?
 
     UpdateSubresources(mCommandList.Get(), mTexture.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
     // after copied to GPU, texture should be shader resource
-    mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+    CD3DX12_RESOURCE_BARRIER dest2ShaderResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    mCommandList->ResourceBarrier(1, &dest2ShaderResourceBarrier);
     // so describe and create a SRV
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = textureDesc.Format;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;  // Specifies how memory gets routed by a shader resource view
     srvDesc.Texture2D.MipLevels = 1;  // union
-    mDevice->CreateShaderResourceView(mTexture.Get(), &srvDesc, )
+    mDevice->CreateShaderResourceView(mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
+
+    ThrowIfFailed(mCommandList->Close());
+    ID3D12CommandList* ppCommandLists[] = {mCommandList.Get()};
+    mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    
     
     // Create and record bundle (pre-set)
     ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_BUNDLE, mBundleAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mBundle)));
@@ -451,6 +460,13 @@ void TrD3D12RendererRaster::PopulateCommandList()
     ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
 
     mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+
+    /// srv descriptor heaps
+    ID3D12DescriptorHeap* ppHeaps[] = {mSrvHeap.Get()};
+    mCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    mCommandList->SetGraphicsRootDescriptorTable(0, mSrvHeap->GetGPUDescriptorHandleForHeapStart());
+
+    // need to set viewports and scissor rects each frame
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
@@ -520,7 +536,7 @@ std::vector<UINT8> TrD3D12RendererRaster::GenerateTextureData()
     std::vector<UINT8> data(textureSize);
     UINT8* pData = &data[0];
 
-    for(UINT n = 0; n < textureSize; n+=TexturePixelSize)
+    for(UINT n = 0; n < textureSize; n += TexturePixelSize)
     {
         // coordinate
         UINT x = n % (TextureWidth * TexturePixelSize);  // [0, TextureWidth * TexturePixelSize]
