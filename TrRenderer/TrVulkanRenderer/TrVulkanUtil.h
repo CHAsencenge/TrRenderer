@@ -13,3 +13,4 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include "TrVulkanGlobalConfigs.h"

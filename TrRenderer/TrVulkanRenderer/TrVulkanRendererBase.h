@@ -9,13 +9,18 @@ public:
     TrVulkanRendererBase();
     TrVulkanRendererBase(uint32_t width, uint32_t height, const char* title);
 
-    void Run()
-    {
-        OnInitWindow();
-        OnInitVulkan();
-        OnRender();
-        OnCleanup();
-    }
+    void Run();
+
+    static void CheckExtensionSupport();
+
+    static bool CheckValidationLayerSupport();
+
+    // VKAPI_ATTR and VKAPI_CALL ensure the function can be called by Vulkan lib
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData);
 
 private:
     GLFWwindow* mWindow;
@@ -30,8 +35,18 @@ private:
 
     void CreateInstance();
 
-    void CheckExtensionSupport();
-   
+    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+    void SetupDebugMessenger();
+
+    // proxy function, manually load vkCreateDebugUtilsMessengerEXT
+    VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+
+    // proxy function
+    void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+
+    std::vector<const char*> GetRequiredExtensions();
+
 
 private:
     uint32_t mWidth = 1920;
@@ -39,4 +54,14 @@ private:
     const char* mTitle = "Vulkan";
 
     VkInstance mInstance;
+    // save debug callback info
+    VkDebugUtilsMessengerEXT mDebugMessenger;
+
+
+    // validation layers switcher
+#ifdef NDEBUG
+    const bool mbEnableValidationLayers = false;
+#else
+    const bool mbEnableValidationLayers = true;
+#endif
 };

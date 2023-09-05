@@ -166,6 +166,7 @@
     <ClInclude Include="TrSoftwareRenderer\TGA.h" />
     <ClInclude Include="TrSoftwareRenderer\Transform.h" />
     <ClInclude Include="TrSoftwareRenderer\Window.h" />
+    <ClInclude Include="TrVulkanRenderer\TrVulkanGlobalConfigs.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanRendererBase.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanUtil.h" />
     <ClInclude Include="TrWindowApp.h" />
