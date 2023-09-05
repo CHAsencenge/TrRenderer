@@ -18,42 +18,25 @@ public:
     }
 
 private:
-    GLFWwindow* window;
+    GLFWwindow* mWindow;
 
-    void OnInitWindow()
-    {
-        glfwInit();
+    void OnInitWindow();
 
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    void OnInitVulkan();
+    
+    void OnRender();
+    
+    void OnCleanup();
 
-        window = glfwCreateWindow(mWidth, mHeight, mTitle, nullptr, nullptr);
-    }
+    void CreateInstance();
 
-    void OnInitVulkan()
-    {
-        uint32_t extensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        std::cout << extensionCount << " extension supported" << std::endl;
-    }
-
-    void OnRender()
-    {
-        while (!glfwWindowShouldClose(window))
-        {
-            glfwPollEvents();
-        }
-    }
-
-    void OnCleanup()
-    {
-        glfwDestroyWindow(window);
-
-        glfwTerminate();
-    }
+    void CheckExtensionSupport();
+   
 
 private:
     uint32_t mWidth = 1920;
     uint32_t mHeight = 1080;
     const char* mTitle = "Vulkan";
+
+    VkInstance mInstance;
 };
