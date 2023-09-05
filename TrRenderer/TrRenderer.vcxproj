@@ -166,6 +166,8 @@
     <ClInclude Include="TrSoftwareRenderer\TGA.h" />
     <ClInclude Include="TrSoftwareRenderer\Transform.h" />
     <ClInclude Include="TrSoftwareRenderer\Window.h" />
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererBase.h" />
+    <ClInclude Include="TrVulkanRenderer\TrVulkanUtil.h" />
     <ClInclude Include="TrWindowApp.h" />
   </ItemGroup>
   <ItemGroup>
@@ -783,6 +785,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererBase.cpp" />
+    <ClCompile Include="TrVulkanRenderer\TrVulkanUtil.cpp" />
     <ClCompile Include="TrWindowApp.cpp" />
   </ItemGroup>
   <ItemGroup>

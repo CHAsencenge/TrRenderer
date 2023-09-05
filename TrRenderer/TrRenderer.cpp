@@ -136,16 +136,9 @@
 //}
 
 
-
-
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
-
-
-
 int main()
 {
-    TrVulkanRendererBase VulkanRenderer;
+    TrVulkanRendererBase VulkanRenderer(1920, 1080, "TrVulkan");
 
     try
     {

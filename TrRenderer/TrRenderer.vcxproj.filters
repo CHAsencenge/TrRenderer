@@ -38,6 +38,17 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="TrVulkanRenderer">
+      <UniqueIdentifier>{2cf4df25-ff09-4710-b92c-72ee380442c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TrVulkanRenderer\private">
+      <UniqueIdentifier>{37453817-c7c5-4f5b-b8ce-d4ed26593f08}</UniqueIdentifier>
+      <Extensions>.cpp</Extensions>
+    </Filter>
+    <Filter Include="TrVulkanRenderer\public">
+      <UniqueIdentifier>{f6642c87-8d6f-41f7-aa95-f8e20c671fe5}</UniqueIdentifier>
+      <Extensions>.h</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TrSoftwareRenderer\Camera.h">
@@ -96,6 +107,12 @@
     <ClInclude Include="TrD3D12Renderer\TrD3D12RendererRaster.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererBase.h">
+      <Filter>TrVulkanRenderer\public</Filter>
+    </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanUtil.h">
+      <Filter>TrVulkanRenderer\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -138,6 +155,12 @@
     </ClCompile>
     <ClCompile Include="TrD3D12Renderer\TrD3D12RendererRaster.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererBase.cpp">
+      <Filter>TrVulkanRenderer\private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanUtil.cpp">
+      <Filter>TrVulkanRenderer\private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
