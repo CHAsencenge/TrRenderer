@@ -16,6 +16,7 @@ namespace TrVulkanGlobal
         SETUP_DEBUG_MESSENGER_FAILED,
         NO_VALID_DEVICE,
         NO_SUITABLE_DEVICE,
+        CREATE_LOGICAL_DEVICE_FAILED,
     };
     
     static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
@@ -24,5 +25,6 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::SETUP_DEBUG_MESSENGER_FAILED, "failed to setup debug messenger!"},
         {RUNTIME_ERROR_ENUM::NO_VALID_DEVICE, "failed to find GPUs with Vulkan support!"},
         {RUNTIME_ERROR_ENUM::NO_SUITABLE_DEVICE, "failed to find a suitable GPU!"},
+        {RUNTIME_ERROR_ENUM::CREATE_LOGICAL_DEVICE_FAILED, "failed to create logical device!"},
     };
 }

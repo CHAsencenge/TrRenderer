@@ -55,7 +55,13 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
+	
+	// manually destroy logical device
+	vkDestroyDevice(mDevice, nullptr);
+
+	// manually destroy vulkan instance
 	vkDestroyInstance(mInstance, nullptr);
+	
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
 }
@@ -279,10 +285,32 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	// specify features to use
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 
-	// create logical device
+	// create logical device, like create instance
+	// device level create info, compared to instance level create info
 	VkDeviceCreateInfo logicalDeviceCreateInfo = {};
 	logicalDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	
+	// create queue along with the logical device, destroyed automatically when destroy the logical device
+	logicalDeviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+	logicalDeviceCreateInfo.queueCreateInfoCount = 1;
+	logicalDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+	logicalDeviceCreateInfo.enabledExtensionCount = 0;
+	if(mbEnableValidationLayers)
+	{
+		logicalDeviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(TrVulkanGlobal::validationLayers.size());
+		logicalDeviceCreateInfo.ppEnabledExtensionNames = TrVulkanGlobal::validationLayers.data();
+	}
+	else
+	{
+		logicalDeviceCreateInfo.enabledLayerCount = 0;
+	}
+	// associate with the physical device
+	if(vkCreateDevice(mPhysicalDevice, &logicalDeviceCreateInfo, nullptr, &mDevice) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LOGICAL_DEVICE_FAILED]);
+	}
+
+	// after this, we can use graphics card
+	vkGetDeviceQueue(mDevice, indices.mGraphicsFamily, 0, &mGraphicsQueue);
 	
 }
 

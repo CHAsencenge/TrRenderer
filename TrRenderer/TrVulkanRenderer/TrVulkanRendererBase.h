@@ -108,4 +108,6 @@ private:
     // logical device, interactive interface to the physical device
     // need to specify which queue families used queues belong to 
     VkDevice mDevice;
+
+    VkQueue mGraphicsQueue;
 };
