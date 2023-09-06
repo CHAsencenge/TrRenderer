@@ -67,14 +67,16 @@ private:
 
     bool IsDeviceSuitable(VkPhysicalDevice device);
 
-    uint32_t CalcDeviceSuitabilityScoreForGraphics(VkPhysicalDevice device);
+    uint32_t CalcDeviceSuitabilityScore(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
+
+    void CreateLogicalDevice();
 
 #pragma endregion
 
 
 #pragma region Queue & Queue Families
 
-    TrVulkanQueueFamilyIndices FindQueueFamiliesForGraphics(VkPhysicalDevice device);
+    TrVulkanQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
 
 #pragma endregion
 
@@ -102,4 +104,8 @@ private:
 
     // automatically clear when VkInstance is cleared
     VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+
+    // logical device, interactive interface to the physical device
+    // need to specify which queue families used queues belong to 
+    VkDevice mDevice;
 };

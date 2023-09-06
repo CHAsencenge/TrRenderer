@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <vector>
 
+// make variables static, prevent from defining multiple times in each cpp including this header
 namespace TrVulkanGlobal
 {
     static const std::vector<const char*> validationLayers =
@@ -16,7 +17,7 @@ namespace TrVulkanGlobal
         NO_VALID_DEVICE,
         NO_SUITABLE_DEVICE,
     };
-
+    
     static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
     {
         {RUNTIME_ERROR_ENUM::CREATE_INSTANCE_FAILED, "failed to create instance!"},

@@ -36,7 +36,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CheckExtensionSupport();
 	CreateInstance();
 	SetupDebugMessenger();
-	PickHighestWeightScorePhysicalDevice();
+	PickHighestWeightScorePhysicalDevice(); // or can PickFirstValidPhysicalDevice()
+
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -197,7 +198,7 @@ void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice()
 	
 	for(const VkPhysicalDevice& device : devices)
 	{
-		uint32_t score = CalcDeviceSuitabilityScoreForGraphics(device);
+		uint32_t score = CalcDeviceSuitabilityScore(device, VK_QUEUE_GRAPHICS_BIT);
 		candidates.insert(std::make_pair(score, device));
 	}
 	// rbegin(): reverted iterator
@@ -223,12 +224,12 @@ bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device)
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
 
-	TrVulkanQueueFamilyIndices indices = FindQueueFamiliesForGraphics(device);
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(device, VK_QUEUE_GRAPHICS_BIT);
 	
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader && indices.IsComplete();
 }
 
-uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScoreForGraphics(VkPhysicalDevice device)
+uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScore(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
 {
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -244,7 +245,7 @@ uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScoreForGraphics(VkPhysicalD
 	}
 
 	// queues should responsible for graphics
-	TrVulkanQueueFamilyIndices indices = FindQueueFamiliesForGraphics(device);
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(device, queueFlag);
 	if(!indices.IsComplete())
 	{
 		return 0;
@@ -260,7 +261,32 @@ uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScoreForGraphics(VkPhysicalD
 	return score;
 }
 
-TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamiliesForGraphics(VkPhysicalDevice device)
+void TrVulkanRendererBase::CreateLogicalDevice()
+{
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
+
+	// populate VkDeviceQueueCreateInfo, which describes queues needed
+	VkDeviceQueueCreateInfo queueCreateInfo = {};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	// queue family properties are get from vkGetPhysicalDeviceQueueFamilyProperties, indices.mGraphicsFamily is the location in std::vector<VkQueueFamilyProperties> 
+	queueCreateInfo.queueFamilyIndex = indices.mGraphicsFamily;
+	// for each queue family, rarely needs more than one queue (can create command buffers in threads, commit once in main thread)
+	queueCreateInfo.queueCount = 1;
+	float queuePriority = 1.0f;
+	// priority to execute command buffer
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	// specify features to use
+	VkPhysicalDeviceFeatures deviceFeatures = {};
+
+	// create logical device
+	VkDeviceCreateInfo logicalDeviceCreateInfo = {};
+	logicalDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	
+	
+}
+
+TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
 {
 	TrVulkanQueueFamilyIndices indices;
 
@@ -273,7 +299,7 @@ TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamiliesForGraphics(Vk
 	int i = 0;
 	for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
 	{
-		if(queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		if(queueFamily.queueCount > 0 && queueFamily.queueFlags & queueFlag)
 		{
 			indices.mGraphicsFamily = i;
 		}
