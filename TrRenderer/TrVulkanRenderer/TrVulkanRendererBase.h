@@ -1,6 +1,6 @@
 #pragma once
 #include "TrVulkanUtil.h"
-
+#include "TrVulkanQueueFamily.h"
 
 class TrVulkanRendererBase
 {
@@ -11,6 +11,8 @@ public:
 
     void Run();
 
+#pragma region Debug
+    
     static void CheckExtensionSupport();
 
     static bool CheckValidationLayerSupport();
@@ -22,9 +24,10 @@ public:
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData);
 
-private:
-    GLFWwindow* mWindow;
+#pragma endregion
 
+private:
+    
     void OnInitWindow();
 
     void OnInitVulkan();
@@ -35,33 +38,68 @@ private:
 
     void CreateInstance();
 
+    std::vector<const char*> GetRequiredExtensions();
+
+#pragma region Debug
+    
     void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
     void SetupDebugMessenger();
 
+#pragma endregion
+
+#pragma region Proxy Function
+    
     // proxy function, manually load vkCreateDebugUtilsMessengerEXT
     VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 
     // proxy function
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
 
-    std::vector<const char*> GetRequiredExtensions();
+#pragma endregion
+
+#pragma region Device
+    // graphics card
+    void PickFirstValidPhysicalDevice();
+
+    // weighted scoring by feature
+    void PickHighestWeightScorePhysicalDevice();
+
+    bool IsDeviceSuitable(VkPhysicalDevice device);
+
+    uint32_t CalcDeviceSuitabilityScoreForGraphics(VkPhysicalDevice device);
+
+#pragma endregion
+
+
+#pragma region Queue & Queue Families
+
+    TrVulkanQueueFamilyIndices FindQueueFamiliesForGraphics(VkPhysicalDevice device);
+
+#pragma endregion
 
 
 private:
+    GLFWwindow* mWindow;
+    
     uint32_t mWidth = 1920;
+    
     uint32_t mHeight = 1080;
+    
     const char* mTitle = "Vulkan";
 
     VkInstance mInstance;
-    // save debug callback info
-    VkDebugUtilsMessengerEXT mDebugMessenger;
-
-
+    
     // validation layers switcher
 #ifdef NDEBUG
     const bool mbEnableValidationLayers = false;
 #else
     const bool mbEnableValidationLayers = true;
 #endif
+
+    // save debug callback info
+    VkDebugUtilsMessengerEXT mDebugMessenger;
+
+    // automatically clear when VkInstance is cleared
+    VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 };

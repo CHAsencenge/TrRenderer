@@ -1,4 +1,5 @@
 #include "TrVulkanRendererBase.h"
+#include <map>
 
 TrVulkanRendererBase::TrVulkanRendererBase()
 {
@@ -35,6 +36,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CheckExtensionSupport();
 	CreateInstance();
 	SetupDebugMessenger();
+	PickHighestWeightScorePhysicalDevice();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -85,7 +87,7 @@ void TrVulkanRendererBase::CreateInstance()
 		createInfo.enabledLayerCount = static_cast<uint32_t>(TrVulkanGlobal::validationLayers.size());
 		createInfo.ppEnabledLayerNames = TrVulkanGlobal::validationLayers.data();
 		PopulateDebugMessengerCreateInfo(debugCreateInfo);
-		
+		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 	}
 	else
 	{
@@ -96,7 +98,7 @@ void TrVulkanRendererBase::CreateInstance()
 	// return VkResult
 	if(vkCreateInstance(&createInfo, nullptr, &mInstance) != VK_SUCCESS)
 	{
-		throw std::runtime_error("failed to create instance!");
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_INSTANCE_FAILED]);
 	}
 	
 	
@@ -106,7 +108,8 @@ void TrVulkanRendererBase::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessenge
 {
 	messengerCreateInfo = {};
 	messengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	messengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	// VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+	messengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	messengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	messengerCreateInfo.pfnUserCallback = DebugCallBack;
 	messengerCreateInfo.pUserData = nullptr; // callback function parameters
@@ -124,7 +127,7 @@ void TrVulkanRendererBase::SetupDebugMessenger()
 	// vkCreateDebugUtilsMessengerEXT is an extension function, which will not be loaded by Vulkan lib automatically 
 	if(CreateDebugUtilsMessengerEXT(mInstance, &messengerCreateInfo, nullptr, &mDebugMessenger) != VK_SUCCESS)
 	{
-		throw std::runtime_error("failed to setup debug messenger!");
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::SETUP_DEBUG_MESSENGER_FAILED]);
 	}
 }
 
@@ -153,6 +156,137 @@ void TrVulkanRendererBase::DestroyDebugUtilsMessengerEXT(VkInstance instance, Vk
 	{
 		func(instance, debugMessenger, pAllocator);
 	}
+}
+
+void TrVulkanRendererBase::PickFirstValidPhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
+	if(deviceCount == 0)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::NO_VALID_DEVICE]);
+	}
+	std::vector<VkPhysicalDevice> devices(deviceCount);
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
+	for(const VkPhysicalDevice& device : devices)
+	{
+		if(IsDeviceSuitable(device))
+		{
+			mPhysicalDevice = device;
+			break;
+		}
+	}
+	if(mPhysicalDevice == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::NO_SUITABLE_DEVICE]);
+	}
+}
+
+void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
+	if(deviceCount == 0)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::NO_VALID_DEVICE]);
+	}
+	std::vector<VkPhysicalDevice> devices(deviceCount);
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
+
+	std::multimap<int, VkPhysicalDevice> candidates;
+	
+	for(const VkPhysicalDevice& device : devices)
+	{
+		uint32_t score = CalcDeviceSuitabilityScoreForGraphics(device);
+		candidates.insert(std::make_pair(score, device));
+	}
+	// rbegin(): reverted iterator
+	// multimap default sort rule: operator <
+	if(candidates.rbegin()->first > 0)
+	{
+		mPhysicalDevice = candidates.rbegin()->second;
+	}
+	else
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::NO_SUITABLE_DEVICE]);
+	}
+}
+
+bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device)
+{
+	// basic device properties: name, type, supported vulkan version
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+	// support for texture compression, 64 bits float for shader, multiple viewports...
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+
+	TrVulkanQueueFamilyIndices indices = FindQueueFamiliesForGraphics(device);
+	
+	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader && indices.IsComplete();
+}
+
+uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScoreForGraphics(VkPhysicalDevice device)
+{
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+	
+	uint32_t score = 0;
+
+	if(!deviceFeatures.geometryShader)
+	{
+		return 0;
+	}
+
+	// queues should responsible for graphics
+	TrVulkanQueueFamilyIndices indices = FindQueueFamiliesForGraphics(device);
+	if(!indices.IsComplete())
+	{
+		return 0;
+	}
+
+	if(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+	{
+		score += 1000;
+	}
+
+	score += deviceProperties.limits.maxImageDimension2D;
+	
+	return score;
+}
+
+TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamiliesForGraphics(VkPhysicalDevice device)
+{
+	TrVulkanQueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	// find a queue family which support VK_QUEUE_GRAPHICS_BIT
+	int i = 0;
+	for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
+	{
+		if(queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			indices.mGraphicsFamily = i;
+		}
+
+		if(indices.IsComplete())
+		{
+			break;
+		}
+		
+		i++;
+	}
+
+	return indices;
 }
 
 // all extensions needed (for GLFW and for debugging)

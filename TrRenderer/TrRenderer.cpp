@@ -22,10 +22,6 @@
 #include "TrVulkanRenderer/TrVulkanRendererBase.h"
 
 
-
-
-
-
 // 相机，自身位置eye，目标位置target，向上向量up
 
 //extern Mat<4, 4> ModelView;
