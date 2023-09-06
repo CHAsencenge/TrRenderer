@@ -1,5 +1,6 @@
 #include "TrVulkanRendererBase.h"
 #include <map>
+#include <set>
 
 TrVulkanRendererBase::TrVulkanRendererBase()
 {
@@ -36,8 +37,9 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CheckExtensionSupport();
 	CreateInstance();
 	SetupDebugMessenger();
+	CreateSurface();
 	PickHighestWeightScorePhysicalDevice(); // or can PickFirstValidPhysicalDevice()
-
+	CreateLogicalDevice();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -58,6 +60,9 @@ void TrVulkanRendererBase::OnCleanup()
 	
 	// manually destroy logical device
 	vkDestroyDevice(mDevice, nullptr);
+
+	// manually destroy window surface
+	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
 
 	// manually destroy vulkan instance
 	vkDestroyInstance(mInstance, nullptr);
@@ -271,16 +276,28 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 {
 	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
 
-	// populate VkDeviceQueueCreateInfo, which describes queues needed
-	VkDeviceQueueCreateInfo queueCreateInfo = {};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	// queue family properties are get from vkGetPhysicalDeviceQueueFamilyProperties, indices.mGraphicsFamily is the location in std::vector<VkQueueFamilyProperties> 
-	queueCreateInfo.queueFamilyIndex = indices.mGraphicsFamily;
-	// for each queue family, rarely needs more than one queue (can create command buffers in threads, commit once in main thread)
-	queueCreateInfo.queueCount = 1;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<uint32_t> uniqueQueueFamilies =
+	{
+		indices.mGraphicsFamily.value(),
+		indices.mPresentFamily.value(),
+	};
+
 	float queuePriority = 1.0f;
-	// priority to execute command buffer
-	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	for (uint32_t queueFamily : uniqueQueueFamilies)
+	{
+		// populate VkDeviceQueueCreateInfo, which describes queues needed
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		// queue family properties are get from vkGetPhysicalDeviceQueueFamilyProperties, indices.mGraphicsFamily is the location in std::vector<VkQueueFamilyProperties> 
+		queueCreateInfo.queueFamilyIndex = queueFamily;
+		// for each queue family, rarely needs more than one queue (can create command buffers in threads, commit once in main thread)
+		queueCreateInfo.queueCount = 1;
+		// priority to execute command buffer
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
 
 	// specify features to use
 	VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -290,14 +307,14 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	VkDeviceCreateInfo logicalDeviceCreateInfo = {};
 	logicalDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	// create queue along with the logical device, destroyed automatically when destroy the logical device
-	logicalDeviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-	logicalDeviceCreateInfo.queueCreateInfoCount = 1;
+	logicalDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+	logicalDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	logicalDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 	logicalDeviceCreateInfo.enabledExtensionCount = 0;
 	if(mbEnableValidationLayers)
 	{
 		logicalDeviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(TrVulkanGlobal::validationLayers.size());
-		logicalDeviceCreateInfo.ppEnabledExtensionNames = TrVulkanGlobal::validationLayers.data();
+		logicalDeviceCreateInfo.ppEnabledLayerNames = TrVulkanGlobal::validationLayers.data();
 	}
 	else
 	{
@@ -310,7 +327,8 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	}
 
 	// after this, we can use graphics card
-	vkGetDeviceQueue(mDevice, indices.mGraphicsFamily, 0, &mGraphicsQueue);
+	vkGetDeviceQueue(mDevice, indices.mGraphicsFamily.value(), 0, &mGraphicsQueue);
+	vkGetDeviceQueue(mDevice, indices.mPresentFamily.value(), 0, &mPresentQueue);
 	
 }
 
@@ -322,14 +340,22 @@ TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDev
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-	// find a queue family which support VK_QUEUE_GRAPHICS_BIT
+	
 	int i = 0;
 	for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
 	{
+		// find a queue family which support VK_QUEUE_GRAPHICS_BIT
 		if(queueFamily.queueCount > 0 && queueFamily.queueFlags & queueFlag)
 		{
 			indices.mGraphicsFamily = i;
+		}
+
+		// find a queue family which support present
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, mSurface, &presentSupport);
+		if(presentSupport)
+		{
+			indices.mPresentFamily = i;
 		}
 
 		if(indices.IsComplete())
@@ -340,7 +366,16 @@ TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDev
 		i++;
 	}
 
+	// why "indices" rather than "index": multiple supports, multiple families
 	return indices;
+}
+
+void TrVulkanRendererBase::CreateSurface()
+{
+	if(glfwCreateWindowSurface(mInstance, mWindow, nullptr, &mSurface) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_WINDOW_SURFACE_FAILED]);
+	}
 }
 
 // all extensions needed (for GLFW and for debugging)

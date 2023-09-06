@@ -13,9 +13,9 @@ public:
 
 #pragma region Debug
     
-    static void CheckExtensionSupport();
+    void CheckExtensionSupport();
 
-    static bool CheckValidationLayerSupport();
+    bool CheckValidationLayerSupport();
 
     // VKAPI_ATTR and VKAPI_CALL ensure the function can be called by Vulkan lib
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(
@@ -73,12 +73,18 @@ private:
 
 #pragma endregion
 
-
 #pragma region Queue & Queue Families
 
     TrVulkanQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
 
 #pragma endregion
+
+#pragma region Surface
+
+    void CreateSurface();
+
+
+#pragma endregion 
 
 
 private:
@@ -110,4 +116,11 @@ private:
     VkDevice mDevice;
 
     VkQueue mGraphicsQueue;
+
+    VkQueue mPresentQueue;
+
+    // platform independent
+    // VK_KHR_surface is an instance level extension, has contained in the extension list get by glfwGetRequiredInstanceExtensions()
+    // VK_KHR_win32_surface process interaction with window on win platform
+    VkSurfaceKHR mSurface;
 };

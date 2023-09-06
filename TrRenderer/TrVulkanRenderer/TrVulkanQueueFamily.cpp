@@ -2,5 +2,5 @@
 
 bool TrVulkanQueueFamilyIndices::IsComplete() const
 {
-    return mGraphicsFamily >= 0;
+    return mGraphicsFamily.has_value() && mPresentFamily.has_value();
 }
