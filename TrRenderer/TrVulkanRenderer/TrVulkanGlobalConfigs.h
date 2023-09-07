@@ -24,6 +24,7 @@ namespace TrVulkanGlobal
         NO_SUITABLE_DEVICE,
         CREATE_LOGICAL_DEVICE_FAILED,
         CREATE_WINDOW_SURFACE_FAILED,
+        CREATE_SWAPCHAIN_FAILED,
     };
     
     static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
@@ -34,5 +35,6 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::NO_SUITABLE_DEVICE, "failed to find a suitable GPU!"},
         {RUNTIME_ERROR_ENUM::CREATE_LOGICAL_DEVICE_FAILED, "failed to create logical device!"},
         {RUNTIME_ERROR_ENUM::CREATE_WINDOW_SURFACE_FAILED, "failed to create window surface!"},
+        {RUNTIME_ERROR_ENUM::CREATE_SWAPCHAIN_FAILED, "failed to create swap chain!"},
     };
 }

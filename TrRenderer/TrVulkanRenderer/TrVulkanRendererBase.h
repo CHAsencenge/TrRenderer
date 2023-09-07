@@ -39,7 +39,7 @@ private:
 
     void CreateInstance();
 
-#pragma region
+#pragma region Extension
 
     std::vector<const char*> GetRequiredExtensions();
 
@@ -93,7 +93,6 @@ private:
 
 #pragma endregion
 
-
 #pragma region SwapChain
 
     TrVulkanSwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
@@ -103,6 +102,8 @@ private:
     VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+    void CreateSwapChain();
 
 #pragma endregion 
 
@@ -143,4 +144,12 @@ private:
     // VK_KHR_surface is an instance level extension, has contained in the extension list get by glfwGetRequiredInstanceExtensions()
     // VK_KHR_win32_surface process interaction with window on win platform
     VkSurfaceKHR mSurface;
+
+    VkSwapchainKHR mSwapChain;
+
+    std::vector<VkImage> mSwapChainImages;
+
+    VkFormat mSwapChainImageFormat;
+
+    VkExtent2D mSwapChainExtent;
 };

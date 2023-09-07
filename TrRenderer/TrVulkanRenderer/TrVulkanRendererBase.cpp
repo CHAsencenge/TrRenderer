@@ -40,6 +40,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateSurface();
 	PickHighestWeightScorePhysicalDevice(VK_QUEUE_GRAPHICS_BIT); // or can PickFirstValidPhysicalDevice()
 	CreateLogicalDevice();
+	CreateSwapChain();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -51,12 +52,16 @@ void TrVulkanRendererBase::OnRender()
 	}
 }
 
+// often vkCreateXXX needs vkDestroyXXX
 void TrVulkanRendererBase::OnCleanup()
 {
 	if(mbEnableValidationLayers)
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
+
+	// manually destroy swap chain, earlier than logical device
+	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 	
 	// manually destroy logical device
 	vkDestroyDevice(mDevice, nullptr);
@@ -313,7 +318,9 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	logicalDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 	logicalDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	logicalDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-	logicalDeviceCreateInfo.enabledExtensionCount = 0;
+	// if not enable swapchain extension, mSwapChain will be null after creation, but return VK_SUCCESS! 
+	logicalDeviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(TrVulkanGlobal::deviceExtensions.size());
+	logicalDeviceCreateInfo.ppEnabledExtensionNames = TrVulkanGlobal::deviceExtensions.data();
 	if(mbEnableValidationLayers)
 	{
 		logicalDeviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(TrVulkanGlobal::validationLayers.size());
@@ -458,6 +465,74 @@ VkExtent2D TrVulkanRendererBase::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR
 	}
 }
 
+void TrVulkanRendererBase::CreateSwapChain()
+{
+	TrVulkanSwapChainSupportDetails swapChainSupportDetails = QuerySwapChainSupport(mPhysicalDevice);
+	VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupportDetails.mFormats);
+	VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupportDetails.mPresentModes);
+	VkExtent2D extent2D = ChooseSwapExtent(swapChainSupportDetails.mCapabilities);
+
+	// what is "Triple Buffering", why minImageCount + 1
+	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount + 1;
+	if(swapChainSupportDetails.mCapabilities.maxImageCount > 0 && swapChainSupportDetails.mCapabilities.maxImageCount < imageCount)
+	{
+		imageCount = swapChainSupportDetails.mCapabilities.maxImageCount;
+	}
+	VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
+	swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	swapChainCreateInfo.surface = mSurface;
+	// min count, vulkan may create more images
+	swapChainCreateInfo.minImageCount = imageCount;
+	swapChainCreateInfo.imageFormat = surfaceFormat.format;
+	swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+	swapChainCreateInfo.presentMode = presentMode;
+	swapChainCreateInfo.imageExtent = extent2D;
+	// layer count in each image, VR uses more than one 
+	swapChainCreateInfo.imageArrayLayers = 1;
+	swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	// graphics queue responsible for drawing
+	// present queue responsible for displaying
+	// access: concurrent or exclusive
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
+	// for compatibility with parameter types: pQueueFamilyIndices
+	uint32_t queueFamilyIndices[] = {indices.mGraphicsFamily.value(), indices.mPresentFamily.value()};
+
+	if(indices.mGraphicsFamily != indices.mPresentFamily)
+	{
+		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		// specify which families share image access ownership
+		swapChainCreateInfo.queueFamilyIndexCount = 2;
+		swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+	}
+	else
+	{
+		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	}
+
+	// image rotate, flip
+	swapChainCreateInfo.preTransform = swapChainSupportDetails.mCapabilities.currentTransform;
+	// whether to use alpha channel for blending with other windows in window system
+	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	// don't care pixel color occupied by other window
+	swapChainCreateInfo.clipped = VK_TRUE;
+	// swap chain need to be rebuild after adjusting extent
+	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	if(vkCreateSwapchainKHR(mDevice, &swapChainCreateInfo, nullptr, &mSwapChain) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SWAPCHAIN_FAILED]);
+	}
+
+	// minImageCount in create info, vulkan may creates more images than minImageCount
+	vkGetSwapchainImagesKHR(mDevice, mSwapChain, &imageCount, nullptr);
+	mSwapChainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(mDevice, mSwapChain, &imageCount, mSwapChainImages.data());
+
+	mSwapChainImageFormat = surfaceFormat.format;
+	mSwapChainExtent = extent2D;
+}
+
 // all extensions needed by vulkan instance (for GLFW and for debugging)
 std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
 {
@@ -483,7 +558,7 @@ bool TrVulkanRendererBase::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	std::vector<VkExtensionProperties> availableDeviceExtensions(deviceExtensionCount);
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &deviceExtensionCount, availableDeviceExtensions.data());
 
-	std::set<const char*> requiredExtensions(TrVulkanGlobal::deviceExtensions.begin(), TrVulkanGlobal::deviceExtensions.end());
+	std::set<std::string> requiredExtensions(TrVulkanGlobal::deviceExtensions.begin(), TrVulkanGlobal::deviceExtensions.end());
 
 	for(const VkExtensionProperties& extension : availableDeviceExtensions)
 	{
