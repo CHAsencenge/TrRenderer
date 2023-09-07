@@ -119,6 +119,9 @@
     <ClInclude Include="TrVulkanRenderer\TrVulkanQueueFamily.h">
       <Filter>TrVulkanRenderer\public</Filter>
     </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanSwapChain.h">
+      <Filter>TrVulkanRenderer\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -169,6 +172,9 @@
       <Filter>TrVulkanRenderer\private</Filter>
     </ClCompile>
     <ClCompile Include="TrVulkanRenderer\TrVulkanQueueFamily.cpp">
+      <Filter>TrVulkanRenderer\private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanSwapChain.cpp">
       <Filter>TrVulkanRenderer\private</Filter>
     </ClCompile>
   </ItemGroup>
