@@ -1,6 +1,7 @@
 #pragma once
 #include "TrVulkanUtil.h"
 #include "TrVulkanQueueFamily.h"
+#include "TrVulkanSwapChain.h"
 
 class TrVulkanRendererBase
 {
@@ -38,7 +39,13 @@ private:
 
     void CreateInstance();
 
+#pragma region
+
     std::vector<const char*> GetRequiredExtensions();
+
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+
+#pragma endregion 
 
 #pragma region Debug
     
@@ -60,12 +67,12 @@ private:
 
 #pragma region Device
     // graphics card
-    void PickFirstValidPhysicalDevice();
+    void PickFirstValidPhysicalDevice(VkQueueFlagBits queueFlag);
 
     // weighted scoring by feature
-    void PickHighestWeightScorePhysicalDevice();
+    void PickHighestWeightScorePhysicalDevice(VkQueueFlagBits queueFlag);
 
-    bool IsDeviceSuitable(VkPhysicalDevice device);
+    bool IsDeviceSuitable(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
 
     uint32_t CalcDeviceSuitabilityScore(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
 
@@ -83,6 +90,19 @@ private:
 
     void CreateSurface();
 
+
+#pragma endregion
+
+
+#pragma region SwapChain
+
+    TrVulkanSwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 #pragma endregion 
 

@@ -38,7 +38,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateInstance();
 	SetupDebugMessenger();
 	CreateSurface();
-	PickHighestWeightScorePhysicalDevice(); // or can PickFirstValidPhysicalDevice()
+	PickHighestWeightScorePhysicalDevice(VK_QUEUE_GRAPHICS_BIT); // or can PickFirstValidPhysicalDevice()
 	CreateLogicalDevice();
 }
 
@@ -170,7 +170,7 @@ void TrVulkanRendererBase::DestroyDebugUtilsMessengerEXT(VkInstance instance, Vk
 	}
 }
 
-void TrVulkanRendererBase::PickFirstValidPhysicalDevice()
+void TrVulkanRendererBase::PickFirstValidPhysicalDevice(VkQueueFlagBits queueFlag)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
@@ -182,7 +182,7 @@ void TrVulkanRendererBase::PickFirstValidPhysicalDevice()
 	vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
 	for(const VkPhysicalDevice& device : devices)
 	{
-		if(IsDeviceSuitable(device))
+		if(IsDeviceSuitable(device, queueFlag))
 		{
 			mPhysicalDevice = device;
 			break;
@@ -194,7 +194,7 @@ void TrVulkanRendererBase::PickFirstValidPhysicalDevice()
 	}
 }
 
-void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice()
+void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice(VkQueueFlagBits queueFlag)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
@@ -209,7 +209,7 @@ void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice()
 	
 	for(const VkPhysicalDevice& device : devices)
 	{
-		uint32_t score = CalcDeviceSuitabilityScore(device, VK_QUEUE_GRAPHICS_BIT);
+		uint32_t score = CalcDeviceSuitabilityScore(device, queueFlag);
 		candidates.insert(std::make_pair(score, device));
 	}
 	// rbegin(): reverted iterator
@@ -224,7 +224,7 @@ void TrVulkanRendererBase::PickHighestWeightScorePhysicalDevice()
 	}
 }
 
-bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device)
+bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
 {
 	// basic device properties: name, type, supported vulkan version
 	VkPhysicalDeviceProperties deviceProperties;
@@ -233,15 +233,30 @@ bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device)
 	// support for texture compression, 64 bits float for shader, multiple viewports...
 	VkPhysicalDeviceFeatures deviceFeatures;
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-
-	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(device, VK_QUEUE_GRAPHICS_BIT);
 	
-	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader && indices.IsComplete();
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(device, queueFlag);
+
+	bool bDeviceExtensionSupported = CheckDeviceExtensionSupport(device);
+
+	bool bSwapChainAdequate = false;
+	if(bDeviceExtensionSupported) // contains swap chain extension
+	{
+		// surface support detail
+		TrVulkanSwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(device);
+		bSwapChainAdequate = !swapChainSupport.mFormats.empty() && !swapChainSupport.mPresentModes.empty();
+	}
+	
+	return deviceFeatures.geometryShader && indices.IsComplete() && bDeviceExtensionSupported && bSwapChainAdequate;
 }
 
 uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScore(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
 {
+
+	if(!IsDeviceSuitable(device, queueFlag))
+	{
+		return 0;
+	}
+	
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
@@ -249,18 +264,6 @@ uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScore(VkPhysicalDevice devic
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 	
 	uint32_t score = 0;
-
-	if(!deviceFeatures.geometryShader)
-	{
-		return 0;
-	}
-
-	// queues should responsible for graphics
-	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(device, queueFlag);
-	if(!indices.IsComplete())
-	{
-		return 0;
-	}
 
 	if(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 	{
@@ -378,7 +381,84 @@ void TrVulkanRendererBase::CreateSurface()
 	}
 }
 
-// all extensions needed (for GLFW and for debugging)
+
+TrVulkanSwapChainSupportDetails TrVulkanRendererBase::QuerySwapChainSupport(VkPhysicalDevice device)
+{
+	TrVulkanSwapChainSupportDetails details;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, mSurface, &details.mCapabilities);
+
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount, nullptr);
+	if(formatCount != 0)
+	{
+		details.mFormats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount, details.mFormats.data());
+	}
+
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface, &presentModeCount, nullptr);
+	if(presentModeCount != 0)
+	{
+		details.mPresentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface, &presentModeCount, details.mPresentModes.data());
+	}
+
+	return details;
+}
+
+// TODO: configuration parameterization
+VkSurfaceFormatKHR TrVulkanRendererBase::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+	// no preferred format
+	if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
+	{
+		return {VK_FORMAT_B8G8R8A8_SRGB, VK_COLORSPACE_SRGB_NONLINEAR_KHR};
+	}
+	// have format list
+	for(const VkSurfaceFormatKHR& availableFormat : availableFormats)
+	{
+		if(availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
+		{
+			return availableFormat;
+		}
+	}
+	return availableFormats[0];
+}
+
+// vertical sync
+// vertical retrace
+// tearing
+VkPresentModeKHR TrVulkanRendererBase::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+	for(const VkPresentModeKHR& availablePresentMode : availablePresentModes)
+	{
+		if(availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
+			return availablePresentMode;
+		}
+	}
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+// resolution
+VkExtent2D TrVulkanRendererBase::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+{
+	// currentExtent tells appropriate window extent
+	// if currentExtent use max value, we should decide extent by ourself
+	if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+	{
+		return capabilities.currentExtent;
+	}
+	else
+	{
+		VkExtent2D actualExtent = {mWidth, mHeight};
+		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+		return actualExtent;
+	}
+}
+
+// all extensions needed by vulkan instance (for GLFW and for debugging)
 std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
 {
 	// vulkan instance extensions required by GLFW
@@ -392,6 +472,25 @@ std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  // VK_EXT_debug_utils
 	}
 	return extensions;
+}
+
+
+bool TrVulkanRendererBase::CheckDeviceExtensionSupport(VkPhysicalDevice device)
+{
+	uint32_t deviceExtensionCount;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &deviceExtensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableDeviceExtensions(deviceExtensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &deviceExtensionCount, availableDeviceExtensions.data());
+
+	std::set<const char*> requiredExtensions(TrVulkanGlobal::deviceExtensions.begin(), TrVulkanGlobal::deviceExtensions.end());
+
+	for(const VkExtensionProperties& extension : availableDeviceExtensions)
+	{
+		requiredExtensions.erase(extension.extensionName);
+	}
+	
+	return requiredExtensions.empty();
 }
 
 // check before creating instance

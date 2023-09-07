@@ -10,6 +10,12 @@ namespace TrVulkanGlobal
         "VK_LAYER_KHRONOS_validation"
     };
 
+    // device extensions needed
+    static const std::vector<const char*> deviceExtensions =
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
+
     enum class RUNTIME_ERROR_ENUM
     {
         CREATE_INSTANCE_FAILED,
