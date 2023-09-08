@@ -41,6 +41,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	PickHighestWeightScorePhysicalDevice(VK_QUEUE_GRAPHICS_BIT); // or can PickFirstValidPhysicalDevice()
 	CreateLogicalDevice();
 	CreateSwapChain();
+	CreateImageViews();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -58,6 +59,11 @@ void TrVulkanRendererBase::OnCleanup()
 	if(mbEnableValidationLayers)
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
+	}
+
+	for(VkImageView& imageView : mSwapChainImageViews)
+	{
+		vkDestroyImageView(mDevice, imageView, nullptr);
 	}
 
 	// manually destroy swap chain, earlier than logical device
@@ -531,6 +537,35 @@ void TrVulkanRendererBase::CreateSwapChain()
 
 	mSwapChainImageFormat = surfaceFormat.format;
 	mSwapChainExtent = extent2D;
+}
+
+void TrVulkanRendererBase::CreateImageViews()
+{
+	mSwapChainImageViews.resize(mSwapChainImages.size());
+	for(size_t i = 0; i < mSwapChainImages.size(); i++)
+	{
+		VkImageViewCreateInfo imageViewCreateInfo = {};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.image = mSwapChainImages[i];
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = mSwapChainImageFormat;
+		// color channel mapping, for example, single color textures, mapping all channels to red
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		// image usage
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // used as RT
+		imageViewCreateInfo.subresourceRange.layerCount = 1; // if VR, multiple layers (left eye layer, right eye layer), multiple views for one image
+		imageViewCreateInfo.subresourceRange.levelCount = 1; // no LOD
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+
+		if(vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &mSwapChainImageViews[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED]);
+		}
+	}
+	
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

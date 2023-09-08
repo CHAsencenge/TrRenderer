@@ -105,6 +105,8 @@ private:
 
     void CreateSwapChain();
 
+    void CreateImageViews();
+
 #pragma endregion 
 
 
@@ -152,4 +154,7 @@ private:
     VkFormat mSwapChainImageFormat;
 
     VkExtent2D mSwapChainExtent;
+
+    // describe an image
+    std::vector<VkImageView> mSwapChainImageViews;
 };
