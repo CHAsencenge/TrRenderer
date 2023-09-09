@@ -26,6 +26,9 @@ namespace TrVulkanGlobal
         CREATE_WINDOW_SURFACE_FAILED,
         CREATE_SWAPCHAIN_FAILED,
         CREATE_IMAGE_VIEW_FAILED,
+        CREATE_SHADER_MODULE_FAILED,
+
+        OPEN_FILE_FAILED,
     };
     
     static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
@@ -38,5 +41,8 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_WINDOW_SURFACE_FAILED, "failed to create window surface!"},
         {RUNTIME_ERROR_ENUM::CREATE_SWAPCHAIN_FAILED, "failed to create swap chain!"},
         {RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED, "failed to create image view!"},
+        {RUNTIME_ERROR_ENUM::CREATE_SHADER_MODULE_FAILED, "failed to create shader module!"},
+        
+        {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
 }

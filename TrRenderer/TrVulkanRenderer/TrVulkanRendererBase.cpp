@@ -42,6 +42,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateLogicalDevice();
 	CreateSwapChain();
 	CreateImageViews();
+	CreateGraphicsPipeline();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -566,6 +567,56 @@ void TrVulkanRendererBase::CreateImageViews()
 		}
 	}
 	
+}
+
+void TrVulkanRendererBase::CreateGraphicsPipeline()
+{
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert.spv");
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag.spv");
+
+	// is only a wrap of shader byte code
+	// only used in this field, so should destroy before leaving this field
+	VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCompiledCode);
+	VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCompiledCode);
+
+	VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {};
+	vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertShaderStageCreateInfo.module = vertShaderModule;
+	vertShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	// may define multiple shaders in a shader file, use which
+	vertShaderStageCreateInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo = {};
+	fragShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragShaderStageCreateInfo.module = fragShaderModule;
+	fragShaderStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	// may define multiple shaders in a shader file, use which
+	fragShaderStageCreateInfo.pName = "main";
+
+	// array of shader stage create info
+	VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[] =
+	{
+		vertShaderStageCreateInfo,
+		fragShaderStageCreateInfo,
+	};
+
+	vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
+	vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
+}
+
+VkShaderModule TrVulkanRendererBase::CreateShaderModule(std::vector<char>& compiledCode)
+{
+	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
+	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.codeSize = compiledCode.size();
+	shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(compiledCode.data());
+
+	VkShaderModule shaderModule;
+	if(vkCreateShaderModule(mDevice, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SHADER_MODULE_FAILED]);
+	}
+	return shaderModule;
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

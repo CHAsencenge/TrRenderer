@@ -11,6 +11,7 @@ TrD3D12RendererBase::TrD3D12RendererBase(UINT width, UINT height, std::wstring t
 	mAspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
 	WCHAR assetsPath[512];
+	// exe location
 	GetAssetsPath(assetsPath, _countof(assetsPath));
 	mAssetsPath = assetsPath;
 }

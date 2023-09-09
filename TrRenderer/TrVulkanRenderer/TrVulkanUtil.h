@@ -14,3 +14,11 @@
 #include <cstdlib>
 #include <vector>
 #include "TrVulkanGlobalConfigs.h"
+#include <fstream>
+
+class TrVulkanUtil
+{
+public:
+    static std::vector<char> ReadFile(const std::string& filename);
+};
+

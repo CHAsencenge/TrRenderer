@@ -107,7 +107,19 @@ private:
 
     void CreateImageViews();
 
-#pragma endregion 
+#pragma endregion
+
+#pragma region Pipeline
+
+    void CreateGraphicsPipeline();
+
+#pragma endregion
+
+#pragma region
+
+    VkShaderModule CreateShaderModule(std::vector<char>& compiledCode);
+
+#pragma endregion
 
 
 private:
