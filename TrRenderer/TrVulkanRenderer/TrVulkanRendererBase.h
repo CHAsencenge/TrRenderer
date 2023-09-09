@@ -111,6 +111,8 @@ private:
 
 #pragma region Pipeline
 
+    void CreateRenderPass();
+    
     void CreateGraphicsPipeline();
 
 #pragma endregion
@@ -170,5 +172,7 @@ private:
     // describe an image
     std::vector<VkImageView> mSwapChainImageViews;
 
+    VkRenderPass mRenderPass;
+    
     VkPipelineLayout mPipelineLayout;
 };

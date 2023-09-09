@@ -64,6 +64,8 @@ void TrVulkanRendererBase::OnCleanup()
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
 
+	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+
 	for(VkImageView& imageView : mSwapChainImageViews)
 	{
 		vkDestroyImageView(mDevice, imageView, nullptr);
@@ -569,6 +571,43 @@ void TrVulkanRendererBase::CreateImageViews()
 		}
 	}
 	
+}
+
+void TrVulkanRendererBase::CreateRenderPass()
+{
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = mSwapChainImageFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // image is used to present in swapchain
+
+	// a render pass can contain multiple sub passes
+	// a sub pass references to the frame buffer content processed by last phase
+	// each sub pass can reference one or more attachments
+	VkAttachmentReference colorAttachmentReference = {};
+	colorAttachmentReference.attachment = 0;
+	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // ?
+
+	VkSubpassDescription subPassDescription = {};
+	subPassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
+	subPassDescription.colorAttachmentCount = 1;
+	subPassDescription.pColorAttachments = &colorAttachmentReference;
+
+	VkRenderPassCreateInfo renderPassCreateInfo = {};
+	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassCreateInfo.attachmentCount = 1;
+	renderPassCreateInfo.pAttachments = &colorAttachment;
+	renderPassCreateInfo.subpassCount = 1;
+	renderPassCreateInfo.pSubpasses = &subPassDescription;
+
+	if(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_RENDER_PASS_FAILED]);
+	}
 }
 
 void TrVulkanRendererBase::CreateGraphicsPipeline()
