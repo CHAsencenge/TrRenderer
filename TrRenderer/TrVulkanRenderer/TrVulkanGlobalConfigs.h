@@ -27,6 +27,7 @@ namespace TrVulkanGlobal
         CREATE_SWAPCHAIN_FAILED,
         CREATE_IMAGE_VIEW_FAILED,
         CREATE_SHADER_MODULE_FAILED,
+        CREATE_LAYOUT_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -42,6 +43,7 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_SWAPCHAIN_FAILED, "failed to create swap chain!"},
         {RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED, "failed to create image view!"},
         {RUNTIME_ERROR_ENUM::CREATE_SHADER_MODULE_FAILED, "failed to create shader module!"},
+        {RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED, "failed to create pipeline layout!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };

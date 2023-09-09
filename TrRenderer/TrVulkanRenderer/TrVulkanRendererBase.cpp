@@ -62,6 +62,8 @@ void TrVulkanRendererBase::OnCleanup()
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
 
+	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+
 	for(VkImageView& imageView : mSwapChainImageViews)
 	{
 		vkDestroyImageView(mDevice, imageView, nullptr);
@@ -593,8 +595,119 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// may define multiple shaders in a shader file, use which
 	fragShaderStageCreateInfo.pName = "main";
 
+	// vertex input (to vertex shader)
+	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {};
+	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	// binding: offset between vertices, per-vertex or per-instance
+	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
+	vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr;
+	// attribute: attribute for shader variable
+	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
+	vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
+
+	// input assembly: what kind of primitive topology does vertex data define, whether to use primitive restart
+	VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
+	inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	// list or strip, point line or triangle
+	inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	// if enabled, use a special index to restart, index after this index reset to the first vert of primitive
+	inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+
+	// viewport and scissor
+	// viewport: image map to frame buffer
+	// scissor: pixels in which region is actually saved in frame buffer
+	VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
+	viewport.height = (float) mSwapChainExtent.height;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor = {};
+	scissor.offset = {0, 0};
+	scissor.extent = mSwapChainExtent;
+
+	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
+	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportStateCreateInfo.viewportCount = 1;
+	viewportStateCreateInfo.scissorCount = 1;
+	viewportStateCreateInfo.pViewports = &viewport;
+	viewportStateCreateInfo.pScissors = &scissor;
+
+	// rasterization
+	VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {};
+	rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	// should fragments outside near plane and far plane be clamped to planes, rather than discarded
+	rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+	// no fragments output to frame buffer
+	rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+	rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizationStateCreateInfo.lineWidth = 1.0f;
+	// cull front, back, front and back
+	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	// front face condition: clockwise or counter clockwise
+	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	// use for shadow
+	rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
+	/*rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
+	rasterizationStateCreateInfo.depthBiasClamp = 0.0f;
+	rasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;*/
+
+	// multisample
+	VkPipelineMultisampleStateCreateInfo multiSampleCreateInfo = {};
+	multiSampleCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multiSampleCreateInfo.sampleShadingEnable = VK_FALSE;
+	multiSampleCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	/*multiSampleCreateInfo.minSampleShading = 1.0f;
+	multiSampleCreateInfo.alphaToCoverageEnable = VK_FALSE;
+	multiSampleCreateInfo.alphaToOneEnable = VK_FALSE;*/
+	
+	// color blend: fragment color returned by fragment shader should blend with color in frame buffer corresponding pixel
+	// for each frame buffer 
+	VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {};
+	colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachmentState.blendEnable = VK_FALSE;
+	// for global color blend
+	VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo = {};
+	colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	// bit operation blend
+	colorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
+	colorBlendStateCreateInfo.attachmentCount = 1;
+	colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
+	colorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY;
+	colorBlendStateCreateInfo.blendConstants[0] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[1] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[2] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[3] = 0.0f;
+
+	// few pipeline states can change dynamically without rebuild pipeline
+	std::vector<VkDynamicState> dynamicStates =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR,
+	};
+	// need to re-specify values when draw
+	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
+	dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateCreateInfo.dynamicStateCount = 2;
+	dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
+
+	// can make dynamic config to shader (uniform variables can be modified dynamically after creating pipeline)
+	VkPipelineLayoutCreateInfo layoutCreateInfo = {};
+	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutCreateInfo.setLayoutCount = 0;
+	layoutCreateInfo.pushConstantRangeCount = 0;
+	layoutCreateInfo.pSetLayouts = nullptr;
+	layoutCreateInfo.pPushConstantRanges = nullptr;
+	if(vkCreatePipelineLayout(mDevice, &layoutCreateInfo, nullptr, &mPipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED]);
+	}
+	
+
+
 	// array of shader stage create info
-	VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[] =
+	VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] =
 	{
 		vertShaderStageCreateInfo,
 		fragShaderStageCreateInfo,

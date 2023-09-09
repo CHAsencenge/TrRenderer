@@ -169,4 +169,6 @@ private:
 
     // describe an image
     std::vector<VkImageView> mSwapChainImageViews;
+
+    VkPipelineLayout mPipelineLayout;
 };
