@@ -42,6 +42,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateLogicalDevice();
 	CreateSwapChain();
 	CreateImageViews();
+	CreateRenderPass();
 	CreateGraphicsPipeline();
 }
 
@@ -61,6 +62,8 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
+
+	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
 
@@ -634,6 +637,13 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// may define multiple shaders in a shader file, use which
 	fragShaderStageCreateInfo.pName = "main";
 
+	// array of shader stage create info
+	VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] =
+	{
+		vertShaderStageCreateInfo,
+		fragShaderStageCreateInfo,
+	};
+
 	// vertex input (to vertex shader)
 	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {};
 	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -743,14 +753,31 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED]);
 	}
 	
+	// create graphics pipeline
+	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+	pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineCreateInfo.stageCount = 2; // vert & frag, each has a code file
+	pipelineCreateInfo.pStages = shaderStageCreateInfos;
+	// fixed stages
+	pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+	pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
+	pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+	pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+	pipelineCreateInfo.pMultisampleState = &multiSampleCreateInfo;
+	pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+	pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo; // for reduce rebuild graphics pipeline
+	
+	pipelineCreateInfo.layout = mPipelineLayout; // for uniform variables
+	pipelineCreateInfo.renderPass = mRenderPass;
+	pipelineCreateInfo.subpass = 0; // index
+	// for creating a new graphics pipeline with a created pipeline
+	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+	// pipelineCreateInfo.basePipelineIndex = -1;
 
-
-	// array of shader stage create info
-	VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] =
+	if(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mGraphicsPipeline) != VK_SUCCESS)
 	{
-		vertShaderStageCreateInfo,
-		fragShaderStageCreateInfo,
-	};
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_GRAPHICS_PIPELINE_FAILED]);
+	}
 
 	vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
 	vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);

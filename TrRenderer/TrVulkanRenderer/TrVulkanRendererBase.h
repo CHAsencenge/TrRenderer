@@ -175,4 +175,6 @@ private:
     VkRenderPass mRenderPass;
     
     VkPipelineLayout mPipelineLayout;
+
+    VkPipeline mGraphicsPipeline;
 };
