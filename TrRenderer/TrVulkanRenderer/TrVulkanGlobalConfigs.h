@@ -30,6 +30,7 @@ namespace TrVulkanGlobal
         CREATE_LAYOUT_FAILED,
         CREATE_RENDER_PASS_FAILED,
         CREATE_GRAPHICS_PIPELINE_FAILED,
+        CREATE_FRAME_BUFFER_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -48,6 +49,7 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED, "failed to create pipeline layout!"},
         {RUNTIME_ERROR_ENUM::CREATE_RENDER_PASS_FAILED, "failed to create render pass!"},
         {RUNTIME_ERROR_ENUM::CREATE_GRAPHICS_PIPELINE_FAILED, "failed to create graphics pipeline!"},
+        {RUNTIME_ERROR_ENUM::CREATE_FRAME_BUFFER_FAILED, "failed to create frame buffer!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };

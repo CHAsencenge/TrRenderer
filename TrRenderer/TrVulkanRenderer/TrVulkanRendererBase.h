@@ -117,9 +117,15 @@ private:
 
 #pragma endregion
 
-#pragma region
+#pragma region Shader
 
     VkShaderModule CreateShaderModule(std::vector<char>& compiledCode);
+
+#pragma endregion
+
+#pragma region Buffer
+
+    void CreateFrameBuffers();
 
 #pragma endregion
 
@@ -177,4 +183,6 @@ private:
     VkPipelineLayout mPipelineLayout;
 
     VkPipeline mGraphicsPipeline;
+
+    std::vector<VkFramebuffer> mSwapChainFrameBuffers;
 };

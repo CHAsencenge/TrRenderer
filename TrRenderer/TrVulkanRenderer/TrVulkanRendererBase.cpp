@@ -44,6 +44,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateImageViews();
 	CreateRenderPass();
 	CreateGraphicsPipeline();
+	CreateFrameBuffers();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -66,6 +67,12 @@ void TrVulkanRendererBase::OnCleanup()
 	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+
+	// before destroying render pass and image view 
+	for(VkFramebuffer& framebuffer : mSwapChainFrameBuffers)
+	{
+		vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+	}
 
 	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
 
@@ -796,6 +803,31 @@ VkShaderModule TrVulkanRendererBase::CreateShaderModule(std::vector<char>& compi
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SHADER_MODULE_FAILED]);
 	}
 	return shaderModule;
+}
+
+void TrVulkanRendererBase::CreateFrameBuffers()
+{
+	mSwapChainFrameBuffers.resize(mSwapChainImageViews.size());
+	for(size_t i = 0; i < mSwapChainFrameBuffers.size(); i++)
+	{
+		VkImageView attachments[] =
+		{
+			mSwapChainImageViews[i]
+		};
+		VkFramebufferCreateInfo frameBufferCreateInfo = {};
+		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		frameBufferCreateInfo.renderPass = mRenderPass;
+		frameBufferCreateInfo.width = mSwapChainExtent.width;
+		frameBufferCreateInfo.height = mSwapChainExtent.height;
+		frameBufferCreateInfo.attachmentCount = 1;
+		frameBufferCreateInfo.pAttachments = attachments;
+		frameBufferCreateInfo.layers = 1; // image layer count
+		
+		if(vkCreateFramebuffer(mDevice, &frameBufferCreateInfo, nullptr, &mSwapChainFrameBuffers[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_FRAME_BUFFER_FAILED]);
+		}
+	}
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)
