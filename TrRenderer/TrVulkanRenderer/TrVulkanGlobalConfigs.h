@@ -31,6 +31,11 @@ namespace TrVulkanGlobal
         CREATE_RENDER_PASS_FAILED,
         CREATE_GRAPHICS_PIPELINE_FAILED,
         CREATE_FRAME_BUFFER_FAILED,
+        CREATE_COMMAND_POOL_FAILED,
+        ALLOCATE_COMMAND_BUFFER_FAILED,
+        RECORD_COMMAND_BUFFER_BEGIN_FAILED,
+        RECORD_COMMAND_BUFFER_END_FAILED,
+        
 
         OPEN_FILE_FAILED,
     };
@@ -50,6 +55,10 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_RENDER_PASS_FAILED, "failed to create render pass!"},
         {RUNTIME_ERROR_ENUM::CREATE_GRAPHICS_PIPELINE_FAILED, "failed to create graphics pipeline!"},
         {RUNTIME_ERROR_ENUM::CREATE_FRAME_BUFFER_FAILED, "failed to create frame buffer!"},
+        {RUNTIME_ERROR_ENUM::CREATE_COMMAND_POOL_FAILED, "failed to create command pool!"},
+        {RUNTIME_ERROR_ENUM::ALLOCATE_COMMAND_BUFFER_FAILED, "failed to allocate command buffer!"},
+        {RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_BEGIN_FAILED, "failed to begin record command buffer!"},
+        {RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED, "failed to end record command buffer!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };

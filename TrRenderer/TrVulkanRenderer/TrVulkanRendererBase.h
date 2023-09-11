@@ -127,6 +127,12 @@ private:
 
     void CreateFrameBuffers();
 
+    void CreateCommandPool();
+
+    void CreateCommandBuffer();
+
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
 #pragma endregion
 
 
@@ -185,4 +191,9 @@ private:
     VkPipeline mGraphicsPipeline;
 
     std::vector<VkFramebuffer> mSwapChainFrameBuffers;
+
+    // draw command, memory transfer command...
+    VkCommandPool mCommandPool;
+
+    std::vector<VkCommandBuffer> mCommandBuffers;
 };

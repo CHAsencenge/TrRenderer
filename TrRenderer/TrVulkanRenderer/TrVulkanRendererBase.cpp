@@ -45,6 +45,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateRenderPass();
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
+	CreateCommandBuffer();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -89,6 +90,8 @@ void TrVulkanRendererBase::OnCleanup()
 
 	// manually destroy window surface
 	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+
+	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
 
 	// manually destroy vulkan instance
 	vkDestroyInstance(mInstance, nullptr);
@@ -827,6 +830,95 @@ void TrVulkanRendererBase::CreateFrameBuffers()
 		{
 			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_FRAME_BUFFER_FAILED]);
 		}
+	}
+}
+
+void TrVulkanRendererBase::CreateCommandPool()
+{
+	TrVulkanQueueFamilyIndices queueFamilyIndices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
+	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	// each command buffer object allocated by command pool can only be committed to a certain type of queue
+	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndices.mGraphicsFamily.value(); // for draw command
+	// optimizing
+	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	commandPoolCreateInfo.flags = 0;
+
+	if(vkCreateCommandPool(mDevice, &commandPoolCreateInfo, nullptr, &mCommandPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_COMMAND_POOL_FAILED]);
+	}
+}
+
+void TrVulkanRendererBase::CreateCommandBuffer()
+{
+	// because draw operations process on frame buffer, we need to allocate a command buffer for each image in swap chain
+	mCommandBuffers.resize(mSwapChainFrameBuffers.size());
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.commandPool = mCommandPool;
+	// VK_COMMAND_BUFFER_LEVEL_PRIMARY: can be committed to queue and executed, can not be invoked by other command buffer objects
+	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandBufferCount = (uint32_t) mCommandBuffers.size();
+
+	if(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, mCommandBuffers.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_COMMAND_BUFFER_FAILED]);
+	}
+}
+
+void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+{
+	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
+	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+	// begin to record command buffer
+	if(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_BEGIN_FAILED]);
+	}
+
+	// begin render pass
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.renderPass = mRenderPass;
+	renderPassBeginInfo.framebuffer = mSwapChainFrameBuffers[imageIndex];
+	renderPassBeginInfo.renderArea.offset = {0 ,0};
+	renderPassBeginInfo.renderArea.extent = mSwapChainExtent;
+
+	VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+	renderPassBeginInfo.clearValueCount = 1;
+	renderPassBeginInfo.pClearValues = &clearColor;
+
+	// VK_SUBPASS_CONTENTS_INLINE: all commands are in main command buffer
+	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	// bind graphics pipeline
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+
+	// Cmds
+	VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float) mSwapChainExtent.width;
+	viewport.height = (float) mSwapChainExtent.height;
+	viewport.minDepth = 0;
+	viewport.maxDepth = 1;
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset = {0, 0};
+	scissor.extent = mSwapChainExtent;
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	vkCmdEndRenderPass(commandBuffer);
+	if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED]);
 	}
 }
 
