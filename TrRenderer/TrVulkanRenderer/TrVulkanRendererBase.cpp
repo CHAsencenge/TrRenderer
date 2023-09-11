@@ -1,4 +1,6 @@
 #include "TrVulkanRendererBase.h"
+
+#include <csignal>
 #include <map>
 #include <set>
 
@@ -45,7 +47,9 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateRenderPass();
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
+	CreateCommandPool();
 	CreateCommandBuffer();
+	CreateSyncObjects();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -54,7 +58,11 @@ void TrVulkanRendererBase::OnRender()
 	while (!glfwWindowShouldClose(mWindow))
 	{
 		glfwPollEvents();
+		DrawFrame();
 	}
+
+	// because draw frame is an async operation
+	vkDeviceWaitIdle(mDevice);
 }
 
 // often vkCreateXXX needs vkDestroyXXX
@@ -64,6 +72,12 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
+
+	vkDestroySemaphore(mDevice, mImageAvailableSemaphore, nullptr);
+	vkDestroySemaphore(mDevice, mRenderFinishedSemaphore, nullptr);
+	vkDestroyFence(mDevice, mInFlightFence, nullptr);
+
+	
 
 	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
@@ -84,6 +98,9 @@ void TrVulkanRendererBase::OnCleanup()
 
 	// manually destroy swap chain, earlier than logical device
 	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
+
+	// should before destroy device, because of the firs param
+	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
 	
 	// manually destroy logical device
 	vkDestroyDevice(mDevice, nullptr);
@@ -91,7 +108,7 @@ void TrVulkanRendererBase::OnCleanup()
 	// manually destroy window surface
 	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
 
-	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+	
 
 	// manually destroy vulkan instance
 	vkDestroyInstance(mInstance, nullptr);
@@ -610,12 +627,24 @@ void TrVulkanRendererBase::CreateRenderPass()
 	subPassDescription.colorAttachmentCount = 1;
 	subPassDescription.pColorAttachments = &colorAttachmentReference;
 
+	// sync
+	VkSubpassDependency subpassDependency = {};
+	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependency.dstSubpass = 0;
+	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependency.srcAccessMask = 0;
+	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassCreateInfo.attachmentCount = 1;
 	renderPassCreateInfo.pAttachments = &colorAttachment;
 	renderPassCreateInfo.subpassCount = 1;
 	renderPassCreateInfo.pSubpasses = &subPassDescription;
+
+	renderPassCreateInfo.dependencyCount = 1;
+	renderPassCreateInfo.pDependencies = &subpassDependency;
 
 	if(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass) != VK_SUCCESS)
 	{
@@ -843,7 +872,7 @@ void TrVulkanRendererBase::CreateCommandPool()
 	// optimizing
 	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
 	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-	commandPoolCreateInfo.flags = 0;
+	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Attempt to reset VkCommandBuffer created from VkCommandPool that does NOT have the VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT bit set
 
 	if(vkCreateCommandPool(mDevice, &commandPoolCreateInfo, nullptr, &mCommandPool) != VK_SUCCESS)
 	{
@@ -854,15 +883,14 @@ void TrVulkanRendererBase::CreateCommandPool()
 void TrVulkanRendererBase::CreateCommandBuffer()
 {
 	// because draw operations process on frame buffer, we need to allocate a command buffer for each image in swap chain
-	mCommandBuffers.resize(mSwapChainFrameBuffers.size());
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	commandBufferAllocateInfo.commandPool = mCommandPool;
 	// VK_COMMAND_BUFFER_LEVEL_PRIMARY: can be committed to queue and executed, can not be invoked by other command buffer objects
 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = (uint32_t) mCommandBuffers.size();
+	commandBufferAllocateInfo.commandBufferCount = 1;
 
-	if(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, mCommandBuffers.data()) != VK_SUCCESS)
+	if(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, &mCommandBuffer) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_COMMAND_BUFFER_FAILED]);
 	}
@@ -872,8 +900,8 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-	commandBufferBeginInfo.pInheritanceInfo = nullptr;
+	/*commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	commandBufferBeginInfo.pInheritanceInfo = nullptr;*/
 
 	// begin to record command buffer
 	if(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
@@ -920,6 +948,81 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED]);
 	}
+}
+
+void TrVulkanRendererBase::DrawFrame()
+{
+	// sync: fence vs semaphore
+	// can get fence state by vkWaitForFences, but can not get semaphore state
+
+	vkWaitForFences(mDevice, 1, &mInFlightFence, VK_TRUE, UINT64_MAX);
+	vkResetFences(mDevice, 1, &mInFlightFence);
+	
+	// get an image from the swap chain
+	uint32_t imageIndex; // use this index to commit the correspond command buffer
+	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphore ,VK_NULL_HANDLE, &imageIndex);
+
+	// execute commands in command buffer for frame buffer attachment
+	vkResetCommandBuffer(mCommandBuffer, 0);
+	RecordCommandBuffer(mCommandBuffer, imageIndex);
+
+	// submit command buffers to command queue
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; // we want to write color into image, so wait to the stage can write color attachment
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &mCommandBuffer; // command buffers submitted and executed
+
+	VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore}; // wait & signal
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	// fence: sync operation when command buffers executed
+	if(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFence) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED]);
+	}
+
+	// return rendered image to the swap chain then present
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	// specify swap chain for presenting
+	VkSwapchainKHR swapChains[] = {mSwapChain};
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	vkQueuePresentKHR(mPresentQueue, &presentInfo);
+
+	// vkQueueWaitIdle(mPresentQueue);
+}
+
+void TrVulkanRendererBase::CreateSyncObjects()
+{
+	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	semaphoreCreateInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT: parameter pCreateInfo->flags must be 0
+	if(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphore) != VK_SUCCESS ||
+		vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphore) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SEMAPHORE_FAILED]);
+	}
+
+	VkFenceCreateInfo fenceInfo = {};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // ?
+	if(vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFence) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED]);
+	}
+	
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

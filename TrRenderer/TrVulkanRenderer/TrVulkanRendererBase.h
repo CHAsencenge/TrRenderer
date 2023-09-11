@@ -135,6 +135,18 @@ private:
 
 #pragma endregion
 
+#pragma region Tick
+
+    void DrawFrame();
+
+#pragma endregion
+
+#pragma region Sync
+
+    void CreateSyncObjects();
+
+#pragma endregion
+
 
 private:
     GLFWwindow* mWindow;
@@ -195,5 +207,12 @@ private:
     // draw command, memory transfer command...
     VkCommandPool mCommandPool;
 
-    std::vector<VkCommandBuffer> mCommandBuffers;
+    VkCommandBuffer mCommandBuffer;
+
+    // sync
+    VkSemaphore mImageAvailableSemaphore; // can render
+
+    VkSemaphore mRenderFinishedSemaphore; // can present
+
+    VkFence mInFlightFence;
 };

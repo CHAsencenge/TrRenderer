@@ -35,6 +35,9 @@ namespace TrVulkanGlobal
         ALLOCATE_COMMAND_BUFFER_FAILED,
         RECORD_COMMAND_BUFFER_BEGIN_FAILED,
         RECORD_COMMAND_BUFFER_END_FAILED,
+        CREATE_SEMAPHORE_FAILED,
+        SUBMIT_DRAW_COMMAND_BUFFER_FAILED,
+        CREATE_FENCE_FAILED,
         
 
         OPEN_FILE_FAILED,
@@ -59,6 +62,9 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::ALLOCATE_COMMAND_BUFFER_FAILED, "failed to allocate command buffer!"},
         {RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_BEGIN_FAILED, "failed to begin record command buffer!"},
         {RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED, "failed to end record command buffer!"},
+        {RUNTIME_ERROR_ENUM::CREATE_SEMAPHORE_FAILED, "failed to create semaphore!"},
+        {RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED, "failed to submit draw command buffer!"},
+        {RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED, "failed to create fence!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
