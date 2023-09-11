@@ -574,6 +574,7 @@ void TrVulkanRendererBase::CreateSwapChain()
 	mSwapChainExtent = extent2D;
 }
 
+// used when creating frame buffer
 void TrVulkanRendererBase::CreateImageViews()
 {
 	mSwapChainImageViews.resize(mSwapChainImages.size());
@@ -584,8 +585,9 @@ void TrVulkanRendererBase::CreateImageViews()
 		imageViewCreateInfo.image = mSwapChainImages[i];
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		imageViewCreateInfo.format = mSwapChainImageFormat;
+		// VkComponentSwizzle: remapping image's component
 		// color channel mapping, for example, single color textures, mapping all channels to red
-		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; // use component's origin component value, do not remapping
 		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
 		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -603,31 +605,34 @@ void TrVulkanRendererBase::CreateImageViews()
 	
 }
 
+// a framework, no detail data
 void TrVulkanRendererBase::CreateRenderPass()
 {
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = mSwapChainImageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // image is used to present in swapchain
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // process approach to attachment before render
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // process approach to attachment after render
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // process approach to stencil of attachment before render
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // process approach to stencil of attachment after render
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // attachment layout before render
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // attachment layout after render, image is used to present in swapchain
 
 	// a render pass can contain multiple sub passes
 	// a sub pass references to the frame buffer content processed by last phase
 	// each sub pass can reference one or more attachments
 	VkAttachmentReference colorAttachmentReference = {};
 	colorAttachmentReference.attachment = 0;
-	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // ?
+	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // best image layout for using as color attachment
 
 	VkSubpassDescription subPassDescription = {};
+	// pipeline type that want to bind
 	subPassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
 	subPassDescription.colorAttachmentCount = 1;
 	subPassDescription.pColorAttachments = &colorAttachmentReference;
 
 	// sync
+	// define dependencies between sub passes
 	VkSubpassDependency subpassDependency = {};
 	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 	subpassDependency.dstSubpass = 0;
@@ -837,11 +842,13 @@ VkShaderModule TrVulkanRendererBase::CreateShaderModule(std::vector<char>& compi
 	return shaderModule;
 }
 
+// frame buffers are used to save image attachments in render pass
 void TrVulkanRendererBase::CreateFrameBuffers()
 {
-	mSwapChainFrameBuffers.resize(mSwapChainImageViews.size());
+	mSwapChainFrameBuffers.resize(mSwapChainImageViews.size()); // frame buffer number equals to image view number in swap chain 
 	for(size_t i = 0; i < mSwapChainFrameBuffers.size(); i++)
 	{
+		// one frame buffer can have multiple ( image view ) attachments 
 		VkImageView attachments[] =
 		{
 			mSwapChainImageViews[i]
@@ -851,7 +858,8 @@ void TrVulkanRendererBase::CreateFrameBuffers()
 		frameBufferCreateInfo.renderPass = mRenderPass;
 		frameBufferCreateInfo.width = mSwapChainExtent.width;
 		frameBufferCreateInfo.height = mSwapChainExtent.height;
-		frameBufferCreateInfo.attachmentCount = 1;
+		frameBufferCreateInfo.attachmentCount = 1; // one frame buffer can have multiple ( image view ) attachments 
+		// a pointer to an array of VkImageView handles, each of which will be used as the corresponding attachment in a render pass instance
 		frameBufferCreateInfo.pAttachments = attachments;
 		frameBufferCreateInfo.layers = 1; // image layer count
 		
@@ -862,6 +870,7 @@ void TrVulkanRendererBase::CreateFrameBuffers()
 	}
 }
 
+// command pool: manage command buffer, define rules of allocating and releasing of command buffers
 void TrVulkanRendererBase::CreateCommandPool()
 {
 	TrVulkanQueueFamilyIndices queueFamilyIndices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
@@ -882,7 +891,6 @@ void TrVulkanRendererBase::CreateCommandPool()
 
 void TrVulkanRendererBase::CreateCommandBuffer()
 {
-	// because draw operations process on frame buffer, we need to allocate a command buffer for each image in swap chain
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	commandBufferAllocateInfo.commandPool = mCommandPool;
@@ -953,6 +961,7 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 void TrVulkanRendererBase::DrawFrame()
 {
 	// sync: fence vs semaphore
+	// semaphore between graphics queue and present queue
 	// can get fence state by vkWaitForFences, but can not get semaphore state
 
 	vkWaitForFences(mDevice, 1, &mInFlightFence, VK_TRUE, UINT64_MAX);
@@ -982,7 +991,7 @@ void TrVulkanRendererBase::DrawFrame()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	// fence: sync operation when command buffers executed
+	// fence: sync operation when command buffers has been executed
 	if(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFence) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED]);
@@ -1004,10 +1013,14 @@ void TrVulkanRendererBase::DrawFrame()
 	// vkQueueWaitIdle(mPresentQueue);
 }
 
+// semaphore: syne between queues or between buffers in a queue
+// fence: sync between cpu and gpu
 void TrVulkanRendererBase::CreateSyncObjects()
 {
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	// if use VK_FENCE_CREATE_SIGNALED_BIT to create, "signaled" state for initial state, so will not block while waiting for the semaphore
+	// when to use VK_FENCE_CREATE_SIGNALED_BIT: passes semaphore to the queue immediately
 	semaphoreCreateInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT: parameter pCreateInfo->flags must be 0
 	if(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphore) != VK_SUCCESS ||
 		vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphore) != VK_SUCCESS)
