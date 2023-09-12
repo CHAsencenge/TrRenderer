@@ -40,8 +40,10 @@ namespace TrVulkanGlobal
         SUBMIT_DRAW_COMMAND_BUFFER_FAILED,
         CREATE_FENCE_FAILED,
         CREATE_VERTEX_BUFFER_FAILED,
+        CREATE_BUFFER_FAILED,
         FIND_MEMORY_TYPE_FAILED,
         ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED,
+        ALLOCATE_BUFFER_MEMORY_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -69,8 +71,10 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED, "failed to submit draw command buffer!"},
         {RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED, "failed to create fence!"},
         {RUNTIME_ERROR_ENUM::CREATE_VERTEX_BUFFER_FAILED, "failed to create vertex buffer!"},
+        {RUNTIME_ERROR_ENUM::CREATE_BUFFER_FAILED, "failed to create buffer!"},
         {RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED, "failed to find suitable memory type!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED, "failed to allocate vertex buffer memory!"},
+        {RUNTIME_ERROR_ENUM::ALLOCATE_BUFFER_MEMORY_FAILED, "failed to allocate buffer memory!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
@@ -80,7 +84,7 @@ namespace TrVulkanGlobal
     // interleaving vertex attributes
     static std::vector<TrVulkanVertex2DBase> Vertices =
     {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
         {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
         {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };

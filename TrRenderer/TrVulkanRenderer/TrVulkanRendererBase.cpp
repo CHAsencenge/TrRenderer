@@ -888,8 +888,9 @@ void TrVulkanRendererBase::CreateCommandPool()
 	// each command buffer object allocated by command pool can only be committed to a certain type of queue
 	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndices.mGraphicsFamily.value(); // for draw command
 	// optimizing
-	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
-	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT: specifies that command buffers allocated from the pool will be short-lived, meaning that they will be reset or freed in a relatively short timeframe.
+	// This flag may be used by the implementation to control memory allocation behavior within the pool.
+	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT: allows any command buffer allocated from a pool to be individually reset to the initial state
 	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Attempt to reset VkCommandBuffer created from VkCommandPool that does NOT have the VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT bit set
 
 	if(vkCreateCommandPool(mDevice, &commandPoolCreateInfo, nullptr, &mCommandPool) != VK_SUCCESS)
@@ -977,45 +978,35 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED]);
 	}
 }
-
+// use cpu visible buffer as staging buffer
+// use buffer that read by graphics card faster as vertex buffer
 void TrVulkanRendererBase::CreateVertexBuffer()
 {
-	VkBufferCreateInfo bufferCreateInfo = {};
-	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferCreateInfo.size = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
-	bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // because only use one queue, do not need to share between queue families
-
-	if(vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &mVertexBuffer) != VK_SUCCESS)
-	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_VERTEX_BUFFER_FAILED]);
-	}
-
-	// manually allocate memory to buffer
-	VkMemoryRequirements memoryRequirements;
-	vkGetBufferMemoryRequirements(mDevice, mVertexBuffer, &memoryRequirements);
-
-	VkMemoryAllocateInfo memoryAllocateInfo = {};
-	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryAllocateInfo.allocationSize = memoryRequirements.size;
-	// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: write data from cpu
-	memoryAllocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-	if(vkAllocateMemory(mDevice, &memoryAllocateInfo, nullptr, &mVertexBufferMemory) != VK_SUCCESS)
-	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED]);
-	}
-
-	// need to free memory manually (vkFreeMemory)
-	vkBindBufferMemory(mDevice, mVertexBuffer, mVertexBufferMemory, 0);
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
+	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
+	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; 
+	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
 	
 	void* dst;
-	vkMapMemory(mDevice, mVertexBufferMemory, 0, bufferCreateInfo.size, 0, &dst);
+	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
 	// but may not immediately copied to the memory
 	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
 	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
-	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferCreateInfo.size);
-	vkUnmapMemory(mDevice, mVertexBufferMemory);
+	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
+	// VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for pass as an element of the pBuffers array to vkCmdBindVertexBuffers
+	VkBufferUsageFlags usageVertex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	CreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+
+	CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
+	
+	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 }
 
 // memory type and properties
@@ -1033,6 +1024,79 @@ uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPrope
 		}
 	}
 	throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED]);
+}
+
+void TrVulkanRendererBase::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+	VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+	VkBufferCreateInfo bufferCreateInfo = {};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = size;
+	bufferCreateInfo.usage = usage;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // because only use one queue, do not need to share between queue families
+
+	if(vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_BUFFER_FAILED]);
+	}
+	
+	VkMemoryRequirements memoryRequirements;
+	vkGetBufferMemoryRequirements(mDevice, buffer, &memoryRequirements);
+
+	VkMemoryAllocateInfo memoryAllocateInfo = {}; // do not forget {} initialize
+	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memoryAllocateInfo.allocationSize = memoryRequirements.size;
+	// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: write data from cpu
+	memoryAllocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
+
+	// manually allocate memory to buffer
+	if(vkAllocateMemory(mDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_BUFFER_MEMORY_FAILED]);
+	}
+
+	// need to free memory manually (vkFreeMemory)
+	vkBindBufferMemory(mDevice, buffer, bufferMemory, 0);
+}
+
+void TrVulkanRendererBase::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+	// command buffer needs allocate, not create
+	VkCommandBufferAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocateInfo.commandPool = mCommandPool;
+	allocateInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	// allocate do not need run time error check
+	vkAllocateCommandBuffers(mDevice, &allocateInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
+	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+	{
+		VkBufferCopy bufferCopyRegion = {};
+		bufferCopyRegion.size = size;
+		// all copy commands are treated as "transfer" operations
+		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &bufferCopyRegion);
+	}
+
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(mGraphicsQueue);
+
+	// allocate -> free
+	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 }
 
 // TODO: parallel rendering in multiple frames
