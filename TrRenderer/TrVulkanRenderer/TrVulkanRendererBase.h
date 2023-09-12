@@ -2,6 +2,7 @@
 #include "TrVulkanUtil.h"
 #include "TrVulkanQueueFamily.h"
 #include "TrVulkanSwapChain.h"
+#include "TrVulkanVertex.h"
 
 class TrVulkanRendererBase
 {
@@ -133,6 +134,11 @@ private:
 
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
+    // Buffers in Vulkan can save arbitrary data that can be read by graphics memory
+    void CreateVertexBuffer();
+
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags);
+
 #pragma endregion
 
 #pragma region Tick
@@ -219,4 +225,8 @@ private:
     std::vector<VkFence> mInFlightFences;
 
     uint32_t mCurrentFrame = 0;
+
+    VkBuffer mVertexBuffer;
+
+    VkDeviceMemory mVertexBufferMemory;
 };

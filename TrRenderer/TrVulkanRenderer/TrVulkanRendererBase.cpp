@@ -48,6 +48,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
 	CreateCommandPool();
+	// before create command buffers
+	CreateVertexBuffer();
 	CreateCommandBuffers();
 	CreateSyncObjects();
 }
@@ -96,6 +98,9 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		vkDestroyImageView(mDevice, imageView, nullptr);
 	}
+
+	vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
+	vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
 
 	// manually destroy swap chain, earlier than logical device
 	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
@@ -692,12 +697,15 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// vertex input (to vertex shader)
 	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {};
 	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+	auto bindingDescription = TrVulkanVertex2DBase::GetBindingDescription();
+	auto attributeDescriptions = TrVulkanVertex2DBase::GetAttributeDescriptions();
 	// binding: offset between vertices, per-vertex or per-instance
-	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
-	vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr;
+	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+	vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
 	// attribute: attribute for shader variable
-	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
+	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+	vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	// input assembly: what kind of primitive topology does vertex data define, whether to use primitive restart
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
@@ -935,30 +943,96 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	// VK_SUBPASS_CONTENTS_INLINE: all commands are in main command buffer
 	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	// bind graphics pipeline
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+	{
+		// bind graphics pipeline
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 
-	// Cmds
-	VkViewport viewport = {};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float) mSwapChainExtent.width;
-	viewport.height = (float) mSwapChainExtent.height;
-	viewport.minDepth = 0;
-	viewport.maxDepth = 1;
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		// Cmds
+		VkViewport viewport = {};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float) mSwapChainExtent.width;
+		viewport.height = (float) mSwapChainExtent.height;
+		viewport.minDepth = 0;
+		viewport.maxDepth = 1;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-	VkRect2D scissor = {};
-	scissor.offset = {0, 0};
-	scissor.extent = mSwapChainExtent;
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		VkRect2D scissor = {};
+		scissor.offset = {0, 0};
+		scissor.extent = mSwapChainExtent;
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		// bind vertex buffers
+		VkBuffer vertexBuffers[] = {mVertexBuffer};
+		VkDeviceSize offsets[] = {0};
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
+	}
+	
 	vkCmdEndRenderPass(commandBuffer);
+	
 	if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED]);
 	}
+}
+
+void TrVulkanRendererBase::CreateVertexBuffer()
+{
+	VkBufferCreateInfo bufferCreateInfo = {};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
+	bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // because only use one queue, do not need to share between queue families
+
+	if(vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &mVertexBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_VERTEX_BUFFER_FAILED]);
+	}
+
+	// manually allocate memory to buffer
+	VkMemoryRequirements memoryRequirements;
+	vkGetBufferMemoryRequirements(mDevice, mVertexBuffer, &memoryRequirements);
+
+	VkMemoryAllocateInfo memoryAllocateInfo = {};
+	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memoryAllocateInfo.allocationSize = memoryRequirements.size;
+	// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: write data from cpu
+	memoryAllocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	if(vkAllocateMemory(mDevice, &memoryAllocateInfo, nullptr, &mVertexBufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED]);
+	}
+
+	// need to free memory manually (vkFreeMemory)
+	vkBindBufferMemory(mDevice, mVertexBuffer, mVertexBufferMemory, 0);
+	
+	void* dst;
+	vkMapMemory(mDevice, mVertexBufferMemory, 0, bufferCreateInfo.size, 0, &dst);
+	// but may not immediately copied to the memory
+	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
+	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
+	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferCreateInfo.size);
+	vkUnmapMemory(mDevice, mVertexBufferMemory);
+}
+
+// memory type and properties
+uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
+{
+	VkPhysicalDeviceMemoryProperties memoryProperties;
+	vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memoryProperties);
+
+	for(uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+	{
+		// correspond bit field equals 1
+		if((typeFilter & (1 << i)) && memoryProperties.memoryTypes[i].propertyFlags & propertyFlags)
+		{
+			return i;
+		}
+	}
+	throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED]);
 }
 
 // TODO: parallel rendering in multiple frames

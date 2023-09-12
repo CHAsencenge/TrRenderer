@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
+#include "TrVulkanVertex.h"
 
 // make variables static, prevent from defining multiple times in each cpp including this header
 namespace TrVulkanGlobal
@@ -38,7 +39,9 @@ namespace TrVulkanGlobal
         CREATE_SEMAPHORE_FAILED,
         SUBMIT_DRAW_COMMAND_BUFFER_FAILED,
         CREATE_FENCE_FAILED,
-        
+        CREATE_VERTEX_BUFFER_FAILED,
+        FIND_MEMORY_TYPE_FAILED,
+        ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -65,9 +68,20 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_SEMAPHORE_FAILED, "failed to create semaphore!"},
         {RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED, "failed to submit draw command buffer!"},
         {RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED, "failed to create fence!"},
+        {RUNTIME_ERROR_ENUM::CREATE_VERTEX_BUFFER_FAILED, "failed to create vertex buffer!"},
+        {RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED, "failed to find suitable memory type!"},
+        {RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED, "failed to allocate vertex buffer memory!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
 
     static int MAX_FRAMES_IN_FLIGHT = 2;
+
+    // interleaving vertex attributes
+    static std::vector<TrVulkanVertex2DBase> Vertices =
+    {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
 }
