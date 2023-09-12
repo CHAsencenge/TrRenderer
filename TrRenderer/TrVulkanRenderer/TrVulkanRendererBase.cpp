@@ -1050,6 +1050,8 @@ void TrVulkanRendererBase::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags us
 	memoryAllocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
 
 	// manually allocate memory to buffer
+	// TODO: implement memory allocator, because physical device have memory allocation limit - maxMemoryAllocationCount
+	// TODO: so need to request a large memory once, and then use custom allocator to allocate by offset
 	if(vkAllocateMemory(mDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_BUFFER_MEMORY_FAILED]);
