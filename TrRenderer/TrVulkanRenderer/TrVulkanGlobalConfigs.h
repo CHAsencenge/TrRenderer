@@ -68,4 +68,6 @@ namespace TrVulkanGlobal
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
+
+    static int MAX_FRAMES_IN_FLIGHT = 2;
 }

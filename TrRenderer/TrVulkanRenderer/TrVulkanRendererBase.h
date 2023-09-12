@@ -129,7 +129,7 @@ private:
 
     void CreateCommandPool();
 
-    void CreateCommandBuffer();
+    void CreateCommandBuffers();
 
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
@@ -207,12 +207,16 @@ private:
     // draw command, memory transfer command...
     VkCommandPool mCommandPool;
 
-    VkCommandBuffer mCommandBuffer;
+    // vector for parallel rendering frame
+    std::vector<VkCommandBuffer> mCommandBuffers;
 
     // sync
-    VkSemaphore mImageAvailableSemaphore; // can render
+    // vector for parallel rendering frame
+    std::vector<VkSemaphore> mImageAvailableSemaphores; // can render
 
-    VkSemaphore mRenderFinishedSemaphore; // can present
+    std::vector<VkSemaphore> mRenderFinishedSemaphores; // can present
 
-    VkFence mInFlightFence;
+    std::vector<VkFence> mInFlightFences;
+
+    uint32_t mCurrentFrame = 0;
 };

@@ -48,7 +48,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
 	CreateCommandPool();
-	CreateCommandBuffer();
+	CreateCommandBuffers();
 	CreateSyncObjects();
 }
 
@@ -72,12 +72,13 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
-
-	vkDestroySemaphore(mDevice, mImageAvailableSemaphore, nullptr);
-	vkDestroySemaphore(mDevice, mRenderFinishedSemaphore, nullptr);
-	vkDestroyFence(mDevice, mInFlightFence, nullptr);
-
 	
+	for(int i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
+		vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
+		vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
+	}
 
 	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
@@ -889,16 +890,18 @@ void TrVulkanRendererBase::CreateCommandPool()
 	}
 }
 
-void TrVulkanRendererBase::CreateCommandBuffer()
+void TrVulkanRendererBase::CreateCommandBuffers()
 {
+	mCommandBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	commandBufferAllocateInfo.commandPool = mCommandPool;
 	// VK_COMMAND_BUFFER_LEVEL_PRIMARY: can be committed to queue and executed, can not be invoked by other command buffer objects
 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = 1;
+	commandBufferAllocateInfo.commandBufferCount = TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT;
 
-	if(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, &mCommandBuffer) != VK_SUCCESS)
+	if(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, mCommandBuffers.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_COMMAND_BUFFER_FAILED]);
 	}
@@ -958,41 +961,50 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	}
 }
 
+// TODO: parallel rendering in multiple frames
 void TrVulkanRendererBase::DrawFrame()
 {
 	// sync: fence vs semaphore
 	// semaphore between graphics queue and present queue
 	// can get fence state by vkWaitForFences, but can not get semaphore state
 
-	vkWaitForFences(mDevice, 1, &mInFlightFence, VK_TRUE, UINT64_MAX);
-	vkResetFences(mDevice, 1, &mInFlightFence);
+	// parallel, submit 0 then wait 1, submit 1 then wait 0
+	// std::cout << "TrVulkanRendererBase::DrawFrame 0   " << mCurrentFrame << std::endl;
+	vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+	vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
+
+	// not parallel, submit 0 then wait 0, submit 1 then wait 1
+	// vkWaitForFences(mDevice, 1, &mInFlightFences[(mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT], VK_TRUE, UINT64_MAX);
+	// vkResetFences(mDevice, 1, &mInFlightFences[(mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT]);
+	
 	
 	// get an image from the swap chain
 	uint32_t imageIndex; // use this index to commit the correspond command buffer
-	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphore ,VK_NULL_HANDLE, &imageIndex);
+	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame] ,VK_NULL_HANDLE, &imageIndex);
 
 	// execute commands in command buffer for frame buffer attachment
-	vkResetCommandBuffer(mCommandBuffer, 0);
-	RecordCommandBuffer(mCommandBuffer, imageIndex);
+	vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+	RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
 	// submit command buffers to command queue
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+	VkSemaphore waitSemaphores[] = {mImageAvailableSemaphores[mCurrentFrame]};
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; // we want to write color into image, so wait to the stage can write color attachment
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &mCommandBuffer; // command buffers submitted and executed
+	submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame]; // command buffers submitted and executed
 
-	VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore}; // wait & signal
+	VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphores[mCurrentFrame]}; // wait & signal
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
+	submitInfo.pSignalSemaphores = signalSemaphores; // sync
 
 	// fence: sync operation when command buffers has been executed
-	if(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFence) != VK_SUCCESS)
+	// std::cout << "TrVulkanRendererBase::DrawFrame 1   " << mCurrentFrame << std::endl;
+	if(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED]);
 	}
@@ -1001,7 +1013,7 @@ void TrVulkanRendererBase::DrawFrame()
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.pWaitSemaphores = signalSemaphores; // sync 
 
 	// specify swap chain for presenting
 	VkSwapchainKHR swapChains[] = {mSwapChain};
@@ -1011,29 +1023,41 @@ void TrVulkanRendererBase::DrawFrame()
 	vkQueuePresentKHR(mPresentQueue, &presentInfo);
 
 	// vkQueueWaitIdle(mPresentQueue);
+	mCurrentFrame = (mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT;
+	// std::cout << "TrVulkanRendererBase::DrawFrame 2   " << mCurrentFrame << std::endl;
 }
 
 // semaphore: syne between queues or between buffers in a queue
 // fence: sync between cpu and gpu
 void TrVulkanRendererBase::CreateSyncObjects()
 {
+	mImageAvailableSemaphores.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mRenderFinishedSemaphores.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mInFlightFences.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	// if use VK_FENCE_CREATE_SIGNALED_BIT to create, "signaled" state for initial state, so will not block while waiting for the semaphore
 	// when to use VK_FENCE_CREATE_SIGNALED_BIT: passes semaphore to the queue immediately
 	semaphoreCreateInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT: parameter pCreateInfo->flags must be 0
-	if(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphore) != VK_SUCCESS ||
-		vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphore) != VK_SUCCESS)
+	for(int i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SEMAPHORE_FAILED]);
+		if(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphores[i]) != VK_SUCCESS ||
+		vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphores[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SEMAPHORE_FAILED]);
+		}
 	}
 
 	VkFenceCreateInfo fenceInfo = {};
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // ?
-	if(vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFence) != VK_SUCCESS)
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // initial status is "signaled"
+	for(int i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED]);
+		if(vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFences[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_FENCE_FAILED]);
+		}
 	}
 	
 }
