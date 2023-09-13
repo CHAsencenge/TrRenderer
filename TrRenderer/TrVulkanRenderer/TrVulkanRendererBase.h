@@ -1,8 +1,13 @@
 #pragma once
+#define GLM_FORCE_RADIANS
 #include "TrVulkanUtil.h"
 #include "TrVulkanQueueFamily.h"
 #include "TrVulkanSwapChain.h"
 #include "TrVulkanVertex.h"
+#include "TrVulkanDescriptor.h"
+#include <glm/gtc/matrix_transform.hpp> // rotate etc
+#include <chrono> // time functions
+
 
 class TrVulkanRendererBase
 {
@@ -143,6 +148,8 @@ private:
 
     void CreateIndexBuffer();
 
+    void CreateUniformBuffers();
+
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags);
 
 #pragma endregion
@@ -151,6 +158,8 @@ private:
 
     void DrawFrame();
 
+    void UpdateUniformBuffer(uint32_t currentImage); 
+
 #pragma endregion
 
 #pragma region Sync
@@ -158,6 +167,13 @@ private:
     void CreateSyncObjects();
 
 #pragma endregion
+
+
+#pragma region
+
+    void CreateDescriptorSetLayout();
+
+#pragma endregion 
 
 
 private:
@@ -209,6 +225,8 @@ private:
     std::vector<VkImageView> mSwapChainImageViews;
 
     VkRenderPass mRenderPass;
+
+    VkDescriptorSetLayout mDescriptorSetLayout;
     
     VkPipelineLayout mPipelineLayout;
 
@@ -239,4 +257,9 @@ private:
     VkBuffer mIndexBuffer;
 
     VkDeviceMemory mIndexBufferMemory;
+
+    // for parallel render
+    std::vector<VkBuffer> mUniformBuffers;
+
+    std::vector<VkDeviceMemory> mUniformBuffersMemory;
 };

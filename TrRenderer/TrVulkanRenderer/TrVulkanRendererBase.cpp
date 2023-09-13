@@ -45,12 +45,15 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateSwapChain();
 	CreateImageViews();
 	CreateRenderPass();
+	// before pipeline
+	CreateDescriptorSetLayout();
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
 	CreateCommandPool();
 	// before create command buffers
 	CreateVertexBuffer();
 	CreateIndexBuffer();
+	CreateUniformBuffers();
 	CreateCommandBuffers();
 	CreateSyncObjects();
 }
@@ -83,6 +86,8 @@ void TrVulkanRendererBase::OnCleanup()
 		vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
 	}
 
+	vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
+	
 	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
@@ -105,6 +110,12 @@ void TrVulkanRendererBase::OnCleanup()
 
 	vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
 	vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
+
+	for(size_t i = 0; i < mUniformBuffers.size(); i++)
+	{
+		vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
+		vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
+	}
 
 	// manually destroy swap chain, earlier than logical device
 	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
@@ -669,8 +680,8 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 void TrVulkanRendererBase::CreateGraphicsPipeline()
 {
-	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert_shader_vertexbuffer.spv");
-	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag_shader_vertexbuffer.spv");
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert_shader_ubo.spv");
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag_shader_ubo.spv");
 
 	// is only a wrap of shader byte code
 	// only used in this field, so should destroy before leaving this field
@@ -1118,6 +1129,21 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 }
 
+void TrVulkanRendererBase::CreateUniformBuffers()
+{
+	VkDeviceSize bufferSize = sizeof(TrVulkanTransformUBO);
+
+	mUniformBuffers.resize(mSwapChainImages.size());
+	mUniformBuffersMemory.resize(mSwapChainImages.size());
+
+	for(size_t i = 0; i < mUniformBuffers.size(); i++)
+	{
+		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		CreateBuffer(bufferSize, usageFlags, propertyFlags, mUniformBuffers[i], mUniformBuffersMemory[i]);
+	}
+}
+
 // memory type and properties
 uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
 {
@@ -1160,6 +1186,9 @@ void TrVulkanRendererBase::DrawFrame()
 	vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
 	RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
+	// update transform per frame
+	UpdateUniformBuffer(imageIndex);
+	
 	// submit command buffers to command queue
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1201,6 +1230,27 @@ void TrVulkanRendererBase::DrawFrame()
 	// std::cout << "TrVulkanRendererBase::DrawFrame 2   " << mCurrentFrame << std::endl;
 }
 
+void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
+{
+	static std::chrono::time_point startTime = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point currentTime = std::chrono::high_resolution_clock::now();
+
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	TrVulkanTransformUBO ubo = {};
+	// mat, angle, axis
+	ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	// source, target, up 
+	ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	// fov vertical angle, aspect, near, far
+	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 10.0f);
+	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
+	ubo.mProj[1][1] *= -1;
+
+	void* dst;
+	vkMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, )
+}
+
 // semaphore: syne between queues or between buffers in a queue
 // fence: sync between cpu and gpu
 void TrVulkanRendererBase::CreateSyncObjects()
@@ -1234,6 +1284,30 @@ void TrVulkanRendererBase::CreateSyncObjects()
 		}
 	}
 	
+}
+
+// pipeline layout specifies the sequence of descriptor set layouts
+// a descriptor set layout determines the arrangement of content
+// descriptors are organized into descriptor sets
+// a descriptor representing a shader resource (buffer, buffer view, image view, sampler, combined image sampler)
+void TrVulkanRendererBase::CreateDescriptorSetLayout()
+{
+	// use VkDescriptorSetLayoutBinding to describe each binding
+	VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = {};
+	descriptorSetLayoutBinding.binding = 0;
+	descriptorSetLayoutBinding.descriptorCount = 1;
+	descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+	descriptorSetLayoutCreateInfo.bindingCount = 1;
+	descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+
+	if(vkCreateDescriptorSetLayout(mDevice, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED]);
+	}
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

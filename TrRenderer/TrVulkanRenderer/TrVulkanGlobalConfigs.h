@@ -44,6 +44,7 @@ namespace TrVulkanGlobal
         FIND_MEMORY_TYPE_FAILED,
         ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED,
         ALLOCATE_BUFFER_MEMORY_FAILED,
+        CREATE_DESCRIPTOR_SET_LAYOUT_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -75,6 +76,7 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED, "failed to find suitable memory type!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED, "failed to allocate vertex buffer memory!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_BUFFER_MEMORY_FAILED, "failed to allocate buffer memory!"},
+        {RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED, "failed to create descriptor set layout!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };
