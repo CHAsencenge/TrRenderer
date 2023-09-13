@@ -135,13 +135,15 @@ private:
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     // Buffers in Vulkan can save arbitrary data that can be read by graphics memory
-    void CreateVertexBuffer();
-
-    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags);
-
     void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    
+    void CreateVertexBuffer();
+
+    void CreateIndexBuffer();
+
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags);
 
 #pragma endregion
 
@@ -233,4 +235,8 @@ private:
     VkBuffer mVertexBuffer;
 
     VkDeviceMemory mVertexBufferMemory;
+
+    VkBuffer mIndexBuffer;
+
+    VkDeviceMemory mIndexBufferMemory;
 };

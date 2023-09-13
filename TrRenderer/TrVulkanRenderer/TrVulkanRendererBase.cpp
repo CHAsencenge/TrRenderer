@@ -50,6 +50,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateCommandPool();
 	// before create command buffers
 	CreateVertexBuffer();
+	CreateIndexBuffer();
 	CreateCommandBuffers();
 	CreateSyncObjects();
 }
@@ -101,6 +102,9 @@ void TrVulkanRendererBase::OnCleanup()
 
 	vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
 	vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
+
+	vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
+	vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
 
 	// manually destroy swap chain, earlier than logical device
 	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
@@ -665,8 +669,8 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 void TrVulkanRendererBase::CreateGraphicsPipeline()
 {
-	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert.spv");
-	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag.spv");
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert_shader_vertexbuffer.spv");
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag_shader_vertexbuffer.spv");
 
 	// is only a wrap of shader byte code
 	// only used in this field, so should destroy before leaving this field
@@ -954,8 +958,8 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		viewport.y = 0.0f;
 		viewport.width = (float) mSwapChainExtent.width;
 		viewport.height = (float) mSwapChainExtent.height;
-		viewport.minDepth = 0;
-		viewport.maxDepth = 1;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor = {};
@@ -967,8 +971,10 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		VkBuffer vertexBuffers[] = {mVertexBuffer};
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-		vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
+		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
 	}
 	
 	vkCmdEndRenderPass(commandBuffer);
@@ -977,53 +983,6 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::RECORD_COMMAND_BUFFER_END_FAILED]);
 	}
-}
-// use cpu visible buffer as staging buffer
-// use buffer that read by graphics card faster as vertex buffer
-void TrVulkanRendererBase::CreateVertexBuffer()
-{
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
-	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
-	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; 
-	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
-	
-	void* dst;
-	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
-	// but may not immediately copied to the memory
-	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
-	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
-	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
-	vkUnmapMemory(mDevice, stagingBufferMemory);
-
-	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
-	// VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for pass as an element of the pBuffers array to vkCmdBindVertexBuffers
-	VkBufferUsageFlags usageVertex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	CreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
-
-	CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
-	
-	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
-	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
-}
-
-// memory type and properties
-uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
-{
-	VkPhysicalDeviceMemoryProperties memoryProperties;
-	vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memoryProperties);
-
-	for(uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
-	{
-		// correspond bit field equals 1
-		if((typeFilter & (1 << i)) && memoryProperties.memoryTypes[i].propertyFlags & propertyFlags)
-		{
-			return i;
-		}
-	}
-	throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED]);
 }
 
 void TrVulkanRendererBase::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
@@ -1099,6 +1058,81 @@ void TrVulkanRendererBase::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, Vk
 
 	// allocate -> free
 	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+}
+
+// use cpu visible buffer as staging buffer
+// use buffer that read by graphics card faster as vertex buffer
+void TrVulkanRendererBase::CreateVertexBuffer()
+{
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
+	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
+	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
+	// host writes are visible to the device, device writes are also visible to the host 
+	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+	
+	void* dst;
+	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
+	// but may not immediately copied to the memory
+	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
+	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
+	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
+	// VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for pass as an element of the pBuffers array to vkCmdBindVertexBuffers
+	VkBufferUsageFlags usageVertex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	CreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+
+	CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
+	
+	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+}
+
+void TrVulkanRendererBase::CreateIndexBuffer()
+{
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Indices[0]) * TrVulkanGlobal::Indices.size();
+	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+
+	// data from memory to device memory
+	void* dst;
+	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
+	memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize); // use TrVulkanGlobal::Indices.data() rather than &TrVulkanGlobal::Indices to get vector data location
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	VkBufferUsageFlags usageIndex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	CreateBuffer(bufferSize, usageIndex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+
+	// data from host-visible device memory to fast-read-write-access device memory
+	CopyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
+
+	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+}
+
+// memory type and properties
+uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
+{
+	VkPhysicalDeviceMemoryProperties memoryProperties;
+	vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memoryProperties);
+
+	for(uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+	{
+		// correspond bit field equals 1
+		if((typeFilter & (1 << i)) && memoryProperties.memoryTypes[i].propertyFlags & propertyFlags)
+		{
+			return i;
+		}
+	}
+	throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED]);
 }
 
 // TODO: parallel rendering in multiple frames

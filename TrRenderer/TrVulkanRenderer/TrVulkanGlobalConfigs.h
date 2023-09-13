@@ -84,8 +84,15 @@ namespace TrVulkanGlobal
     // interleaving vertex attributes
     static std::vector<TrVulkanVertex2DBase> Vertices =
     {
-        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
+
+    static std::vector<uint16_t> Indices =
+    {
+        0, 1, 2,
+        2, 3, 0
     };
 }
