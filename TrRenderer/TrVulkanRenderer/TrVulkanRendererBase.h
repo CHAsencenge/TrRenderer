@@ -169,9 +169,13 @@ private:
 #pragma endregion
 
 
-#pragma region
+#pragma region Descriptor
 
     void CreateDescriptorSetLayout();
+
+    void CreateDescriptorPool();
+
+    void CreateDescriptorSets();
 
 #pragma endregion 
 
@@ -225,8 +229,6 @@ private:
     std::vector<VkImageView> mSwapChainImageViews;
 
     VkRenderPass mRenderPass;
-
-    VkDescriptorSetLayout mDescriptorSetLayout;
     
     VkPipelineLayout mPipelineLayout;
 
@@ -262,4 +264,12 @@ private:
     std::vector<VkBuffer> mUniformBuffers;
 
     std::vector<VkDeviceMemory> mUniformBuffersMemory;
+
+    std::vector<void*> mUniformBuffersMapped;
+
+    VkDescriptorSetLayout mDescriptorSetLayout;
+
+    VkDescriptorPool mDescriptorPool;
+
+    std::vector<VkDescriptorSet> mDescriptorSets;
 };

@@ -45,6 +45,8 @@ namespace TrVulkanGlobal
         ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED,
         ALLOCATE_BUFFER_MEMORY_FAILED,
         CREATE_DESCRIPTOR_SET_LAYOUT_FAILED,
+        CREATE_DESCRIPTOR_POOL_FAILED,
+        ALLOCATE_DESCRIPTOR_SETS_FAILED,
 
         OPEN_FILE_FAILED,
     };
@@ -77,6 +79,8 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::ALLOCATE_VERTEX_BUFFER_MEMORY_FAILED, "failed to allocate vertex buffer memory!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_BUFFER_MEMORY_FAILED, "failed to allocate buffer memory!"},
         {RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED, "failed to create descriptor set layout!"},
+        {RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_POOL_FAILED, "failed to create descriptor pool!"},
+        {RUNTIME_ERROR_ENUM::ALLOCATE_DESCRIPTOR_SETS_FAILED, "failed to allocate descriptor sets!"},
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
     };

@@ -54,6 +54,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateVertexBuffer();
 	CreateIndexBuffer();
 	CreateUniformBuffers();
+	CreateDescriptorPool();
+	CreateDescriptorSets();
 	CreateCommandBuffers();
 	CreateSyncObjects();
 }
@@ -116,6 +118,8 @@ void TrVulkanRendererBase::OnCleanup()
 		vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
 		vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
 	}
+
+	vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
 
 	// manually destroy swap chain, earlier than logical device
 	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
@@ -763,7 +767,7 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// cull front, back, front and back
 	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	// front face condition: clockwise or counter clockwise
-	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	// use for shadow
 	rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 	/*rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -812,10 +816,10 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// can make dynamic config to shader (uniform variables can be modified dynamically after creating pipeline)
 	VkPipelineLayoutCreateInfo layoutCreateInfo = {};
 	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	layoutCreateInfo.setLayoutCount = 0;
-	layoutCreateInfo.pushConstantRangeCount = 0;
-	layoutCreateInfo.pSetLayouts = nullptr;
-	layoutCreateInfo.pPushConstantRanges = nullptr;
+	layoutCreateInfo.setLayoutCount = 1;
+	// layoutCreateInfo.pushConstantRangeCount = 0;
+	layoutCreateInfo.pSetLayouts = &mDescriptorSetLayout;
+	// layoutCreateInfo.pPushConstantRanges = nullptr;
 	if(vkCreatePipelineLayout(mDevice, &layoutCreateInfo, nullptr, &mPipelineLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED]);
@@ -982,7 +986,10 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		VkBuffer vertexBuffers[] = {mVertexBuffer};
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		
 		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
@@ -1133,10 +1140,10 @@ void TrVulkanRendererBase::CreateUniformBuffers()
 {
 	VkDeviceSize bufferSize = sizeof(TrVulkanTransformUBO);
 
-	mUniformBuffers.resize(mSwapChainImages.size());
-	mUniformBuffersMemory.resize(mSwapChainImages.size());
+	mUniformBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mUniformBuffersMemory.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 
-	for(size_t i = 0; i < mUniformBuffers.size(); i++)
+	for(size_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -1171,23 +1178,24 @@ void TrVulkanRendererBase::DrawFrame()
 	// parallel, submit 0 then wait 1, submit 1 then wait 0
 	// std::cout << "TrVulkanRendererBase::DrawFrame 0   " << mCurrentFrame << std::endl;
 	vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+
+	// get an image from the swap chain
+	uint32_t imageIndex; // use this index to commit the correspond command buffer
+	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame] ,VK_NULL_HANDLE, &imageIndex);
+	
+	// update transform per frame
+	UpdateUniformBuffer(mCurrentFrame);
+	
 	vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
 
 	// not parallel, submit 0 then wait 0, submit 1 then wait 1
 	// vkWaitForFences(mDevice, 1, &mInFlightFences[(mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT], VK_TRUE, UINT64_MAX);
 	// vkResetFences(mDevice, 1, &mInFlightFences[(mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT]);
 	
-	
-	// get an image from the swap chain
-	uint32_t imageIndex; // use this index to commit the correspond command buffer
-	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame] ,VK_NULL_HANDLE, &imageIndex);
-
 	// execute commands in command buffer for frame buffer attachment
 	vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
 	RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
-
-	// update transform per frame
-	UpdateUniformBuffer(imageIndex);
+	
 	
 	// submit command buffers to command queue
 	VkSubmitInfo submitInfo = {};
@@ -1248,7 +1256,9 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 	ubo.mProj[1][1] *= -1;
 
 	void* dst;
-	vkMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, )
+	vkMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &dst);
+	memcpy(dst, &ubo, sizeof(ubo));
+	vkUnmapMemory(mDevice, mUniformBuffersMemory[currentImage]);
 }
 
 // semaphore: syne between queues or between buffers in a queue
@@ -1301,12 +1311,71 @@ void TrVulkanRendererBase::CreateDescriptorSetLayout()
 	descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
 
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+	descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptorSetLayoutCreateInfo.bindingCount = 1;
 	descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
 
 	if(vkCreateDescriptorSetLayout(mDevice, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED]);
+	}
+}
+
+// allocate descriptor set
+void TrVulkanRendererBase::CreateDescriptorPool()
+{
+	VkDescriptorPoolSize poolSize = {};
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	VkDescriptorPoolCreateInfo poolCreateInfo = {};
+	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolCreateInfo.poolSizeCount = 1;
+	poolCreateInfo.pPoolSizes = &poolSize;
+	poolCreateInfo.maxSets = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	if(vkCreateDescriptorPool(mDevice, &poolCreateInfo, nullptr, &mDescriptorPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_POOL_FAILED]);
+	}
+}
+
+void TrVulkanRendererBase::CreateDescriptorSets()
+{
+	// layout object number should match set object number
+	std::vector<VkDescriptorSetLayout> setLayouts(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT, mDescriptorSetLayout);
+	
+	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+	descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptorSetAllocateInfo.descriptorPool = mDescriptorPool;
+	descriptorSetAllocateInfo.descriptorSetCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	descriptorSetAllocateInfo.pSetLayouts = setLayouts.data();
+
+	mDescriptorSets.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	if(vkAllocateDescriptorSets(mDevice, &descriptorSetAllocateInfo, mDescriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_DESCRIPTOR_SETS_FAILED]);
+	}
+
+	// config buffers referenced by descriptor
+	for(size_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+		bufferInfo.buffer = mUniformBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(TrVulkanTransformUBO);
+
+		// update config need VkWriteDescriptorSet
+		VkWriteDescriptorSet descriptorWrite = {};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstSet = mDescriptorSets[i];
+		descriptorWrite.dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
+		descriptorWrite.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 	}
 }
 
