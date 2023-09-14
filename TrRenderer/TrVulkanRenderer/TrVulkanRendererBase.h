@@ -168,7 +168,6 @@ private:
 
 #pragma endregion
 
-
 #pragma region Descriptor
 
     void CreateDescriptorSetLayout();
@@ -176,6 +175,18 @@ private:
     void CreateDescriptorPool();
 
     void CreateDescriptorSets();
+
+#pragma endregion
+
+#pragma region Texture
+
+    void CreateTextureImage();
+
+    void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+
+    void CreateTextureImageView();
+
+    void CreateTextureSampler();
 
 #pragma endregion 
 
@@ -272,4 +283,9 @@ private:
     VkDescriptorPool mDescriptorPool;
 
     std::vector<VkDescriptorSet> mDescriptorSets;
+
+    VkImage mTextureImage;
+
+    VkDeviceMemory mTextureImageMemory;
 };
+

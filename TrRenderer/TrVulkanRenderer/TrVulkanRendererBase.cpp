@@ -50,6 +50,10 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateGraphicsPipeline();
 	CreateFrameBuffers();
 	CreateCommandPool();
+	// after create command pool
+	CreateTextureImage();
+	CreateTextureImageView();
+	CreateTextureSampler();
 	// before create command buffers
 	CreateVertexBuffer();
 	CreateIndexBuffer();
@@ -684,8 +688,8 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 void TrVulkanRendererBase::CreateGraphicsPipeline()
 {
-	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/vert_shader_ubo.spv");
-	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/frag_shader_ubo.spv");
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/shader_textures_vert.spv");
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/shader_textures_frag.spv");
 
 	// is only a wrap of shader byte code
 	// only used in this field, so should destroy before leaving this field
@@ -1377,6 +1381,94 @@ void TrVulkanRendererBase::CreateDescriptorSets()
 
 		vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 	}
+}
+
+void TrVulkanRendererBase::CreateTextureImage()
+{
+	// load texture file
+	int texWidth, texHeight, texChannels;
+	stbi_uc* pixels = stbi_load("Textures/head.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	if(!pixels)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::LOAD_TEXTURE_IMAGE_FAILED]);
+	}
+	
+	// map pixel data to staging buffer
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	
+	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* dst;
+	vkMapMemory(mDevice, stagingBufferMemory, 0, imageSize, 0, &dst);
+	memcpy(dst, pixels, (size_t)imageSize);
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	// free pixel data
+	stbi_image_free(pixels);
+
+	// though shaders can access pixel data in buffer
+	// VkImage allows getting color data by coord, pixel data in VkImage is "texel"
+
+	// allocate memory to Image, similar with allocating memory to buffer
+	// CreateImage();
+
+	// record transfer commands to command buffer
+
+	// change image layout by image memory barrier
+	
+}
+
+void TrVulkanRendererBase::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+	VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+{
+	// populate create info
+	VkImageCreateInfo imageCreateInfo = {};
+	imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageCreateInfo.format = format;
+	imageCreateInfo.tiling = tiling;
+	imageCreateInfo.usage = usage;
+	imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageCreateInfo.extent.width = width;
+	imageCreateInfo.extent.height = height;
+	imageCreateInfo.extent.depth = 1;
+	imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageCreateInfo.arrayLayers = 1;
+	imageCreateInfo.mipLevels = 1;
+	imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	// create image
+	if(vkCreateImage(mDevice, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_FAILED]);
+	}
+
+	// memory requirement
+	VkMemoryRequirements memoryRequirements;
+	vkGetImageMemoryRequirements(mDevice, image, &memoryRequirements);
+
+	// allocate memory
+	VkMemoryAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memoryRequirements.size;
+	allocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, properties);
+	if(vkAllocateMemory(mDevice, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_IMAGE_MEMORY_FAILED]);
+	}
+
+	// bind
+	vkBindImageMemory(mDevice, image, imageMemory, 0);
+}
+
+void TrVulkanRendererBase::CreateTextureImageView()
+{
+}
+
+void TrVulkanRendererBase::CreateTextureSampler()
+{
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

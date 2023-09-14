@@ -47,8 +47,11 @@ namespace TrVulkanGlobal
         CREATE_DESCRIPTOR_SET_LAYOUT_FAILED,
         CREATE_DESCRIPTOR_POOL_FAILED,
         ALLOCATE_DESCRIPTOR_SETS_FAILED,
+        CREATE_IMAGE_FAILED,
+        ALLOCATE_IMAGE_MEMORY_FAILED,
 
         OPEN_FILE_FAILED,
+        LOAD_TEXTURE_IMAGE_FAILED,
     };
     
     static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
@@ -81,8 +84,12 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED, "failed to create descriptor set layout!"},
         {RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_POOL_FAILED, "failed to create descriptor pool!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_DESCRIPTOR_SETS_FAILED, "failed to allocate descriptor sets!"},
+        {RUNTIME_ERROR_ENUM::CREATE_IMAGE_FAILED, "failed to create image!"},
+        {RUNTIME_ERROR_ENUM::ALLOCATE_IMAGE_MEMORY_FAILED, "failed to allocate image memory!"},
+        
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
+        {RUNTIME_ERROR_ENUM::LOAD_TEXTURE_IMAGE_FAILED, "failed to load texture image!"},
     };
 
     static int MAX_FRAMES_IN_FLIGHT = 2;
