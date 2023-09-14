@@ -49,6 +49,7 @@ namespace TrVulkanGlobal
         ALLOCATE_DESCRIPTOR_SETS_FAILED,
         CREATE_IMAGE_FAILED,
         ALLOCATE_IMAGE_MEMORY_FAILED,
+        CREATE_SAMPLER_FAILED,
 
         OPEN_FILE_FAILED,
         LOAD_TEXTURE_IMAGE_FAILED,
@@ -86,10 +87,21 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::ALLOCATE_DESCRIPTOR_SETS_FAILED, "failed to allocate descriptor sets!"},
         {RUNTIME_ERROR_ENUM::CREATE_IMAGE_FAILED, "failed to create image!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_IMAGE_MEMORY_FAILED, "failed to allocate image memory!"},
+        {RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED, "failed to create sampler!"},
         
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
         {RUNTIME_ERROR_ENUM::LOAD_TEXTURE_IMAGE_FAILED, "failed to load texture image!"},
+    };
+
+    enum class INVALID_ARGUMENT_ENUM
+    {
+        UNSUPPORTED_LAYOUT_TRANSITION,
+    };
+
+    static std::unordered_map<INVALID_ARGUMENT_ENUM, const char*> INVALID_ARGUMENT_STRING =
+    {
+        {INVALID_ARGUMENT_ENUM::UNSUPPORTED_LAYOUT_TRANSITION, "unsupported layout transition!"},
     };
 
     static int MAX_FRAMES_IN_FLIGHT = 2;

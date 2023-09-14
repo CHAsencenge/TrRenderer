@@ -3,6 +3,8 @@
 #include <csignal>
 #include <map>
 #include <set>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 TrVulkanRendererBase::TrVulkanRendererBase()
 {
@@ -110,6 +112,12 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		vkDestroyImageView(mDevice, imageView, nullptr);
 	}
+
+	vkDestroySampler(mDevice, mTextureSampler, nullptr);
+
+	vkDestroyImageView(mDevice, mTextureImageView, nullptr);
+	vkDestroyImage(mDevice, mTextureImage, nullptr);
+	vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
 
 	vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
 	vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
@@ -321,7 +329,7 @@ bool TrVulkanRendererBase::IsDeviceSuitable(VkPhysicalDevice device, VkQueueFlag
 		bSwapChainAdequate = !swapChainSupport.mFormats.empty() && !swapChainSupport.mPresentModes.empty();
 	}
 	
-	return deviceFeatures.geometryShader && indices.IsComplete() && bDeviceExtensionSupported && bSwapChainAdequate;
+	return deviceFeatures.geometryShader && indices.IsComplete() && bDeviceExtensionSupported && bSwapChainAdequate && deviceFeatures.samplerAnisotropy;
 }
 
 uint32_t TrVulkanRendererBase::CalcDeviceSuitabilityScore(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
@@ -376,10 +384,11 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 		queueCreateInfo.pQueuePriorities = &queuePriority;
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
-
+	
 	// specify features to use
 	VkPhysicalDeviceFeatures deviceFeatures = {};
-
+	deviceFeatures.samplerAnisotropy = VK_TRUE; // anisotropy feature
+	
 	// create logical device, like create instance
 	// device level create info, compared to instance level create info
 	VkDeviceCreateInfo logicalDeviceCreateInfo = {};
@@ -603,35 +612,42 @@ void TrVulkanRendererBase::CreateSwapChain()
 	mSwapChainExtent = extent2D;
 }
 
+VkImageView TrVulkanRendererBase::CreateImageView(VkImage image, VkFormat format)
+{
+	VkImageViewCreateInfo imageViewCreateInfo = {};
+	imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imageViewCreateInfo.image = image;
+	imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageViewCreateInfo.format = format;
+	// VkComponentSwizzle: remapping image's component
+	// color channel mapping, for example, single color textures, mapping all channels to red
+	imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; // use component's origin component value, do not remapping
+	imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	// image usage
+	imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // used as RT
+	imageViewCreateInfo.subresourceRange.layerCount = 1; // if VR, multiple layers (left eye layer, right eye layer), multiple views for one image
+	imageViewCreateInfo.subresourceRange.levelCount = 1; // no LOD
+	imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+
+	VkImageView imageView;
+	
+	if(vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED]);
+	}
+	return imageView;
+}
+
 // used when creating frame buffer
 void TrVulkanRendererBase::CreateImageViews()
 {
 	mSwapChainImageViews.resize(mSwapChainImages.size());
 	for(size_t i = 0; i < mSwapChainImages.size(); i++)
 	{
-		VkImageViewCreateInfo imageViewCreateInfo = {};
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.image = mSwapChainImages[i];
-		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = mSwapChainImageFormat;
-		// VkComponentSwizzle: remapping image's component
-		// color channel mapping, for example, single color textures, mapping all channels to red
-		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; // use component's origin component value, do not remapping
-		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		// image usage
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // used as RT
-		imageViewCreateInfo.subresourceRange.layerCount = 1; // if VR, multiple layers (left eye layer, right eye layer), multiple views for one image
-		imageViewCreateInfo.subresourceRange.levelCount = 1; // no LOD
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-
-		if(vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &mSwapChainImageViews[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED]);
-		}
+		mSwapChainImageViews[i] = CreateImageView(mSwapChainImages[i], mSwapChainImageFormat);
 	}
-	
 }
 
 // a framework, no detail data
@@ -1045,21 +1061,8 @@ void TrVulkanRendererBase::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags us
 void TrVulkanRendererBase::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
 	// command buffer needs allocate, not create
-	VkCommandBufferAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocateInfo.commandPool = mCommandPool;
-	allocateInfo.commandBufferCount = 1;
-
-	VkCommandBuffer commandBuffer;
 	// allocate do not need run time error check
-	vkAllocateCommandBuffers(mDevice, &allocateInfo, &commandBuffer);
-
-	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
-	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 	{
 		VkBufferCopy bufferCopyRegion = {};
@@ -1068,18 +1071,7 @@ void TrVulkanRendererBase::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, Vk
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &bufferCopyRegion);
 	}
 
-	vkEndCommandBuffer(commandBuffer);
-
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
-
-	vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(mGraphicsQueue);
-
-	// allocate -> free
-	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+	EndSingleTimeCommands(commandBuffer);
 }
 
 // use cpu visible buffer as staging buffer
@@ -1170,6 +1162,121 @@ uint32_t TrVulkanRendererBase::FindMemoryType(uint32_t typeFilter, VkMemoryPrope
 		}
 	}
 	throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_MEMORY_TYPE_FAILED]);
+}
+
+// helper allocate and begin command buffer
+VkCommandBuffer TrVulkanRendererBase::BeginSingleTimeCommands()
+{
+	// allocate command buffer
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandPool = mCommandPool;
+	commandBufferAllocateInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, &commandBuffer);
+
+	// begin command buffer
+	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
+	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+	return commandBuffer;
+}
+
+// helper end command buffer and submit to queue and wait queue and free command buffer
+void TrVulkanRendererBase::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
+	// end command buffer
+	vkEndCommandBuffer(commandBuffer);
+
+	// submit to queue
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+
+	// wait queue
+	vkQueueWaitIdle(mGraphicsQueue);
+
+	// free command buffer
+	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+}
+
+// before vkCmdCopyBufferToImage, need to change image layout
+void TrVulkanRendererBase::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+	// change image layout by image memory barrier
+	VkImageMemoryBarrier imageMemoryBarrier = {};
+	imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imageMemoryBarrier.oldLayout = oldLayout; // if do not need to access old image data, can set to undefined
+	imageMemoryBarrier.newLayout = newLayout;
+	imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // if do not transmit queue family ownership
+	imageMemoryBarrier.image = image;
+	imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageMemoryBarrier.subresourceRange.levelCount = 1;
+	imageMemoryBarrier.subresourceRange.layerCount = 1;
+	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+	
+	// pipeline barrier to sync resource access, also can change image layout
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+
+	if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = 0;
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+	{
+		throw std::invalid_argument(TrVulkanGlobal::INVALID_ARGUMENT_STRING[TrVulkanGlobal::INVALID_ARGUMENT_ENUM::UNSUPPORTED_LAYOUT_TRANSITION]);
+	}
+
+	vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+
+	EndSingleTimeCommands(commandBuffer);
+}
+
+void TrVulkanRendererBase::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+	VkBufferImageCopy bufferImageCopy = {};
+	bufferImageCopy.bufferOffset = 0;
+	bufferImageCopy.imageExtent.width = width;
+	bufferImageCopy.imageExtent.height = height;
+	bufferImageCopy.imageExtent.depth = 1;
+	bufferImageCopy.imageOffset.x = 0;
+	bufferImageCopy.imageOffset.y = 0;
+	bufferImageCopy.imageOffset.z = 0;
+	bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	bufferImageCopy.imageSubresource.layerCount = 1;
+	bufferImageCopy.imageSubresource.mipLevel = 0;
+	bufferImageCopy.imageSubresource.baseArrayLayer = 0;
+
+	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
+	
+	EndSingleTimeCommands(commandBuffer);
 }
 
 // TODO: parallel rendering in multiple frames
@@ -1412,12 +1519,15 @@ void TrVulkanRendererBase::CreateTextureImage()
 	// VkImage allows getting color data by coord, pixel data in VkImage is "texel"
 
 	// allocate memory to Image, similar with allocating memory to buffer
-	// CreateImage();
-
-	// record transfer commands to command buffer
-
-	// change image layout by image memory barrier
+	CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
 	
+	// change image layout by image memory barrier and then copy buffer data to image
+	TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	CopyBufferToImage(stagingBuffer, mTextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+	TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	
+	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 }
 
 void TrVulkanRendererBase::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
@@ -1463,12 +1573,38 @@ void TrVulkanRendererBase::CreateImage(uint32_t width, uint32_t height, VkFormat
 	vkBindImageMemory(mDevice, image, imageMemory, 0);
 }
 
+// access image should use image view
 void TrVulkanRendererBase::CreateTextureImageView()
 {
+	mTextureImageView = CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB);
 }
 
+// sampler can filter and transform (address rules) texture data automatically
+// oversampling: many fragments sample the same texel, to solve this using bilinear filtering
+// undersampling: many texels in one fragment, to solve this using anisotropic filtering
 void TrVulkanRendererBase::CreateTextureSampler()
 {
+	VkSamplerCreateInfo samplerCreateInfo = {};
+	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerCreateInfo.anisotropyEnable = true;
+	samplerCreateInfo.magFilter = VK_FILTER_LINEAR; // when magnify texture
+	samplerCreateInfo.minFilter = VK_FILTER_LINEAR; // when minify texture 
+	samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // address rules
+	samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerCreateInfo.maxAnisotropy = 16; // limit sample number used to compute final color
+	samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerCreateInfo.unnormalizedCoordinates = VK_FALSE; // use [0, 1] tex coord
+	samplerCreateInfo.compareEnable = VK_FALSE; // compare to a fixed value for filtering
+	samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerCreateInfo.minLod = 0.0f;
+	samplerCreateInfo.maxLod = 0.0f;
+
+	if(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mTextureSampler) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED]);
+	}
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

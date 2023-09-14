@@ -111,6 +111,8 @@ private:
 
     void CreateSwapChain();
 
+    VkImageView CreateImageView(VkImage image, VkFormat format);
+
     void CreateImageViews();
 
 #pragma endregion
@@ -151,6 +153,14 @@ private:
     void CreateUniformBuffers();
 
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags);
+
+    VkCommandBuffer BeginSingleTimeCommands();
+
+    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+    void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+    void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 #pragma endregion
 
@@ -287,5 +297,9 @@ private:
     VkImage mTextureImage;
 
     VkDeviceMemory mTextureImageMemory;
+
+    VkImageView mTextureImageView;
+
+    VkSampler mTextureSampler;
 };
 
