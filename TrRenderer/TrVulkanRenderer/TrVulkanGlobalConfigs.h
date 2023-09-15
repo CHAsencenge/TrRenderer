@@ -104,7 +104,7 @@ namespace TrVulkanGlobal
         {INVALID_ARGUMENT_ENUM::UNSUPPORTED_LAYOUT_TRANSITION, "unsupported layout transition!"},
     };
 
-    static int MAX_FRAMES_IN_FLIGHT = 2;
+    static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
     // interleaving vertex attributes
     static std::vector<TrVulkanVertex2DBase> Vertices =
@@ -113,6 +113,15 @@ namespace TrVulkanGlobal
         {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
         {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
+
+    
+    static std::vector<TrVulkanVertex2DTex> TexVertices =
+    {
+        {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
+        {{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
+        {{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
+        {{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
     };
 
     static std::vector<uint16_t> Indices =

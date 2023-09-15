@@ -737,8 +737,11 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {};
 	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-	auto bindingDescription = TrVulkanVertex2DBase::GetBindingDescription();
-	auto attributeDescriptions = TrVulkanVertex2DBase::GetAttributeDescriptions();
+	// auto bindingDescription = TrVulkanVertex2DBase::GetBindingDescription();
+	// auto attributeDescriptions = TrVulkanVertex2DBase::GetAttributeDescriptions();
+
+	auto bindingDescription = TrVulkanVertex2DTex::GetBindingDescription();
+	auto attributeDescriptions = TrVulkanVertex2DTex::GetAttributeDescriptions();
 	// binding: offset between vertices, per-vertex or per-instance
 	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
 	vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
@@ -1080,7 +1083,8 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 {
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
+	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices[0]) * TrVulkanGlobal::TexVertices.size();
 	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
@@ -1093,7 +1097,8 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// but may not immediately copied to the memory
 	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
 	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
-	memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
+	// memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
+	memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
@@ -1414,17 +1419,26 @@ void TrVulkanRendererBase::CreateSyncObjects()
 void TrVulkanRendererBase::CreateDescriptorSetLayout()
 {
 	// use VkDescriptorSetLayoutBinding to describe each binding
-	VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = {};
-	descriptorSetLayoutBinding.binding = 0;
-	descriptorSetLayoutBinding.descriptorCount = 1;
-	descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+	VkDescriptorSetLayoutBinding uboDescriptorSetLayoutBinding = {};
+	uboDescriptorSetLayoutBinding.binding = 0;
+	uboDescriptorSetLayoutBinding.descriptorCount = 1;
+	uboDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
+	samplerDescriptorSetLayoutBinding.binding = 1;
+	samplerDescriptorSetLayoutBinding.descriptorCount = 1;
+	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = {uboDescriptorSetLayoutBinding, samplerDescriptorSetLayoutBinding};
 
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
 	descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	descriptorSetLayoutCreateInfo.bindingCount = 1;
-	descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+	descriptorSetLayoutCreateInfo.bindingCount = 2;
+	descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings.data();
 
 	if(vkCreateDescriptorSetLayout(mDevice, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout) != VK_SUCCESS)
 	{
@@ -1435,14 +1449,20 @@ void TrVulkanRendererBase::CreateDescriptorSetLayout()
 // allocate descriptor set
 void TrVulkanRendererBase::CreateDescriptorPool()
 {
-	VkDescriptorPoolSize poolSize = {};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	VkDescriptorPoolSize uboPoolSize = {};
+	uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboPoolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	VkDescriptorPoolSize samplerPoolSize = {};
+	samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerPoolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	std::vector<VkDescriptorPoolSize> poolSizes = {uboPoolSize, samplerPoolSize};
 
 	VkDescriptorPoolCreateInfo poolCreateInfo = {};
 	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolCreateInfo.poolSizeCount = 1;
-	poolCreateInfo.pPoolSizes = &poolSize;
+	poolCreateInfo.pPoolSizes = poolSizes.data();
 	poolCreateInfo.maxSets = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 
 	if(vkCreateDescriptorPool(mDevice, &poolCreateInfo, nullptr, &mDescriptorPool) != VK_SUCCESS)
@@ -1453,7 +1473,7 @@ void TrVulkanRendererBase::CreateDescriptorPool()
 
 void TrVulkanRendererBase::CreateDescriptorSets()
 {
-	// layout object number should match set object number
+	// layout object number should match set object number, why?
 	std::vector<VkDescriptorSetLayout> setLayouts(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT, mDescriptorSetLayout);
 	
 	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
@@ -1469,7 +1489,7 @@ void TrVulkanRendererBase::CreateDescriptorSets()
 	}
 
 	// config buffers referenced by descriptor
-	for(size_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	for(uint32_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = mUniformBuffers[i];
@@ -1477,16 +1497,29 @@ void TrVulkanRendererBase::CreateDescriptorSets()
 		bufferInfo.range = sizeof(TrVulkanTransformUBO);
 
 		// update config need VkWriteDescriptorSet
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstSet = mDescriptorSets[i];
-		descriptorWrite.dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
-		descriptorWrite.pBufferInfo = &bufferInfo;
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstSet = mDescriptorSets[i];
+		descriptorWrites[0].dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
+		descriptorWrites[0].pBufferInfo = &bufferInfo;
 
-		vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.sampler = mTextureSampler;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = mTextureImageView;
+
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstSet = mDescriptorSets[i];
+		descriptorWrites[1].dstArrayElement = 0;
+		descriptorWrites[1].pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 }
 

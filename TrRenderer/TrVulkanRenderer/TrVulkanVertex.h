@@ -11,7 +11,18 @@ public:
     glm::vec3 mColor;
 
 public:
-    static VkVertexInputBindingDescription GetBindingDescription();
+    static VkVertexInputBindingDescription GetBindingDescription(); 
 
     static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
+};
+
+class TrVulkanVertex2DTex : public TrVulkanVertex2DBase
+{
+public:
+    glm::vec2 mTexCoord;
+
+public:
+    static VkVertexInputBindingDescription GetBindingDescription();
+
+    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
 };
