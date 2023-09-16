@@ -15,6 +15,7 @@ namespace TrVulkanGlobal
     static const std::vector<const char*> deviceExtensions =
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        // VK_KHR_MAINTENANCE_1_EXTENSION_NAME,
     };
 
     enum class RUNTIME_ERROR_ENUM
@@ -128,15 +129,15 @@ namespace TrVulkanGlobal
 
     static std::vector<TrVulkanVertex3DTex> TexVertices3D =
     {
-        {{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
-        {{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
-        {{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
-        {{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
+        {{{-0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
+        {{{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
+        {{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
+        {{{0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
 
-        {{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
-        {{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
-        {{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
-        {{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}}
+        {{{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
+        {{{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
+        {{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
+        {{{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
     };
 
     static std::vector<uint16_t> Indices =
@@ -148,10 +149,10 @@ namespace TrVulkanGlobal
     static std::vector<uint16_t> TexIndices3D =
     {
         0, 1, 2,
-        2, 3, 0,
+        1, 3, 2,
         
         4, 5, 6,
-        6, 7, 4
+        5, 7, 6
     };
 
     

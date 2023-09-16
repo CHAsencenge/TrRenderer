@@ -794,9 +794,20 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// scissor: pixels in which region is actually saved in frame buffer
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
+	viewport.y = (float) mSwapChainExtent.height;
+	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
+	viewport.height = -((float) mSwapChainExtent.height);
+
+	/*viewport.x = 0.0f;
 	viewport.y = 0.0f;
 	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
-	viewport.height = (float) mSwapChainExtent.height;
+	viewport.height = -((float) mSwapChainExtent.height);*/
+	
+	/*viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
+	viewport.height = (float) mSwapChainExtent.height;*/
+	
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	VkRect2D scissor = {};
@@ -824,7 +835,8 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	
 	// front face condition: clockwise or counter clockwise
-	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	// rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	// use for shadow
 	rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 	/*rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -867,7 +879,7 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// need to re-specify values when draw
 	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
 	dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStateCreateInfo.dynamicStateCount = 2;
+	dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 	dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
 	// can make dynamic config to shader (uniform variables can be modified dynamically after creating pipeline)
@@ -1043,9 +1055,15 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		// Cmds
 		VkViewport viewport = {};
 		viewport.x = 0.0f;
+		viewport.y = (float) mSwapChainExtent.height;
+		viewport.width = (float) mSwapChainExtent.width;
+		viewport.height = -((float) mSwapChainExtent.height);
+
+		/*viewport.x = 0.0f;
 		viewport.y = 0.0f;
 		viewport.width = (float) mSwapChainExtent.width;
-		viewport.height = (float) mSwapChainExtent.height;
+		viewport.height = (float) mSwapChainExtent.height;*/
+		
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -1463,11 +1481,11 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 	// ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// source, target, up 
-	ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mView = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	// fov vertical angle, aspect, near, far
 	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 10.0f);
 	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
-	ubo.mProj[1][1] *= -1;
+	// ubo.mProj[1][1] *= -1;
 
 	void* dst;
 	vkMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &dst);
@@ -1752,6 +1770,7 @@ std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
 	{
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  // VK_EXT_debug_utils
 	}
+	
 	return extensions;
 }
 
