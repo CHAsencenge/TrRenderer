@@ -50,8 +50,10 @@ void TrVulkanRendererBase::OnInitVulkan()
 	// before pipeline
 	CreateDescriptorSetLayout();
 	CreateGraphicsPipeline();
-	CreateFrameBuffers();
 	CreateCommandPool();
+	// before create frame buffers
+	CreateDepthResources();
+	CreateFrameBuffers();
 	// after create command pool
 	CreateTextureImage();
 	CreateTextureImageView();
@@ -86,6 +88,8 @@ void TrVulkanRendererBase::OnCleanup()
 	{
 		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
+
+	CleanupSwapChain();
 	
 	for(int i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -100,18 +104,7 @@ void TrVulkanRendererBase::OnCleanup()
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
 
-	// before destroying render pass and image view 
-	for(VkFramebuffer& framebuffer : mSwapChainFrameBuffers)
-	{
-		vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
-	}
-
 	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
-
-	for(VkImageView& imageView : mSwapChainImageViews)
-	{
-		vkDestroyImageView(mDevice, imageView, nullptr);
-	}
 
 	vkDestroySampler(mDevice, mTextureSampler, nullptr);
 
@@ -132,9 +125,6 @@ void TrVulkanRendererBase::OnCleanup()
 	}
 
 	vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
-
-	// manually destroy swap chain, earlier than logical device
-	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 
 	// should before destroy device, because of the firs param
 	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
@@ -495,12 +485,6 @@ TrVulkanSwapChainSupportDetails TrVulkanRendererBase::QuerySwapChainSupport(VkPh
 // TODO: configuration parameterization
 VkSurfaceFormatKHR TrVulkanRendererBase::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
-	// no preferred format
-	if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
-	{
-		return {VK_FORMAT_B8G8R8A8_SRGB, VK_COLORSPACE_SRGB_NONLINEAR_KHR};
-	}
-	// have format list
 	for(const VkSurfaceFormatKHR& availableFormat : availableFormats)
 	{
 		if(availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
@@ -612,7 +596,7 @@ void TrVulkanRendererBase::CreateSwapChain()
 	mSwapChainExtent = extent2D;
 }
 
-VkImageView TrVulkanRendererBase::CreateImageView(VkImage image, VkFormat format)
+VkImageView TrVulkanRendererBase::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
 	VkImageViewCreateInfo imageViewCreateInfo = {};
 	imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -626,7 +610,7 @@ VkImageView TrVulkanRendererBase::CreateImageView(VkImage image, VkFormat format
 	imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 	imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 	// image usage
-	imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // used as RT
+	imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags; // used as RT
 	imageViewCreateInfo.subresourceRange.layerCount = 1; // if VR, multiple layers (left eye layer, right eye layer), multiple views for one image
 	imageViewCreateInfo.subresourceRange.levelCount = 1; // no LOD
 	imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
@@ -646,8 +630,29 @@ void TrVulkanRendererBase::CreateImageViews()
 	mSwapChainImageViews.resize(mSwapChainImages.size());
 	for(size_t i = 0; i < mSwapChainImages.size(); i++)
 	{
-		mSwapChainImageViews[i] = CreateImageView(mSwapChainImages[i], mSwapChainImageFormat);
+		mSwapChainImageViews[i] = CreateImageView(mSwapChainImages[i], mSwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
+}
+
+void TrVulkanRendererBase::CleanupSwapChain()
+{
+	vkDestroyImage(mDevice, mDepthImage, nullptr);
+	vkDestroyImageView(mDevice, mDepthImageView, nullptr);
+	vkFreeMemory(mDevice, mDepthImageMempry, nullptr);
+	
+	// before destroying render pass and image view 
+	for(VkFramebuffer& framebuffer : mSwapChainFrameBuffers)
+	{
+		vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+	}
+	
+	for(VkImageView& imageView : mSwapChainImageViews)
+	{
+		vkDestroyImageView(mDevice, imageView, nullptr);
+	}
+
+	// manually destroy swap chain, earlier than logical device
+	vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 }
 
 // a framework, no detail data
@@ -657,6 +662,7 @@ void TrVulkanRendererBase::CreateRenderPass()
 	colorAttachment.format = mSwapChainImageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // process approach to attachment before render
+	// the contents generated during the render pass and within the render area are written to memory
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // process approach to attachment after render
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // process approach to stencil of attachment before render
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // process approach to stencil of attachment after render
@@ -670,26 +676,46 @@ void TrVulkanRendererBase::CreateRenderPass()
 	colorAttachmentReference.attachment = 0;
 	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // best image layout for using as color attachment
 
+
+	VkAttachmentDescription depthAttachment = {};
+	depthAttachment.format = FindDepthFormat();
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // process approach to attachment before render
+	// VK_ATTACHMENT_STORE_OP_DONT_CARE: the contents of an attachment are not needed after a render pass completes
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // process approach to attachment after render
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // process approach to stencil of attachment before render
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // process approach to stencil of attachment after render
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // attachment layout before render
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; // attachment layout after render, image is used to present in swapchain
+
+	VkAttachmentReference depthAttachmentReference = {};
+	depthAttachmentReference.attachment = 1;
+	depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+	
 	VkSubpassDescription subPassDescription = {};
 	// pipeline type that want to bind
 	subPassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
 	subPassDescription.colorAttachmentCount = 1;
 	subPassDescription.pColorAttachments = &colorAttachmentReference;
+	subPassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+	
 
 	// sync
 	// define dependencies between sub passes
 	VkSubpassDependency subpassDependency = {};
 	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 	subpassDependency.dstSubpass = 0;
-	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.srcAccessMask = 0;
-	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassCreateInfo.attachmentCount = 1;
-	renderPassCreateInfo.pAttachments = &colorAttachment;
+	renderPassCreateInfo.attachmentCount = 2;
+	renderPassCreateInfo.pAttachments = attachments.data();
 	renderPassCreateInfo.subpassCount = 1;
 	renderPassCreateInfo.pSubpasses = &subPassDescription;
 
@@ -704,8 +730,9 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 void TrVulkanRendererBase::CreateGraphicsPipeline()
 {
-	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/shader_textures_vert.spv");
-	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile("Shaders/shader_textures_frag.spv");
+	std::string shaderFilePrefix = std::string(TrVulkanGlobal::SHADER_FILE_STRING[TrVulkanGlobal::SHADER_FILE_ENUM::depth]);
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::vertSuffix);
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::fragSuffix);
 
 	// is only a wrap of shader byte code
 	// only used in this field, so should destroy before leaving this field
@@ -900,18 +927,19 @@ void TrVulkanRendererBase::CreateFrameBuffers()
 	for(size_t i = 0; i < mSwapChainFrameBuffers.size(); i++)
 	{
 		// one frame buffer can have multiple ( image view ) attachments 
-		VkImageView attachments[] =
+		std::array<VkImageView, 2> attachments =
 		{
-			mSwapChainImageViews[i]
+			mSwapChainImageViews[i],
+			mDepthImageView,
 		};
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.renderPass = mRenderPass;
 		frameBufferCreateInfo.width = mSwapChainExtent.width;
 		frameBufferCreateInfo.height = mSwapChainExtent.height;
-		frameBufferCreateInfo.attachmentCount = 1; // one frame buffer can have multiple ( image view ) attachments 
+		frameBufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size()); // one frame buffer can have multiple ( image view ) attachments 
 		// a pointer to an array of VkImageView handles, each of which will be used as the corresponding attachment in a render pass instance
-		frameBufferCreateInfo.pAttachments = attachments;
+		frameBufferCreateInfo.pAttachments = attachments.data();
 		frameBufferCreateInfo.layers = 1; // image layer count
 		
 		if(vkCreateFramebuffer(mDevice, &frameBufferCreateInfo, nullptr, &mSwapChainFrameBuffers[i]) != VK_SUCCESS)
@@ -979,9 +1007,11 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	renderPassBeginInfo.renderArea.offset = {0 ,0};
 	renderPassBeginInfo.renderArea.extent = mSwapChainExtent;
 
-	VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-	renderPassBeginInfo.clearValueCount = 1;
-	renderPassBeginInfo.pClearValues = &clearColor;
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0] = {0.0f, 0.0f, 0.0f, 1.0f};
+	clearValues[1] = {1.0f, 1.0f, 1.0f, 1.0f};
+	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassBeginInfo.pClearValues = clearValues.data();
 
 	// VK_SUBPASS_CONTENTS_INLINE: all commands are in main command buffer
 	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -1284,6 +1314,48 @@ void TrVulkanRendererBase::CopyBufferToImage(VkBuffer buffer, VkImage image, uin
 	EndSingleTimeCommands(commandBuffer);
 }
 
+void TrVulkanRendererBase::CreateDepthResources()
+{
+	VkFormat depthFormat = FindDepthFormat();
+	CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMempry);
+
+	mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+VkFormat TrVulkanRendererBase::FindDepthFormat()
+{
+	std::vector<VkFormat> formats = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT};
+	return FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+// VkImageTiling: tiling arrangement of the texel blocks in memory
+// VK_IMAGE_TILING_LINEAR: texels are laid out in memory in row-major order, possibly with some padding on each row
+// VK_IMAGE_TILING_OPTIMAL: optimal tiling, texels are laid out in an implementagion-dependent arrangement, for more efficient memory access
+VkFormat TrVulkanRendererBase::FindSupportedFormat(const std::vector<VkFormat> candidates, VkImageTiling tiling,
+	VkFormatFeatureFlags features)
+{
+	for(VkFormat candidate : candidates)
+	{
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, candidate, &props);
+
+		// (props.linearTilingFeatures & features) == features -- bit and, props.linearTilingFeatures contains features
+		// why linear prior to optimal
+		if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+		{
+			return candidate;
+		}
+		else if(tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+		{
+			return candidate;
+		}
+
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::FIND_SUPPORTED_FORMAT_FAILED]);
+		
+	}
+	
+}
+
 // TODO: parallel rendering in multiple frames
 void TrVulkanRendererBase::DrawFrame()
 {
@@ -1473,14 +1545,15 @@ void TrVulkanRendererBase::CreateDescriptorPool()
 
 void TrVulkanRendererBase::CreateDescriptorSets()
 {
-	// layout object number should match set object number, why?
+	// layout object number should match set object number
 	std::vector<VkDescriptorSetLayout> setLayouts(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT, mDescriptorSetLayout);
 	
 	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 	descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	descriptorSetAllocateInfo.descriptorPool = mDescriptorPool;
 	descriptorSetAllocateInfo.descriptorSetCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
-	descriptorSetAllocateInfo.pSetLayouts = setLayouts.data();
+	descriptorSetAllocateInfo.pSetLayouts = setLayouts.data(); // layout object number must equal to descriptorSetCount
+	// descriptorSetAllocateInfo.pSetLayouts = &mDescriptorSetLayout; // wrong usage
 
 	mDescriptorSets.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 	if(vkAllocateDescriptorSets(mDevice, &descriptorSetAllocateInfo, mDescriptorSets.data()) != VK_SUCCESS)
@@ -1609,7 +1682,7 @@ void TrVulkanRendererBase::CreateImage(uint32_t width, uint32_t height, VkFormat
 // access image should use image view
 void TrVulkanRendererBase::CreateTextureImageView()
 {
-	mTextureImageView = CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB);
+	mTextureImageView = CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 // sampler can filter and transform (address rules) texture data automatically

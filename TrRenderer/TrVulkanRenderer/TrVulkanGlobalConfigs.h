@@ -50,6 +50,7 @@ namespace TrVulkanGlobal
         CREATE_IMAGE_FAILED,
         ALLOCATE_IMAGE_MEMORY_FAILED,
         CREATE_SAMPLER_FAILED,
+        FIND_SUPPORTED_FORMAT_FAILED,
 
         OPEN_FILE_FAILED,
         LOAD_TEXTURE_IMAGE_FAILED,
@@ -88,6 +89,7 @@ namespace TrVulkanGlobal
         {RUNTIME_ERROR_ENUM::CREATE_IMAGE_FAILED, "failed to create image!"},
         {RUNTIME_ERROR_ENUM::ALLOCATE_IMAGE_MEMORY_FAILED, "failed to allocate image memory!"},
         {RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED, "failed to create sampler!"},
+        {RUNTIME_ERROR_ENUM::FIND_SUPPORTED_FORMAT_FAILED, "failed to find supported format!"},
         
         
         {RUNTIME_ERROR_ENUM::OPEN_FILE_FAILED, "failed to open file!"},
@@ -124,9 +126,54 @@ namespace TrVulkanGlobal
         {{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
     };
 
+    static std::vector<TrVulkanVertex3DTex> TexVertices3D =
+    {
+        {{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
+        {{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
+        {{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
+        {{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
+
+        {{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
+        {{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
+        {{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}, {0.0f, 1.0f}},
+        {{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}}
+    };
+
     static std::vector<uint16_t> Indices =
     {
         0, 1, 2,
         2, 3, 0
     };
+
+    static std::vector<uint16_t> TexIndices3D =
+    {
+        0, 1, 2, 2, 3, 0,
+        4, 5, 6, 6, 7, 4
+    };
+
+    
+
+    enum class SHADER_FILE_ENUM
+    {
+        base,
+        vertexbuffer,
+        ubo,
+        textures,
+        depth,
+    };
+
+    static std::unordered_map<SHADER_FILE_ENUM, const char*> SHADER_FILE_STRING =
+    {
+        {SHADER_FILE_ENUM::base, "Shaders/shader"},
+        {SHADER_FILE_ENUM::vertexbuffer, "Shaders/shader_vertexbuffer"},
+        {SHADER_FILE_ENUM::ubo, "Shaders/shader_ubo"},
+        {SHADER_FILE_ENUM::textures, "Shaders/shader_textures"},
+        {SHADER_FILE_ENUM::depth, "Shaders/shader_depth"},
+    };
+
+    static const char* vertSuffix = "_vert.spv";
+    static const char* fragSuffix = "_frag.spv";
+
+    
+    
 }

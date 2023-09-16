@@ -1,5 +1,6 @@
 #pragma once
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE  // default glm perspective use opengl depth [-1, 1], now use vulkan depth [0, 1]
 #include "TrVulkanUtil.h"
 #include "TrVulkanQueueFamily.h"
 #include "TrVulkanSwapChain.h"
@@ -109,11 +110,13 @@ private:
 
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-    void CreateSwapChain();
+    void CreateSwapChain(); // auto create image
 
-    VkImageView CreateImageView(VkImage image, VkFormat format);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     void CreateImageViews();
+
+    void CleanupSwapChain();
 
 #pragma endregion
 
@@ -161,6 +164,12 @@ private:
     void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
     void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+    void CreateDepthResources();
+
+    VkFormat FindDepthFormat();
+
+    VkFormat FindSupportedFormat(const std::vector<VkFormat> candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 #pragma endregion
 
@@ -301,5 +310,11 @@ private:
     VkImageView mTextureImageView;
 
     VkSampler mTextureSampler;
+
+    VkImage mDepthImage;
+
+    VkImageView mDepthImageView;
+
+    VkDeviceMemory mDepthImageMempry;
 };
 
