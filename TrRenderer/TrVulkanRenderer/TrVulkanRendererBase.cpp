@@ -55,11 +55,12 @@ void TrVulkanRendererBase::OnInitVulkan()
 	// before create frame buffers
 	CreateDepthResources();
 	CreateFrameBuffers();
+	LoadModels(std::vector<std::string>(1, "chalet"));
 	// after create command pool
 	CreateTextureImage();
 	CreateTextureImageView();
 	CreateTextureSampler();
-	LoadModels(std::vector<std::string>(1, "chalet"));
+	
 	// before create command buffers
 	CreateVertexBuffer();
 	CreateIndexBuffer();
@@ -1483,10 +1484,11 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	// ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(9.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	// ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
 	// source, target, up 
-	ubo.mView = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// fov vertical angle, aspect, near, far
 	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 10.0f);
 	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
@@ -1649,7 +1651,7 @@ void TrVulkanRendererBase::CreateTextureImage()
 {
 	// load texture file
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("Textures/head.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load(mModels[0].mTexturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	if(!pixels)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::LOAD_TEXTURE_IMAGE_FAILED]);
