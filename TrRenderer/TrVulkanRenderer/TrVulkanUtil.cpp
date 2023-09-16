@@ -20,3 +20,13 @@ std::vector<char> TrVulkanUtil::ReadFile(const std::string& filename)
 
     return buffer;
 }
+
+std::string TrVulkanUtil::FilenameToModelFilename(const std::string& filename)
+{
+    return "Models/" + filename + ".obj"; 
+}
+
+std::string TrVulkanUtil::FilenameToTexFilename(const std::string& filename)
+{
+    return "Textures/" + filename + ".jpg"; 
+}

@@ -3,6 +3,7 @@
 #include <csignal>
 #include <map>
 #include <set>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -58,6 +59,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateTextureImage();
 	CreateTextureImageView();
 	CreateTextureSampler();
+	LoadModels(std::vector<std::string>(1, "chalet"));
 	// before create command buffers
 	CreateVertexBuffer();
 	CreateIndexBuffer();
@@ -797,16 +799,6 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	viewport.y = (float) mSwapChainExtent.height;
 	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
 	viewport.height = -((float) mSwapChainExtent.height);
-
-	/*viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
-	viewport.height = -((float) mSwapChainExtent.height);*/
-	
-	/*viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
-	viewport.height = (float) mSwapChainExtent.height;*/
 	
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
@@ -1058,11 +1050,6 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		viewport.y = (float) mSwapChainExtent.height;
 		viewport.width = (float) mSwapChainExtent.width;
 		viewport.height = -((float) mSwapChainExtent.height);
-
-		/*viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float) mSwapChainExtent.width;
-		viewport.height = (float) mSwapChainExtent.height;*/
 		
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
@@ -1078,13 +1065,14 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 		
-		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
 		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
+		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mModels[0].mIndices.size()), 1, 0, 0, 0);
 	}
 	
 	vkCmdEndRenderPass(commandBuffer);
@@ -1152,9 +1140,13 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 {
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
+	
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices[0]) * TrVulkanGlobal::TexVertices.size();
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices3D[0]) * TrVulkanGlobal::TexVertices3D.size();
+	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices3D[0]) * TrVulkanGlobal::TexVertices3D.size();
+	VkDeviceSize bufferSize = sizeof(mModels[0].mVertices[0]) * mModels[0].mVertices.size();
+
+	
 	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
@@ -1167,9 +1159,14 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// but may not immediately copied to the memory
 	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
 	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
-	// memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
-	// memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
-	memcpy(dst, TrVulkanGlobal::TexVertices3D.data(), (size_t) bufferSize);
+
+	{
+		// memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
+		// memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
+		// memcpy(dst, TrVulkanGlobal::TexVertices3D.data(), (size_t) bufferSize);
+		memcpy(dst, mModels[0].mVertices.data(), (size_t) bufferSize);
+	}
+	
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
@@ -1187,8 +1184,11 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 {
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
+	
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Indices[0]) * TrVulkanGlobal::Indices.size();
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexIndices3D[0]) * TrVulkanGlobal::TexIndices3D.size();
+	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexIndices3D[0]) * TrVulkanGlobal::TexIndices3D.size();
+	VkDeviceSize bufferSize = sizeof(mModels[0].mIndices[0]) * mModels[0].mIndices.size();
+	
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
@@ -1196,8 +1196,13 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	// data from memory to device memory
 	void* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
-	// memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize);
-	memcpy(dst, TrVulkanGlobal::TexIndices3D.data(), (size_t) bufferSize); 
+
+	{
+		// memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize);
+		// memcpy(dst, TrVulkanGlobal::TexIndices3D.data(), (size_t) bufferSize); 
+		memcpy(dst, mModels[0].mIndices.data(), (size_t) bufferSize); 
+	}
+	
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	VkBufferUsageFlags usageIndex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -1755,6 +1760,18 @@ void TrVulkanRendererBase::CreateTextureSampler()
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED]);
 	}
+}
+
+void TrVulkanRendererBase::LoadModels(std::vector<std::string> filenames)
+{
+	for(auto filename : filenames)
+	{
+		std::string modelFile = TrVulkanUtil::FilenameToModelFilename(filename);
+		std::string texFile = TrVulkanUtil::FilenameToTexFilename(filename);
+		TrVulkanModelBase model(modelFile, texFile);
+		mModels.push_back(model);
+	}
+	
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

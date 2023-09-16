@@ -36,6 +36,9 @@ public:
     glm::vec3 mColor;
 
 public:
+    bool operator==(const TrVulkanVertex3DBase& other) const;
+
+public:
     static VkVertexInputBindingDescription GetBindingDescription(); 
 
     static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
@@ -46,6 +49,9 @@ class TrVulkanVertex3DTex : public TrVulkanVertex3DBase
 {
 public:
     glm::vec2 mTexCoord;
+
+public:
+    bool operator==(const TrVulkanVertex3DTex& other) const;
 
 public:
     static VkVertexInputBindingDescription GetBindingDescription();

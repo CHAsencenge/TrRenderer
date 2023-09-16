@@ -22,5 +22,9 @@ class TrVulkanUtil
 {
 public:
     static std::vector<char> ReadFile(const std::string& filename);
+
+    static std::string FilenameToModelFilename(const std::string& filename);
+
+    static std::string FilenameToTexFilename(const std::string& filename);
 };
 

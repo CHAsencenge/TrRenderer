@@ -9,6 +9,8 @@
 #include <glm/gtc/matrix_transform.hpp> // rotate etc
 #include <chrono> // time functions
 
+#include "TrVulkanModel.h"
+
 
 class TrVulkanRendererBase
 {
@@ -207,6 +209,12 @@ private:
 
     void CreateTextureSampler();
 
+#pragma endregion
+
+#pragma region Load
+
+    void LoadModels(std::vector<std::string> filenames);
+
 #pragma endregion 
 
 
@@ -316,5 +324,7 @@ private:
     VkImageView mDepthImageView;
 
     VkDeviceMemory mDepthImageMemory;
+
+    std::vector<TrVulkanModelBase> mModels;
 };
 

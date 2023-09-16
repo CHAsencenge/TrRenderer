@@ -61,6 +61,11 @@ std::array<VkVertexInputAttributeDescription, 3> TrVulkanVertex2DTex::GetAttribu
     return attributeDescriptions;
 }
 
+bool TrVulkanVertex3DBase::operator==(const TrVulkanVertex3DBase& other) const
+{
+    return mPos == other.mPos && mColor == other.mColor;
+}
+
 VkVertexInputBindingDescription TrVulkanVertex3DBase::GetBindingDescription()
 {
     VkVertexInputBindingDescription bindingDescription = {};
@@ -86,6 +91,11 @@ std::array<VkVertexInputAttributeDescription, 2> TrVulkanVertex3DBase::GetAttrib
     attributeDescriptions[1].offset = offsetof(TrVulkanVertex3DBase, mColor);
 
     return attributeDescriptions;
+}
+
+bool TrVulkanVertex3DTex::operator==(const TrVulkanVertex3DTex& other) const
+{
+    return mPos == other.mPos && mColor == other.mColor && mTexCoord == other.mTexCoord;
 }
 
 VkVertexInputBindingDescription TrVulkanVertex3DTex::GetBindingDescription()
