@@ -638,7 +638,7 @@ void TrVulkanRendererBase::CleanupSwapChain()
 {
 	vkDestroyImage(mDevice, mDepthImage, nullptr);
 	vkDestroyImageView(mDevice, mDepthImageView, nullptr);
-	vkFreeMemory(mDevice, mDepthImageMempry, nullptr);
+	vkFreeMemory(mDevice, mDepthImageMemory, nullptr);
 	
 	// before destroying render pass and image view 
 	for(VkFramebuffer& framebuffer : mSwapChainFrameBuffers)
@@ -767,8 +767,13 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	// auto bindingDescription = TrVulkanVertex2DBase::GetBindingDescription();
 	// auto attributeDescriptions = TrVulkanVertex2DBase::GetAttributeDescriptions();
 
-	auto bindingDescription = TrVulkanVertex2DTex::GetBindingDescription();
-	auto attributeDescriptions = TrVulkanVertex2DTex::GetAttributeDescriptions();
+	// auto bindingDescription = TrVulkanVertex2DTex::GetBindingDescription();
+	// auto attributeDescriptions = TrVulkanVertex2DTex::GetAttributeDescriptions();
+
+	auto bindingDescription = TrVulkanVertex3DTex::GetBindingDescription();
+	auto attributeDescriptions = TrVulkanVertex3DTex::GetAttributeDescriptions();
+
+
 	// binding: offset between vertices, per-vertex or per-instance
 	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
 	vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
@@ -816,6 +821,8 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	rasterizationStateCreateInfo.lineWidth = 1.0f;
 	// cull front, back, front and back
 	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	// rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	
 	// front face condition: clockwise or counter clockwise
 	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	// use for shadow
@@ -874,6 +881,18 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED]);
 	}
+
+	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS; // new frag can write into attachment when its depth less than depth in depth buffer
+	depthStencil.minDepthBounds = 0.0f;
+	depthStencil.maxDepthBounds = 1.0f;
+	// stencil
+	depthStencil.stencilTestEnable = VK_FALSE;
+	depthStencil.front = {};
+	depthStencil.back = {};
 	
 	// create graphics pipeline
 	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
@@ -888,6 +907,7 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	pipelineCreateInfo.pMultisampleState = &multiSampleCreateInfo;
 	pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
 	pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo; // for reduce rebuild graphics pipeline
+	pipelineCreateInfo.pDepthStencilState = &depthStencil;
 	
 	pipelineCreateInfo.layout = mPipelineLayout; // for uniform variables
 	pipelineCreateInfo.renderPass = mRenderPass;
@@ -1045,7 +1065,8 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
+		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
 	}
 	
 	vkCmdEndRenderPass(commandBuffer);
@@ -1114,7 +1135,8 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices[0]) * TrVulkanGlobal::TexVertices.size();
+	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices[0]) * TrVulkanGlobal::TexVertices.size();
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices3D[0]) * TrVulkanGlobal::TexVertices3D.size();
 	// VK_BUFFER_USAGE_TRANSFER_SRC_BIT: buffer can be used as the source of a transfer command
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
@@ -1128,7 +1150,8 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
 	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
 	// memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
-	memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
+	// memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
+	memcpy(dst, TrVulkanGlobal::TexVertices3D.data(), (size_t) bufferSize);
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
@@ -1146,7 +1169,8 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 {
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
-	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Indices[0]) * TrVulkanGlobal::Indices.size();
+	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Indices[0]) * TrVulkanGlobal::Indices.size();
+	VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexIndices3D[0]) * TrVulkanGlobal::TexIndices3D.size();
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
@@ -1154,7 +1178,8 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	// data from memory to device memory
 	void* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
-	memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize); // use TrVulkanGlobal::Indices.data() rather than &TrVulkanGlobal::Indices to get vector data location
+	// memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize);
+	memcpy(dst, TrVulkanGlobal::TexIndices3D.data(), (size_t) bufferSize); 
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	VkBufferUsageFlags usageIndex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -1317,7 +1342,7 @@ void TrVulkanRendererBase::CopyBufferToImage(VkBuffer buffer, VkImage image, uin
 void TrVulkanRendererBase::CreateDepthResources()
 {
 	VkFormat depthFormat = FindDepthFormat();
-	CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMempry);
+	CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMemory);
 
 	mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
@@ -1435,7 +1460,8 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	// ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// source, target, up 
 	ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// fov vertical angle, aspect, near, far

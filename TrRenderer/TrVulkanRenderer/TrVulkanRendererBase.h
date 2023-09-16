@@ -315,6 +315,6 @@ private:
 
     VkImageView mDepthImageView;
 
-    VkDeviceMemory mDepthImageMempry;
+    VkDeviceMemory mDepthImageMemory;
 };
 

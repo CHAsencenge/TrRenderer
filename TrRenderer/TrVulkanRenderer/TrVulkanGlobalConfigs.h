@@ -147,8 +147,11 @@ namespace TrVulkanGlobal
 
     static std::vector<uint16_t> TexIndices3D =
     {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4
+        0, 1, 2,
+        2, 3, 0,
+        
+        4, 5, 6,
+        6, 7, 4
     };
 
     
