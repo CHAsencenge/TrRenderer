@@ -11,6 +11,8 @@
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
+#define GLFW_INCLUDE_NONE
+
 
 #include "TrVulkanModel.h"
 
@@ -222,6 +224,16 @@ private:
 
     void LoadModels(std::vector<std::string> filenames);
 
+#pragma endregion
+
+#pragma region ImGui
+
+    void ImGuiCreateFontsTexture(VkCommandBuffer commandBuffer);
+
+    void ImGuiSetFontTexId();
+
+    void ImGuiRecordCommandBuffer(VkCommandBuffer commandBuffer); 
+
 #pragma endregion 
 
 
@@ -333,6 +345,14 @@ private:
     VkDeviceMemory mDepthImageMemory;
 
     std::vector<TrVulkanModelBase> mModels;
+
+    VkImage mFontImage;
+
+    VkImageView mFontImageView;
+
+    VkDeviceMemory mFontImageMemory;
+
+    VkSampler mFontSampler;
 
 
 };

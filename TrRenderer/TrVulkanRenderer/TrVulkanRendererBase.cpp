@@ -61,6 +61,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateTextureImage();
 	CreateTextureImageView();
 	CreateTextureSampler();
+	OnSetupImGui();
 	
 	// before create command buffers
 	CreateVertexBuffer();
@@ -68,8 +69,12 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateUniformBuffers();
 	CreateDescriptorPool();
 	CreateDescriptorSets();
+	ImGuiSetFontTexId();
+	
 	CreateCommandBuffers();
 	CreateSyncObjects();
+
+	
 }
 
 void TrVulkanRendererBase::OnSetupImGui()
@@ -86,7 +91,9 @@ void TrVulkanRendererBase::OnSetupImGui()
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsLight();
 
-	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
+	ImGui_ImplGlfw_InitForVulkan(mWindow, true);
+
+	/*TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
 	TrVulkanSwapChainSupportDetails swapChainSupportDetails = QuerySwapChainSupport(mPhysicalDevice);
 	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount + 1;
 	// Setup Platform/Renderer backends
@@ -105,32 +112,16 @@ void TrVulkanRendererBase::OnSetupImGui()
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 	init_info.Allocator = nullptr;
 	init_info.CheckVkResultFn = TrVulkanUtil::CheckVkResult;
-	ImGui_ImplVulkan_Init(&init_info, mRenderPass);
+	ImGui_ImplVulkan_Init(&init_info, mRenderPass);*/
 	
 	// Upload Fonts
 	{
-		VkResult err = vkResetCommandPool(mDevice, mCommandPool, 0);
-		TrVulkanUtil::CheckVkResult(err);
-		VkCommandBufferBeginInfo begin_info = {};
-		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		err = vkBeginCommandBuffer(mCommandBuffers[mCurrentFrame], &begin_info);
-		TrVulkanUtil::CheckVkResult(err);
-
-		ImGui_ImplVulkan_CreateFontsTexture(mCommandBuffers[mCurrentFrame]);
-
-		VkSubmitInfo end_info = {};
-		end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		end_info.commandBufferCount = 1;
-		end_info.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
-		err = vkEndCommandBuffer(mCommandBuffers[mCurrentFrame]);
-		TrVulkanUtil::CheckVkResult(err);
-		err = vkQueueSubmit(mGraphicsQueue, 1, &end_info, VK_NULL_HANDLE);
-		TrVulkanUtil::CheckVkResult(err);
-
-		err = vkDeviceWaitIdle(mDevice);
-		TrVulkanUtil::CheckVkResult(err);
-		ImGui_ImplVulkan_DestroyFontUploadObjects();
+		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		{
+			ImGuiCreateFontsTexture(commandBuffer);
+		}
+			
+		EndSingleTimeCommands(commandBuffer);
 	}
 	
 }
@@ -138,13 +129,16 @@ void TrVulkanRendererBase::OnSetupImGui()
 void TrVulkanRendererBase::OnRenderImGui()
 {
 	// Start the Dear ImGui frame
-	ImGui_ImplVulkan_NewFrame();
+	// ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (TrVulkanGlobal::bShowDemoWindow)
 		ImGui::ShowDemoWindow(&TrVulkanGlobal::bShowDemoWindow);
+
+	// Rendering
+	ImGui::Render();
 }
 
 void TrVulkanRendererBase::OnRender()
@@ -156,7 +150,7 @@ void TrVulkanRendererBase::OnRender()
 		
 		DrawFrame();
 
-		OnRenderImGui();
+		
 	}
 
 	// because draw frame is an async operation
@@ -189,6 +183,7 @@ void TrVulkanRendererBase::OnCleanup()
 	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
 
 	vkDestroySampler(mDevice, mTextureSampler, nullptr);
+	vkDestroySampler(mDevice, mFontSampler, nullptr);
 
 	vkDestroyImageView(mDevice, mTextureImageView, nullptr);
 	vkDestroyImage(mDevice, mTextureImage, nullptr);
@@ -231,10 +226,10 @@ void TrVulkanRendererBase::CreateInstance()
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "TrVulkanRendererBase";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.applicationVersion = VK_MAKE_VERSION(1, 3, 0);
 	appInfo.pEngineName = "No Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.engineVersion = VK_MAKE_VERSION(1, 3, 0);
+	appInfo.apiVersion = VK_API_VERSION_1_3;
 
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -493,7 +488,7 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	
 }
 
-TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag = VK_QUEUE_GRAPHICS_BIT)
+TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
 {
 	TrVulkanQueueFamilyIndices indices;
 
@@ -1092,6 +1087,8 @@ void TrVulkanRendererBase::CreateCommandBuffers()
 
 void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
+	OnRenderImGui();
+	
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	/*commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
@@ -1153,6 +1150,14 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
 		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mModels[0].mIndices.size()), 1, 0, 0, 0);
+
+		ImDrawData* draw_data = ImGui::GetDrawData();
+		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+		if (!is_minimized)
+		{
+			FrameRender(wd, draw_data);
+			FramePresent(wd);
+		}
 	}
 	
 	vkCmdEndRenderPass(commandBuffer);
@@ -1631,7 +1636,7 @@ void TrVulkanRendererBase::CreateDescriptorSetLayout()
 
 	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
 	samplerDescriptorSetLayoutBinding.binding = 1;
-	samplerDescriptorSetLayoutBinding.descriptorCount = 1;
+	samplerDescriptorSetLayoutBinding.descriptorCount = 2;
 	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
@@ -1710,18 +1715,25 @@ void TrVulkanRendererBase::CreateDescriptorSets()
 		descriptorWrites[0].dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
 		descriptorWrites[0].pBufferInfo = &bufferInfo;
 
-		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.sampler = mTextureSampler;
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = mTextureImageView;
+		VkDescriptorImageInfo texImageInfo = {};
+		texImageInfo.sampler = mTextureSampler;
+		texImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		texImageInfo.imageView = mTextureImageView;
+
+		VkDescriptorImageInfo fontImageInfo = {};
+		fontImageInfo.sampler = mFontSampler;
+		fontImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		fontImageInfo.imageView = mFontImageView;
+
+		std::array<VkDescriptorImageInfo, 2> imageInfos = {texImageInfo, fontImageInfo};
 
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].descriptorCount = 2;
 		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWrites[1].dstBinding = 1;
 		descriptorWrites[1].dstSet = mDescriptorSets[i];
 		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].pImageInfo = &imageInfo;
+		descriptorWrites[1].pImageInfo = imageInfos.data();
 
 		vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
@@ -1853,6 +1865,11 @@ void TrVulkanRendererBase::CreateTextureSampler()
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED]);
 	}
+
+	if(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mFontSampler) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED]);
+	}
 }
 
 void TrVulkanRendererBase::LoadModels(std::vector<std::string> filenames)
@@ -1865,6 +1882,45 @@ void TrVulkanRendererBase::LoadModels(std::vector<std::string> filenames)
 		mModels.push_back(model);
 	}
 	
+}
+
+// populate io.Fonts
+void TrVulkanRendererBase::ImGuiCreateFontsTexture(VkCommandBuffer commandBuffer)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	unsigned char* pixels;
+	int width, height;
+	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+	size_t uploadSize = width * height * 4 * sizeof(char);
+
+	CreateImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mFontImage, mFontImageMemory);
+
+	mFontImageView = CreateImageView(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+	
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	CreateBuffer(uploadSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	char* dst;
+	vkMapMemory(mDevice, stagingBufferMemory, 0, uploadSize, 0, (void**)(&dst));
+	memcpy(dst, pixels, (size_t)uploadSize);
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	TransitionImageLayout(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	CopyBufferToImage(stagingBuffer, mFontImage, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+	TransitionImageLayout(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	
+}
+
+void TrVulkanRendererBase::ImGuiSetFontTexId()
+{
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	// Store our identifier
+	io.Fonts->SetTexID((ImTextureID)mDescriptorSets[mCurrentFrame]);
+}
+
+void TrVulkanRendererBase::ImGuiRecordCommandBuffer(VkCommandBuffer commandBuffer)
+{
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)
