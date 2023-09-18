@@ -178,6 +178,13 @@ namespace TrVulkanGlobal
     static const char* vertSuffix = "_vert.spv";
     static const char* fragSuffix = "_frag.spv";
 
-    
+    static std::vector<std::string> texSuffix =
+    {
+        ".jpg",
+        ".bmp",
+        ".png",
+        ".tga",
+        
+    };
     
 }

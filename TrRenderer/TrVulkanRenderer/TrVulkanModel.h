@@ -9,15 +9,22 @@
 class TrVulkanModelBase
 {
 public:
-    TrVulkanModelBase(const std::string& modelPath, const std::string& texturePath);
+    TrVulkanModelBase(const std::string& filename, const std::string& modelPath, const std::string& texturePath);
 
     void LoadModelFromPath();
-    
+
+    inline void SetModelPath(const std::string& modelPath) { mModelPath = modelPath; }
+
+    inline void SetTexturePath(const std::string& texturePath) { mTexturePath = texturePath; }
+
+    std::string mFilename;
     std::string mModelPath;
     std::string mTexturePath;
     
     std::vector<TrVulkanVertex3DTex> mVertices;
     std::vector<uint32_t> mIndices;
+
+    float mScale = 1.0f;
 };
 
 template<>

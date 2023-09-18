@@ -26,7 +26,7 @@ std::string TrVulkanUtil::FilenameToModelFilename(const std::string& filename)
     return "Models/" + filename + ".obj"; 
 }
 
-std::string TrVulkanUtil::FilenameToTexFilename(const std::string& filename)
+std::string TrVulkanUtil::FilenameToTexFilename(const std::string& filename, const std::string& suffix)
 {
-    return "Textures/" + filename + ".jpg"; 
+    return "Textures/" + filename + suffix; 
 }

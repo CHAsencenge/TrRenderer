@@ -55,7 +55,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	// before create frame buffers
 	CreateDepthResources();
 	CreateFrameBuffers();
-	LoadModels(std::vector<std::string>(1, "chalet"));
+	// LoadModels(std::vector<std::string>(1, "chalet"));
+	LoadModels(std::vector<std::string>(1, "Tree"));
 	// after create command pool
 	CreateTextureImage();
 	CreateTextureImageView();
@@ -825,11 +826,11 @@ void TrVulkanRendererBase::CreateGraphicsPipeline()
 	rasterizationStateCreateInfo.lineWidth = 1.0f;
 	// cull front, back, front and back
 	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	// rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	
 	// front face condition: clockwise or counter clockwise
-	// rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	// rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	// use for shadow
 	rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 	/*rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -1484,13 +1485,14 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	ubo.mModel = glm::rotate(glm::mat4(1.0f), time * glm::radians(9.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mModel = glm::rotate(glm::mat4(mModels[0].mScale), time * glm::radians(9.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// source, target, up 
-	ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	// ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mView = glm::lookAt(glm::vec3(0.0f, 1000.0f, 3000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	// fov vertical angle, aspect, near, far
-	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 10.0f);
+	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 5000.0f);
 	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
 	// ubo.mProj[1][1] *= -1;
 
@@ -1651,7 +1653,18 @@ void TrVulkanRendererBase::CreateTextureImage()
 {
 	// load texture file
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(mModels[0].mTexturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = nullptr;
+	for(auto texSuf : TrVulkanGlobal::texSuffix)
+	{
+		mModels[0].SetTexturePath(TrVulkanUtil::FilenameToTexFilename(mModels[0].mFilename, texSuf));
+		pixels = stbi_load(mModels[0].mTexturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		// mModels[0].SetTexturePath(TrVulkanUtil::FilenameToTexFilename("Tree", ".bmp"));
+		// pixels = stbi_load(mModels[0].mTexturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		if(pixels)
+		{
+			break;
+		}
+	}
 	if(!pixels)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::LOAD_TEXTURE_IMAGE_FAILED]);
@@ -1769,8 +1782,8 @@ void TrVulkanRendererBase::LoadModels(std::vector<std::string> filenames)
 	for(auto filename : filenames)
 	{
 		std::string modelFile = TrVulkanUtil::FilenameToModelFilename(filename);
-		std::string texFile = TrVulkanUtil::FilenameToTexFilename(filename);
-		TrVulkanModelBase model(modelFile, texFile);
+		std::string texFile = TrVulkanUtil::FilenameToTexFilename(filename, ".jpg");
+		TrVulkanModelBase model(filename, modelFile, texFile);
 		mModels.push_back(model);
 	}
 	

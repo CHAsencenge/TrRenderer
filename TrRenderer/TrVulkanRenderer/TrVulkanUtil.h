@@ -25,6 +25,6 @@ public:
 
     static std::string FilenameToModelFilename(const std::string& filename);
 
-    static std::string FilenameToTexFilename(const std::string& filename);
+    static std::string FilenameToTexFilename(const std::string& filename, const std::string& suffix);
 };
 

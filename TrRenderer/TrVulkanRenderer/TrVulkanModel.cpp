@@ -5,7 +5,8 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-TrVulkanModelBase::TrVulkanModelBase(const std::string& modelPath, const std::string& texturePath) :
+TrVulkanModelBase::TrVulkanModelBase(const std::string& filename, const std::string& modelPath, const std::string& texturePath) :
+mFilename(filename),
 mModelPath(modelPath),
 mTexturePath(texturePath)
 {
