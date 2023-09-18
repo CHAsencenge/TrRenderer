@@ -72,13 +72,91 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateSyncObjects();
 }
 
+void TrVulkanRendererBase::OnSetupImGui()
+{
+	// imgui
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+
+	TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
+	TrVulkanSwapChainSupportDetails swapChainSupportDetails = QuerySwapChainSupport(mPhysicalDevice);
+	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount + 1;
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForVulkan(mWindow, true);
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance = mInstance;
+	init_info.PhysicalDevice = mPhysicalDevice;
+	init_info.Device = mDevice;
+	init_info.QueueFamily = indices.mGraphicsFamily.value();
+	init_info.Queue = mPresentQueue;
+	init_info.PipelineCache = VK_NULL_HANDLE;
+	init_info.DescriptorPool = mDescriptorPool;
+	init_info.Subpass = 0;
+	init_info.MinImageCount = imageCount;
+	init_info.ImageCount = imageCount;
+	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+	init_info.Allocator = nullptr;
+	init_info.CheckVkResultFn = TrVulkanUtil::CheckVkResult;
+	ImGui_ImplVulkan_Init(&init_info, mRenderPass);
+	
+	// Upload Fonts
+	{
+		VkResult err = vkResetCommandPool(mDevice, mCommandPool, 0);
+		TrVulkanUtil::CheckVkResult(err);
+		VkCommandBufferBeginInfo begin_info = {};
+		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		err = vkBeginCommandBuffer(mCommandBuffers[mCurrentFrame], &begin_info);
+		TrVulkanUtil::CheckVkResult(err);
+
+		ImGui_ImplVulkan_CreateFontsTexture(mCommandBuffers[mCurrentFrame]);
+
+		VkSubmitInfo end_info = {};
+		end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		end_info.commandBufferCount = 1;
+		end_info.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
+		err = vkEndCommandBuffer(mCommandBuffers[mCurrentFrame]);
+		TrVulkanUtil::CheckVkResult(err);
+		err = vkQueueSubmit(mGraphicsQueue, 1, &end_info, VK_NULL_HANDLE);
+		TrVulkanUtil::CheckVkResult(err);
+
+		err = vkDeviceWaitIdle(mDevice);
+		TrVulkanUtil::CheckVkResult(err);
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+	}
+	
+}
+
+void TrVulkanRendererBase::OnRenderImGui()
+{
+	// Start the Dear ImGui frame
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+	if (TrVulkanGlobal::bShowDemoWindow)
+		ImGui::ShowDemoWindow(&TrVulkanGlobal::bShowDemoWindow);
+}
+
 void TrVulkanRendererBase::OnRender()
 {
 	// if the window close button is pressed
 	while (!glfwWindowShouldClose(mWindow))
 	{
 		glfwPollEvents();
+		
 		DrawFrame();
+
+		OnRenderImGui();
 	}
 
 	// because draw frame is an async operation
@@ -415,7 +493,7 @@ void TrVulkanRendererBase::CreateLogicalDevice()
 	
 }
 
-TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag)
+TrVulkanQueueFamilyIndices TrVulkanRendererBase::FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag = VK_QUEUE_GRAPHICS_BIT)
 {
 	TrVulkanQueueFamilyIndices indices;
 

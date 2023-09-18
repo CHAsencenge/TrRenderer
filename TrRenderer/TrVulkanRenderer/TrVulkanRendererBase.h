@@ -8,6 +8,9 @@
 #include "TrVulkanDescriptor.h"
 #include <glm/gtc/matrix_transform.hpp> // rotate etc
 #include <chrono> // time functions
+#include "imgui.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "backends/imgui_impl_glfw.h"
 
 #include "TrVulkanModel.h"
 
@@ -41,6 +44,10 @@ private:
     void OnInitWindow();
 
     void OnInitVulkan();
+
+    void OnSetupImGui();
+
+    void OnRenderImGui();
     
     void OnRender();
     
@@ -91,7 +98,7 @@ private:
 
 #pragma region Queue & Queue Families
 
-    TrVulkanQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag);
+    TrVulkanQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkQueueFlagBits queueFlag = VK_QUEUE_GRAPHICS_BIT);
 
 #pragma endregion
 
@@ -326,5 +333,7 @@ private:
     VkDeviceMemory mDepthImageMemory;
 
     std::vector<TrVulkanModelBase> mModels;
+
+
 };
 

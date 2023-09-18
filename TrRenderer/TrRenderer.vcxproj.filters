@@ -128,6 +128,9 @@
     <ClInclude Include="TrVulkanRenderer\TrVulkanVertex.h">
       <Filter>TrVulkanRenderer\public</Filter>
     </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanModel.h">
+      <Filter>TrVulkanRenderer\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -187,6 +190,9 @@
       <Filter>TrVulkanRenderer\private</Filter>
     </ClCompile>
     <ClCompile Include="TrVulkanRenderer\TrVulkanDescriptor.cpp">
+      <Filter>TrVulkanRenderer\private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanModel.cpp">
       <Filter>TrVulkanRenderer\private</Filter>
     </ClCompile>
   </ItemGroup>
