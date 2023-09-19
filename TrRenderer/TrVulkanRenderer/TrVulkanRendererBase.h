@@ -125,7 +125,7 @@ private:
 
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
-    void CreateImageViews();
+    void CreateSwapChainImageViews();
 
     void CleanupSwapChain();
 

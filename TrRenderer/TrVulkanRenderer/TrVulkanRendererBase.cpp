@@ -46,7 +46,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	PickHighestWeightScorePhysicalDevice(VK_QUEUE_GRAPHICS_BIT); // or can PickFirstValidPhysicalDevice()
 	CreateLogicalDevice();
 	CreateSwapChain();
-	CreateImageViews();
+	CreateSwapChainImageViews();
 	CreateRenderPass();
 	// before pipeline
 	CreateDescriptorSetLayout();
@@ -613,7 +613,7 @@ void TrVulkanRendererBase::CreateSwapChain()
 	VkExtent2D extent2D = ChooseSwapExtent(swapChainSupportDetails.mCapabilities);
 
 	// what is "Triple Buffering", why minImageCount + 1
-	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount + 1;
+	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount;
 	if(swapChainSupportDetails.mCapabilities.maxImageCount > 0 && swapChainSupportDetails.mCapabilities.maxImageCount < imageCount)
 	{
 		imageCount = swapChainSupportDetails.mCapabilities.maxImageCount;
@@ -702,7 +702,7 @@ VkImageView TrVulkanRendererBase::CreateImageView(VkImage image, VkFormat format
 }
 
 // used when creating frame buffer
-void TrVulkanRendererBase::CreateImageViews()
+void TrVulkanRendererBase::CreateSwapChainImageViews()
 {
 	mSwapChainImageViews.resize(mSwapChainImages.size());
 	for(size_t i = 0; i < mSwapChainImages.size(); i++)
