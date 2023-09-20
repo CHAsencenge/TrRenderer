@@ -156,7 +156,7 @@ private:
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     // Buffers in Vulkan can save arbitrary data that can be read by graphics memory
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     
@@ -232,7 +232,13 @@ private:
 
     void ImGuiSetFontTexId();
 
-    void ImGuiRecordCommandBuffer(VkCommandBuffer commandBuffer); 
+    void CreateImGuiGraphicsPipeline();
+
+    void CreateImGuiDescriptorSetLayout();
+
+    void CreateImGuiDescriptorPool();
+
+    void CreateImGuiDescriptorSets();
 
 #pragma endregion 
 
@@ -309,11 +315,11 @@ private:
 
     uint32_t mCurrentFrame = 0;
 
-    VkBuffer mVertexBuffer;
+    VkBuffer mVertexBuffer = VK_NULL_HANDLE;
 
     VkDeviceMemory mVertexBufferMemory;
 
-    VkBuffer mIndexBuffer;
+    VkBuffer mIndexBuffer = VK_NULL_HANDLE;
 
     VkDeviceMemory mIndexBufferMemory;
 
@@ -346,6 +352,8 @@ private:
 
     std::vector<TrVulkanModelBase> mModels;
 
+#pragma region ImGui
+
     VkImage mFontImage;
 
     VkImageView mFontImageView;
@@ -354,6 +362,25 @@ private:
 
     VkSampler mFontSampler;
 
+    VkBuffer mImGuiVertexBuffer = VK_NULL_HANDLE;
+
+    VkDeviceMemory mImGuiVertexBufferMemory;
+
+    VkBuffer mImGuiIndexBuffer = VK_NULL_HANDLE;
+
+    VkDeviceMemory mImGuiIndexBufferMemory;
+
+    VkPipelineLayout mImGuiPipelineLayout;
+
+    VkPipeline mImGuiGraphicsPipeline;
+
+    VkDescriptorSetLayout mImGuiDescriptorSetLayout;
+
+    VkDescriptorPool mImGuiDescriptorPool;
+
+    std::vector<VkDescriptorSet> mImGuiDescriptorSets;
+
+#pragma endregion 
 
 };
 

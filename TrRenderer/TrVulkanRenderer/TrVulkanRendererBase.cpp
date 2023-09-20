@@ -67,9 +67,15 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateVertexBuffer();
 	CreateIndexBuffer();
 	CreateUniformBuffers();
+	
 	CreateDescriptorPool();
 	CreateDescriptorSets();
+
 	ImGuiSetFontTexId();
+	CreateImGuiDescriptorSetLayout();
+	CreateImGuiGraphicsPipeline();
+	CreateImGuiDescriptorPool();
+	CreateImGuiDescriptorSets();
 	
 	CreateCommandBuffers();
 	CreateSyncObjects();
@@ -92,27 +98,6 @@ void TrVulkanRendererBase::OnSetupImGui()
 	//ImGui::StyleColorsLight();
 
 	ImGui_ImplGlfw_InitForVulkan(mWindow, true);
-
-	/*TrVulkanQueueFamilyIndices indices = FindQueueFamilies(mPhysicalDevice, VK_QUEUE_GRAPHICS_BIT);
-	TrVulkanSwapChainSupportDetails swapChainSupportDetails = QuerySwapChainSupport(mPhysicalDevice);
-	uint32_t imageCount = swapChainSupportDetails.mCapabilities.minImageCount + 1;
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForVulkan(mWindow, true);
-	ImGui_ImplVulkan_InitInfo init_info = {};
-	init_info.Instance = mInstance;
-	init_info.PhysicalDevice = mPhysicalDevice;
-	init_info.Device = mDevice;
-	init_info.QueueFamily = indices.mGraphicsFamily.value();
-	init_info.Queue = mPresentQueue;
-	init_info.PipelineCache = VK_NULL_HANDLE;
-	init_info.DescriptorPool = mDescriptorPool;
-	init_info.Subpass = 0;
-	init_info.MinImageCount = imageCount;
-	init_info.ImageCount = imageCount;
-	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-	init_info.Allocator = nullptr;
-	init_info.CheckVkResultFn = TrVulkanUtil::CheckVkResult;
-	ImGui_ImplVulkan_Init(&init_info, mRenderPass);*/
 	
 	// Upload Fonts
 	{
@@ -167,7 +152,7 @@ void TrVulkanRendererBase::OnCleanup()
 
 	CleanupSwapChain();
 	
-	for(int i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	for(uint32_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
 		vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
@@ -179,6 +164,12 @@ void TrVulkanRendererBase::OnCleanup()
 	vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
 
 	vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+
+	vkDestroyDescriptorSetLayout(mDevice, mImGuiDescriptorSetLayout, nullptr);
+	
+	vkDestroyPipeline(mDevice, mImGuiGraphicsPipeline, nullptr);
+
+	vkDestroyPipelineLayout(mDevice, mImGuiPipelineLayout, nullptr);
 
 	vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
 
@@ -202,6 +193,7 @@ void TrVulkanRendererBase::OnCleanup()
 	}
 
 	vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
+	vkDestroyDescriptorPool(mDevice, mImGuiDescriptorPool, nullptr);
 
 	// should before destroy device, because of the firs param
 	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
@@ -236,7 +228,6 @@ void TrVulkanRendererBase::CreateInstance()
 	createInfo.pApplicationInfo = &appInfo;
 
 	// extensions needed (for glfw, debugging......)
-	uint32_t glfwExtensionCount = 0;
 	std::vector<const char*> allExtensions;
 	allExtensions = GetRequiredExtensions();
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(allExtensions.size());
@@ -771,33 +762,51 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 	std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 	
-	VkSubpassDescription subPassDescription = {};
+	VkSubpassDescription subPassDescription0 = {};
 	// pipeline type that want to bind
-	subPassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
-	subPassDescription.colorAttachmentCount = 1;
-	subPassDescription.pColorAttachments = &colorAttachmentReference;
-	subPassDescription.pDepthStencilAttachment = &depthAttachmentReference;
-	
+	subPassDescription0.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
+	subPassDescription0.colorAttachmentCount = 1;
+	subPassDescription0.pColorAttachments = &colorAttachmentReference;
+	subPassDescription0.pDepthStencilAttachment = &depthAttachmentReference;
 
-	// sync
+	VkSubpassDescription subPassDescription1 = {};
+	// pipeline type that want to bind
+	subPassDescription1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
+	subPassDescription1.colorAttachmentCount = 1;
+	subPassDescription1.pColorAttachments = &colorAttachmentReference;
+	subPassDescription1.pDepthStencilAttachment = &depthAttachmentReference;
+	
+	std::array<VkSubpassDescription, 2> subPassDescriptions = {subPassDescription0, subPassDescription1};
+	// sync 
 	// define dependencies between sub passes
-	VkSubpassDependency subpassDependency = {};
-	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpassDependency.dstSubpass = 0;
-	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	VkSubpassDependency subpassDependency0 = {};
+	subpassDependency0.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependency0.dstSubpass = 0;
+	subpassDependency0.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency0.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency0.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency0.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	VkSubpassDependency subpassDependency1 = {};
+	subpassDependency1.srcSubpass = 0;
+	subpassDependency1.dstSubpass = 1;
+	subpassDependency1.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency1.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	std::array<VkSubpassDependency, 2> subpassDependencies = {subpassDependency0, subpassDependency1};
+
 
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassCreateInfo.attachmentCount = 2;
 	renderPassCreateInfo.pAttachments = attachments.data();
-	renderPassCreateInfo.subpassCount = 1;
-	renderPassCreateInfo.pSubpasses = &subPassDescription;
+	renderPassCreateInfo.subpassCount = 2;
+	renderPassCreateInfo.pSubpasses = subPassDescriptions.data();
 
-	renderPassCreateInfo.dependencyCount = 1;
-	renderPassCreateInfo.pDependencies = &subpassDependency;
+	renderPassCreateInfo.dependencyCount = 2;
+	renderPassCreateInfo.pDependencies = subpassDependencies.data();
 
 	if(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass) != VK_SUCCESS)
 	{
@@ -1118,7 +1127,7 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	{
-		// bind graphics pipeline
+		// bind graphics pipeline to the command buffer
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 
 		// Cmds
@@ -1149,14 +1158,145 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
 		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
 		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
+
+		// the assembled primitives execute the bound graphics pipeline
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mModels[0].mIndices.size()), 1, 0, 0, 0);
 
-		ImDrawData* draw_data = ImGui::GetDrawData();
-		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-		if (!is_minimized)
+		
+		// to transition to the next sub pass in the render pass instance after recording the commands for a sub pass
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+		
+		ImDrawData* imGuiDrawData = ImGui::GetDrawData();
+		const bool bMinimized = (imGuiDrawData->DisplaySize.x <= 0.0f || imGuiDrawData->DisplaySize.y <= 0.0f);
+		if (!bMinimized)
 		{
-			FrameRender(wd, draw_data);
-			FramePresent(wd);
+			/*FrameRender(wd, draw_data);
+			FramePresent(wd);*/
+
+			// expected frame buffer width and height of imgui draw data
+			int fbWidth = static_cast<int>(imGuiDrawData->DisplaySize.x * imGuiDrawData->FramebufferScale.x);
+			int fbHeight = static_cast<int>(imGuiDrawData->DisplaySize.y * imGuiDrawData->FramebufferScale.y);
+			if (fbWidth <= 0 || fbHeight <= 0)
+				return;
+			
+			// data to vertex and index buffer
+			if(imGuiDrawData->TotalVtxCount > 0)
+			{
+				size_t imGuiVertexSize = imGuiDrawData->TotalVtxCount * sizeof(ImDrawVert);
+				size_t imGuiIndexSize = imGuiDrawData->TotalIdxCount * sizeof(ImDrawIdx);
+
+				CreateOrReCreateBuffer(imGuiVertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mImGuiVertexBuffer, mImGuiVertexBufferMemory);
+				CreateOrReCreateBuffer(imGuiIndexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mImGuiIndexBuffer, mImGuiIndexBufferMemory);
+
+				ImDrawVert* imGuiVertexDst = nullptr;
+				ImDrawIdx* imGuiIndexDst = nullptr;
+
+				vkMapMemory(mDevice, mImGuiVertexBufferMemory, 0, imGuiVertexSize, 0, (void**)&imGuiVertexDst);
+				vkMapMemory(mDevice, mImGuiIndexBufferMemory, 0, imGuiIndexSize, 0, (void**)&imGuiIndexDst);
+
+				for (int n = 0; n < imGuiDrawData->CmdListsCount; n++)
+				{
+					const ImDrawList* imGuiCmdList = imGuiDrawData->CmdLists[n];
+					memcpy(imGuiVertexDst, imGuiCmdList->VtxBuffer.Data, imGuiCmdList->VtxBuffer.Size * sizeof(ImDrawVert));
+					memcpy(imGuiIndexDst, imGuiCmdList->IdxBuffer.Data, imGuiCmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
+					imGuiVertexDst += imGuiCmdList->VtxBuffer.Size;
+					imGuiIndexDst += imGuiCmdList->IdxBuffer.Size;
+				}
+
+				VkMappedMemoryRange range[2] = {};
+				range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+				range[0].memory = mImGuiVertexBufferMemory;
+				range[0].size = VK_WHOLE_SIZE;
+				range[1].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+				range[1].memory = mImGuiIndexBufferMemory;
+				range[1].size = VK_WHOLE_SIZE;
+				vkFlushMappedMemoryRanges(mDevice, 2, range);
+				vkUnmapMemory(mDevice, mImGuiVertexBufferMemory);
+				vkUnmapMemory(mDevice, mImGuiIndexBufferMemory);
+			}
+
+			// setup render state
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mImGuiGraphicsPipeline);
+
+			if(imGuiDrawData->TotalVtxCount > 0)
+			{
+				VkBuffer imGuivertexBuffers[] = {mImGuiVertexBuffer};
+				VkDeviceSize imGuiVertexOffset[] = {0};
+				vkCmdBindVertexBuffers(commandBuffer, 0, 1, imGuivertexBuffers, imGuiVertexOffset);
+				vkCmdBindIndexBuffer(commandBuffer, mImGuiIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+			}
+
+			VkViewport imGuiViewport;
+			imGuiViewport.x = 0;
+			imGuiViewport.y = 0;
+			imGuiViewport.width = (float)fbWidth;
+			imGuiViewport.height = (float)fbHeight;
+			imGuiViewport.minDepth = 0.0f;
+			imGuiViewport.maxDepth = 1.0f;
+			vkCmdSetViewport(commandBuffer, 0, 1, &imGuiViewport);
+
+			// scale and translation
+			float scale[2];
+			scale[0] = 2.0f / imGuiDrawData->DisplaySize.x;
+			scale[1] = 2.0f / imGuiDrawData->DisplaySize.y;
+			float translate[2];
+			translate[0] = -1.0f - imGuiDrawData->DisplayPos.x * scale[0];
+			translate[1] = -1.0f - imGuiDrawData->DisplayPos.y * scale[1];
+			vkCmdPushConstants(commandBuffer, mImGuiPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(float) * 0, sizeof(float) * 2, scale);
+			vkCmdPushConstants(commandBuffer, mImGuiPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(float) * 2, sizeof(float) * 2, translate);
+			
+			// scissor
+			ImVec2 clip_off = imGuiDrawData->DisplayPos;         // (0,0) unless using multi-viewports
+			ImVec2 clip_scale = imGuiDrawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+			int global_vtx_offset = 0;
+			int global_idx_offset = 0;
+
+			for (int n = 0; n < imGuiDrawData->CmdListsCount; n++)
+			{
+				const ImDrawList* cmd_list = imGuiDrawData->CmdLists[n];
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				{
+					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+					
+					// Project scissor/clipping rectangles into framebuffer space
+					ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+					ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
+
+					// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+					if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
+					if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
+					if (clip_max.x > fbWidth) { clip_max.x = (float)fbWidth; }
+					if (clip_max.y > fbHeight) { clip_max.y = (float)fbHeight; }
+					if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+						continue;
+
+					// Apply scissor/clipping rectangle
+					VkRect2D imGuiScissor;
+					imGuiScissor.offset.x = (int32_t)(clip_min.x);
+					imGuiScissor.offset.y = (int32_t)(clip_min.y);
+					imGuiScissor.extent.width = (uint32_t)(clip_max.x - clip_min.x);
+					imGuiScissor.extent.height = (uint32_t)(clip_max.y - clip_min.y);
+					vkCmdSetScissor(commandBuffer, 0, 1, &imGuiScissor);
+
+					// bind descriptor set with font texture
+					VkDescriptorSet desc_set[1] = { (VkDescriptorSet)pcmd->TextureId };
+					if (sizeof(ImTextureID) < sizeof(ImU64))
+					{
+						// We don't support texture switches if ImTextureID hasn't been redefined to be 64-bit. Do a flaky check that other textures haven't been used.
+						IM_ASSERT(pcmd->TextureId == (ImTextureID)mDescriptorSets[mCurrentFrame]);
+						desc_set[0] = mDescriptorSets[mCurrentFrame];
+					}
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mImGuiPipelineLayout, 0, 1, desc_set, 0, nullptr);
+
+					// draw
+					vkCmdDrawIndexed(commandBuffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
+				}
+				global_idx_offset += cmd_list->IdxBuffer.Size;
+				global_vtx_offset += cmd_list->VtxBuffer.Size;
+			}
+			VkRect2D scissor1 = { { 0, 0 }, { (uint32_t)fbWidth, (uint32_t)fbHeight } };
+			vkCmdSetScissor(commandBuffer, 0, 1, &scissor1);
 		}
 	}
 	
@@ -1168,9 +1308,18 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 	}
 }
 
-void TrVulkanRendererBase::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+void TrVulkanRendererBase::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
 	VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
+	if(buffer != VK_NULL_HANDLE)
+	{
+		vkDestroyBuffer(mDevice, buffer, nullptr);
+	}
+	if(bufferMemory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(mDevice, bufferMemory, nullptr);
+	}
+	
 	VkBufferCreateInfo bufferCreateInfo = {};
 	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferCreateInfo.size = size;
@@ -1223,8 +1372,8 @@ void TrVulkanRendererBase::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, Vk
 // use buffer that read by graphics card faster as vertex buffer
 void TrVulkanRendererBase::CreateVertexBuffer()
 {
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
+	VkBuffer stagingBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Vertices[0]) * TrVulkanGlobal::Vertices.size();
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexVertices[0]) * TrVulkanGlobal::TexVertices.size();
@@ -1237,7 +1386,7 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
 	// host writes are visible to the device, device writes are also visible to the host 
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
 	
 	void* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
@@ -1257,7 +1406,7 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
 	// VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for pass as an element of the pBuffers array to vkCmdBindVertexBuffers
 	VkBufferUsageFlags usageVertex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	CreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+	CreateOrReCreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
 
 	CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
 	
@@ -1267,8 +1416,8 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 
 void TrVulkanRendererBase::CreateIndexBuffer()
 {
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
+	VkBuffer stagingBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::Indices[0]) * TrVulkanGlobal::Indices.size();
 	// VkDeviceSize bufferSize = sizeof(TrVulkanGlobal::TexIndices3D[0]) * TrVulkanGlobal::TexIndices3D.size();
@@ -1276,7 +1425,7 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
 
 	// data from memory to device memory
 	void* dst;
@@ -1291,7 +1440,7 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	VkBufferUsageFlags usageIndex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	CreateBuffer(bufferSize, usageIndex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+	CreateOrReCreateBuffer(bufferSize, usageIndex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
 
 	// data from host-visible device memory to fast-read-write-access device memory
 	CopyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
@@ -1307,11 +1456,17 @@ void TrVulkanRendererBase::CreateUniformBuffers()
 	mUniformBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 	mUniformBuffersMemory.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 
+	for(auto i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		mUniformBuffers[i] = VK_NULL_HANDLE;
+		mUniformBuffersMemory[i] = VK_NULL_HANDLE;
+	}
+
 	for(size_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		CreateBuffer(bufferSize, usageFlags, propertyFlags, mUniformBuffers[i], mUniformBuffersMemory[i]);
+		CreateOrReCreateBuffer(bufferSize, usageFlags, propertyFlags, mUniformBuffers[i], mUniformBuffersMemory[i]);
 	}
 }
 
@@ -1636,7 +1791,7 @@ void TrVulkanRendererBase::CreateDescriptorSetLayout()
 
 	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
 	samplerDescriptorSetLayoutBinding.binding = 1;
-	samplerDescriptorSetLayoutBinding.descriptorCount = 2;
+	samplerDescriptorSetLayoutBinding.descriptorCount = 1; // accessed in a shader as an array
 	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
@@ -1669,7 +1824,7 @@ void TrVulkanRendererBase::CreateDescriptorPool()
 
 	VkDescriptorPoolCreateInfo poolCreateInfo = {};
 	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolCreateInfo.poolSizeCount = 1;
+	poolCreateInfo.poolSizeCount = 2;
 	poolCreateInfo.pPoolSizes = poolSizes.data();
 	poolCreateInfo.maxSets = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 
@@ -1720,15 +1875,10 @@ void TrVulkanRendererBase::CreateDescriptorSets()
 		texImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		texImageInfo.imageView = mTextureImageView;
 
-		VkDescriptorImageInfo fontImageInfo = {};
-		fontImageInfo.sampler = mFontSampler;
-		fontImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		fontImageInfo.imageView = mFontImageView;
-
-		std::array<VkDescriptorImageInfo, 2> imageInfos = {texImageInfo, fontImageInfo};
+		std::array<VkDescriptorImageInfo, 1> imageInfos = {texImageInfo};
 
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].descriptorCount = 2;
+		descriptorWrites[1].descriptorCount = 1;
 		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWrites[1].dstBinding = 1;
 		descriptorWrites[1].dstSet = mDescriptorSets[i];
@@ -1762,10 +1912,10 @@ void TrVulkanRendererBase::CreateTextureImage()
 	
 	// map pixel data to staging buffer
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
+	VkBuffer stagingBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	
-	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	CreateOrReCreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 	void* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, imageSize, 0, &dst);
@@ -1897,9 +2047,9 @@ void TrVulkanRendererBase::ImGuiCreateFontsTexture(VkCommandBuffer commandBuffer
 
 	mFontImageView = CreateImageView(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 	
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	CreateBuffer(uploadSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	VkBuffer stagingBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+	CreateOrReCreateBuffer(uploadSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 	char* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, uploadSize, 0, (void**)(&dst));
@@ -1919,8 +2069,281 @@ void TrVulkanRendererBase::ImGuiSetFontTexId()
 	io.Fonts->SetTexID((ImTextureID)mDescriptorSets[mCurrentFrame]);
 }
 
-void TrVulkanRendererBase::ImGuiRecordCommandBuffer(VkCommandBuffer commandBuffer)
+void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
 {
+	std::string shaderFilePrefix = std::string(TrVulkanGlobal::SHADER_FILE_STRING[TrVulkanGlobal::SHADER_FILE_ENUM::imGuiBase]);
+	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::vertSuffix);
+	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::fragSuffix);
+	
+	VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCompiledCode);
+	VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCompiledCode);
+
+	VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {};
+	vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertShaderStageCreateInfo.module = vertShaderModule;
+	vertShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertShaderStageCreateInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo = {};
+	fragShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragShaderStageCreateInfo.module = fragShaderModule;
+	fragShaderStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragShaderStageCreateInfo.pName = "main";
+	
+	VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] =
+	{
+		vertShaderStageCreateInfo,
+		fragShaderStageCreateInfo,
+	};
+	
+	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {};
+	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+	std::array<VkVertexInputBindingDescription, 1> bindingDesc = {};
+	bindingDesc[0].stride = sizeof(ImDrawVert);
+	bindingDesc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	std::array<VkVertexInputAttributeDescription, 3> attributeDesc = {};
+	attributeDesc[0].location = 0;
+	attributeDesc[0].binding = bindingDesc[0].binding;
+	attributeDesc[0].format = VK_FORMAT_R32G32_SFLOAT;
+	attributeDesc[0].offset = IM_OFFSETOF(ImDrawVert, pos);
+	attributeDesc[1].location = 1;
+	attributeDesc[1].binding = bindingDesc[0].binding;
+	attributeDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
+	attributeDesc[1].offset = IM_OFFSETOF(ImDrawVert, uv);
+	attributeDesc[2].location = 2;
+	attributeDesc[2].binding = bindingDesc[0].binding;
+	attributeDesc[2].format = VK_FORMAT_R8G8B8A8_UNORM;
+	attributeDesc[2].offset = IM_OFFSETOF(ImDrawVert, col);
+	
+	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+	vertexInputStateCreateInfo.pVertexBindingDescriptions = bindingDesc.data();
+
+	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = attributeDesc.size();
+	vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDesc.data();
+
+	// input assembly: what kind of primitive topology does vertex data define, whether to use primitive restart
+	VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
+	inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	// list or strip, point line or triangle
+	inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	// if enabled, use a special index to restart, index after this index reset to the first vert of primitive
+	inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+
+	// viewport and scissor
+	// viewport: image map to frame buffer
+	// scissor: pixels in which region is actually saved in frame buffer
+	/*VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = (float) mSwapChainExtent.height;
+	viewport.width = (float) mSwapChainExtent.width; // mSwapChainExtent may different from window
+	viewport.height = -((float) mSwapChainExtent.height);
+	
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor = {};
+	scissor.offset = {0, 0};
+	scissor.extent = mSwapChainExtent;*/
+
+	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
+	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportStateCreateInfo.viewportCount = 1;
+	viewportStateCreateInfo.scissorCount = 1;
+	// viewportStateCreateInfo.pViewports = &viewport;
+	// viewportStateCreateInfo.pScissors = &scissor;
+
+	// rasterization
+	VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {};
+	rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	// should fragments outside near plane and far plane be clamped to planes, rather than discarded
+	rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+	// no fragments output to frame buffer
+	rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+	rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizationStateCreateInfo.lineWidth = 1.0f;
+	// cull front, back, front and back
+	rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	// front face condition: clockwise or counter clockwise
+	rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+	// multisample
+	VkPipelineMultisampleStateCreateInfo multiSampleCreateInfo = {};
+	multiSampleCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multiSampleCreateInfo.sampleShadingEnable = VK_FALSE;
+	multiSampleCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	
+	// color blend: fragment color returned by fragment shader should blend with color in frame buffer corresponding pixel
+	// for each frame buffer 
+	VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {};
+	colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachmentState.blendEnable = VK_TRUE;
+	colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+	// for global color blend
+	VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo = {};
+	colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlendStateCreateInfo.attachmentCount = 1;
+	colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
+
+	// few pipeline states can change dynamically without rebuild pipeline
+	std::vector<VkDynamicState> dynamicStates =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR,
+	};
+	// need to re-specify values when draw
+	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
+	dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+	dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
+
+	// can make dynamic config to shader (uniform variables can be modified dynamically after creating pipeline)
+	VkPipelineLayoutCreateInfo layoutCreateInfo = {};
+	VkPushConstantRange pushConstants[1] = {};
+	pushConstants[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConstants[0].offset = sizeof(float) * 0;
+	pushConstants[0].size = sizeof(float) * 4;
+	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutCreateInfo.setLayoutCount = 1;
+	layoutCreateInfo.pushConstantRangeCount = 1;
+	layoutCreateInfo.pSetLayouts = &mImGuiDescriptorSetLayout;
+	layoutCreateInfo.pPushConstantRanges = pushConstants;
+	if(vkCreatePipelineLayout(mDevice, &layoutCreateInfo, nullptr, &mImGuiPipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_LAYOUT_FAILED]);
+	}
+
+	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS; // new frag can write into attachment when its depth less than depth in depth buffer
+	depthStencil.minDepthBounds = 0.0f;
+	depthStencil.maxDepthBounds = 1.0f;
+	// stencil
+	depthStencil.stencilTestEnable = VK_FALSE;
+	depthStencil.front = {};
+	depthStencil.back = {};
+	
+	// create graphics pipeline
+	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+	pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineCreateInfo.stageCount = 2; // vert & frag, each has a code file
+	pipelineCreateInfo.pStages = shaderStageCreateInfos;
+	// fixed stages
+	pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+	pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
+	pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+	pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+	pipelineCreateInfo.pMultisampleState = &multiSampleCreateInfo;
+	pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+	pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo; // for reduce rebuild graphics pipeline
+	pipelineCreateInfo.pDepthStencilState = &depthStencil;
+	
+	pipelineCreateInfo.layout = mImGuiPipelineLayout; // for uniform variables
+	pipelineCreateInfo.renderPass = mRenderPass;
+	pipelineCreateInfo.subpass = 1; // index
+	// for creating a new graphics pipeline with a created pipeline
+	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+	if(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mImGuiGraphicsPipeline) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_GRAPHICS_PIPELINE_FAILED]);
+	}
+
+	vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
+	vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
+}
+
+void TrVulkanRendererBase::CreateImGuiDescriptorSetLayout()
+{
+	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
+	samplerDescriptorSetLayoutBinding.binding = 0;
+	samplerDescriptorSetLayoutBinding.descriptorCount = 1; // accessed in a shader as an array
+	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = {samplerDescriptorSetLayoutBinding};
+
+	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+	descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descriptorSetLayoutCreateInfo.bindingCount = 1;
+	descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings.data();
+
+	if(vkCreateDescriptorSetLayout(mDevice, &descriptorSetLayoutCreateInfo, nullptr, &mImGuiDescriptorSetLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_SET_LAYOUT_FAILED]);
+	}
+}
+
+void TrVulkanRendererBase::CreateImGuiDescriptorPool()
+{
+	VkDescriptorPoolSize samplerPoolSize = {};
+	samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerPoolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	std::vector<VkDescriptorPoolSize> poolSizes = {samplerPoolSize};
+
+	VkDescriptorPoolCreateInfo poolCreateInfo = {};
+	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolCreateInfo.pPoolSizes = poolSizes.data();
+	poolCreateInfo.maxSets = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+
+	if(vkCreateDescriptorPool(mDevice, &poolCreateInfo, nullptr, &mImGuiDescriptorPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_DESCRIPTOR_POOL_FAILED]);
+	}
+}
+
+void TrVulkanRendererBase::CreateImGuiDescriptorSets()
+{
+	// layout object number should match set object number
+	std::vector<VkDescriptorSetLayout> setLayouts(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT, mImGuiDescriptorSetLayout);
+	
+	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+	descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptorSetAllocateInfo.descriptorPool = mImGuiDescriptorPool;
+	descriptorSetAllocateInfo.descriptorSetCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	descriptorSetAllocateInfo.pSetLayouts = setLayouts.data(); // layout object number must equal to descriptorSetCount
+	// descriptorSetAllocateInfo.pSetLayouts = &mDescriptorSetLayout; // wrong usage
+
+	mImGuiDescriptorSets.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	if(vkAllocateDescriptorSets(mDevice, &descriptorSetAllocateInfo, mImGuiDescriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_DESCRIPTOR_SETS_FAILED]);
+	}
+
+	// config buffers referenced by descriptor
+	for(uint32_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		VkDescriptorImageInfo fontImageInfo = {};
+		fontImageInfo.sampler = mFontSampler;
+		fontImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		fontImageInfo.imageView = mFontImageView;
+
+		std::vector<VkDescriptorImageInfo> imageInfos = {fontImageInfo};
+		
+		VkWriteDescriptorSet samplerDescriptorWrite = {};
+		samplerDescriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		samplerDescriptorWrite.descriptorCount = 1;
+		samplerDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerDescriptorWrite.dstBinding = 0;
+		samplerDescriptorWrite.dstSet = mImGuiDescriptorSets[i];
+		samplerDescriptorWrite.dstArrayElement = 0;
+		samplerDescriptorWrite.pImageInfo = imageInfos.data();
+		
+		// update config need VkWriteDescriptorSet
+		std::vector<VkWriteDescriptorSet> descriptorWrites = {samplerDescriptorWrite};
+
+		vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	}
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)

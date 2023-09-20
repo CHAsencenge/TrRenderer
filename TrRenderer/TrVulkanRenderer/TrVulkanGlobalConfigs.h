@@ -164,6 +164,8 @@ namespace TrVulkanGlobal
         ubo,
         textures,
         depth,
+
+        imGuiBase,
     };
 
     static std::unordered_map<SHADER_FILE_ENUM, const char*> SHADER_FILE_STRING =
@@ -173,6 +175,8 @@ namespace TrVulkanGlobal
         {SHADER_FILE_ENUM::ubo, "Shaders/shader_ubo"},
         {SHADER_FILE_ENUM::textures, "Shaders/shader_textures"},
         {SHADER_FILE_ENUM::depth, "Shaders/shader_depth"},
+        
+        {SHADER_FILE_ENUM::imGuiBase, "Shaders/shader_imgui"},
     };
 
     static const char* vertSuffix = "_vert.spv";
