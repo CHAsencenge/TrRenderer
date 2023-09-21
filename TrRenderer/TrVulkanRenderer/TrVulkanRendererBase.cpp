@@ -1191,8 +1191,11 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 				ImDrawVert* imGuiVertexDst = nullptr;
 				ImDrawIdx* imGuiIndexDst = nullptr;
 
-				vkMapMemory(mDevice, mImGuiVertexBufferMemory, 0, imGuiVertexSize, 0, (void**)&imGuiVertexDst);
-				vkMapMemory(mDevice, mImGuiIndexBufferMemory, 0, imGuiIndexSize, 0, (void**)&imGuiIndexDst);
+				VkPhysicalDeviceProperties deviceProperties;
+				vkGetPhysicalDeviceProperties(mPhysicalDevice, &deviceProperties);
+				vkMapMemory(mDevice, mImGuiVertexBufferMemory, 0, imGuiVertexSize + deviceProperties.limits.nonCoherentAtomSize - imGuiVertexSize % deviceProperties.limits.nonCoherentAtomSize, 0, (void**)&imGuiVertexDst);
+				vkMapMemory(mDevice, mImGuiIndexBufferMemory, 0, imGuiIndexSize + deviceProperties.limits.nonCoherentAtomSize - imGuiVertexSize % deviceProperties.limits.nonCoherentAtomSize, 0, (void**)&imGuiIndexDst);
+				
 
 				for (int n = 0; n < imGuiDrawData->CmdListsCount; n++)
 				{
@@ -1531,7 +1534,7 @@ void TrVulkanRendererBase::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 }
 
-// before vkCmdCopyBufferToImage, need to change image layout
+// before and after vkCmdCopyBufferToImage, need to change image layout
 void TrVulkanRendererBase::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
