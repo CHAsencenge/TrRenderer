@@ -71,11 +71,12 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateDescriptorPool();
 	CreateDescriptorSets();
 
-	ImGuiSetFontTexId();
+	InitImGuiBufferNum();
 	CreateImGuiDescriptorSetLayout();
 	CreateImGuiGraphicsPipeline();
 	CreateImGuiDescriptorPool();
 	CreateImGuiDescriptorSets();
+	ImGuiSetFontTexId();
 	
 	CreateCommandBuffers();
 	CreateSyncObjects();
@@ -1185,16 +1186,19 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 				size_t imGuiVertexSize = imGuiDrawData->TotalVtxCount * sizeof(ImDrawVert);
 				size_t imGuiIndexSize = imGuiDrawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-				CreateOrReCreateBuffer(imGuiVertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mImGuiVertexBuffer, mImGuiVertexBufferMemory);
-				CreateOrReCreateBuffer(imGuiIndexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mImGuiIndexBuffer, mImGuiIndexBufferMemory);
+				VkDeviceSize alignedVertexBufferSize = 0;
+				VkDeviceSize alignedIndexBufferSize = 0;
+				CreateOrReCreateBuffer(imGuiVertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, alignedVertexBufferSize, mImGuiVertexBuffers[mCurrentFrame], mImGuiVertexBufferMemories[mCurrentFrame]);
+				CreateOrReCreateBuffer(imGuiIndexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, alignedIndexBufferSize, mImGuiIndexBuffers[mCurrentFrame], mImGuiIndexBufferMemories[mCurrentFrame]);
 
 				ImDrawVert* imGuiVertexDst = nullptr;
 				ImDrawIdx* imGuiIndexDst = nullptr;
 
 				VkPhysicalDeviceProperties deviceProperties;
 				vkGetPhysicalDeviceProperties(mPhysicalDevice, &deviceProperties);
-				vkMapMemory(mDevice, mImGuiVertexBufferMemory, 0, imGuiVertexSize + deviceProperties.limits.nonCoherentAtomSize - imGuiVertexSize % deviceProperties.limits.nonCoherentAtomSize, 0, (void**)&imGuiVertexDst);
-				vkMapMemory(mDevice, mImGuiIndexBufferMemory, 0, imGuiIndexSize + deviceProperties.limits.nonCoherentAtomSize - imGuiVertexSize % deviceProperties.limits.nonCoherentAtomSize, 0, (void**)&imGuiIndexDst);
+				// deviceProperties.limits.nonCoherentAtomSize / 2 - imGuiVertexSize % deviceProperties.limits.nonCoherentAtomSize / 2
+				vkMapMemory(mDevice, mImGuiVertexBufferMemories[mCurrentFrame], 0, alignedVertexBufferSize, 0, (void**)&imGuiVertexDst);
+				vkMapMemory(mDevice, mImGuiIndexBufferMemories[mCurrentFrame], 0, alignedIndexBufferSize, 0, (void**)&imGuiIndexDst);
 				
 
 				for (int n = 0; n < imGuiDrawData->CmdListsCount; n++)
@@ -1208,14 +1212,14 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 
 				VkMappedMemoryRange range[2] = {};
 				range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-				range[0].memory = mImGuiVertexBufferMemory;
+				range[0].memory = mImGuiVertexBufferMemories[mCurrentFrame];
 				range[0].size = VK_WHOLE_SIZE;
 				range[1].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-				range[1].memory = mImGuiIndexBufferMemory;
+				range[1].memory = mImGuiIndexBufferMemories[mCurrentFrame];
 				range[1].size = VK_WHOLE_SIZE;
 				vkFlushMappedMemoryRanges(mDevice, 2, range);
-				vkUnmapMemory(mDevice, mImGuiVertexBufferMemory);
-				vkUnmapMemory(mDevice, mImGuiIndexBufferMemory);
+				vkUnmapMemory(mDevice, mImGuiVertexBufferMemories[mCurrentFrame]);
+				vkUnmapMemory(mDevice, mImGuiIndexBufferMemories[mCurrentFrame]);
 			}
 
 			// setup render state
@@ -1223,10 +1227,10 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 
 			if(imGuiDrawData->TotalVtxCount > 0)
 			{
-				VkBuffer imGuivertexBuffers[] = {mImGuiVertexBuffer};
+				VkBuffer imGuivertexBuffers[] = {mImGuiVertexBuffers[mCurrentFrame]};
 				VkDeviceSize imGuiVertexOffset[] = {0};
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, imGuivertexBuffers, imGuiVertexOffset);
-				vkCmdBindIndexBuffer(commandBuffer, mImGuiIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+				vkCmdBindIndexBuffer(commandBuffer, mImGuiIndexBuffers[mCurrentFrame], 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 			}
 
 			VkViewport imGuiViewport;
@@ -1282,14 +1286,20 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 					imGuiScissor.extent.height = (uint32_t)(clip_max.y - clip_min.y);
 					vkCmdSetScissor(commandBuffer, 0, 1, &imGuiScissor);
 
+					
 					// bind descriptor set with font texture
 					VkDescriptorSet desc_set[1] = { (VkDescriptorSet)pcmd->TextureId };
+					
+					IM_ASSERT(pcmd->TextureId == (ImTextureID)mImGuiDescriptorSets[mCurrentFrame]);
+					desc_set[0] = mImGuiDescriptorSets[mCurrentFrame];
+					ImGuiSetFontTexId();
 					if (sizeof(ImTextureID) < sizeof(ImU64))
 					{
 						// We don't support texture switches if ImTextureID hasn't been redefined to be 64-bit. Do a flaky check that other textures haven't been used.
-						IM_ASSERT(pcmd->TextureId == (ImTextureID)mDescriptorSets[mCurrentFrame]);
-						desc_set[0] = mDescriptorSets[mCurrentFrame];
+						IM_ASSERT(pcmd->TextureId == (ImTextureID)mImGuiDescriptorSets[mCurrentFrame]);
+						desc_set[0] = mImGuiDescriptorSets[mCurrentFrame];
 					}
+					// bind one or more descriptor sets to a command buffer
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mImGuiPipelineLayout, 0, 1, desc_set, 0, nullptr);
 
 					// draw
@@ -1312,7 +1322,7 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 }
 
 void TrVulkanRendererBase::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-	VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+	VkMemoryPropertyFlags propertyFlags, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	if(buffer != VK_NULL_HANDLE)
 	{
@@ -1322,10 +1332,12 @@ void TrVulkanRendererBase::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsa
 	{
 		vkFreeMemory(mDevice, bufferMemory, nullptr);
 	}
+
+	alignedBufferSize = ((size - 1) / mBufferMemoryAlignment + 1 ) * mBufferMemoryAlignment;
 	
 	VkBufferCreateInfo bufferCreateInfo = {};
 	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferCreateInfo.size = size;
+	bufferCreateInfo.size = alignedBufferSize;
 	bufferCreateInfo.usage = usage;
 	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // because only use one queue, do not need to share between queue families
 
@@ -1336,6 +1348,8 @@ void TrVulkanRendererBase::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsa
 	
 	VkMemoryRequirements memoryRequirements;
 	vkGetBufferMemoryRequirements(mDevice, buffer, &memoryRequirements);
+
+	mBufferMemoryAlignment = mBufferMemoryAlignment > memoryRequirements.alignment ? mBufferMemoryAlignment : memoryRequirements.alignment;
 
 	VkMemoryAllocateInfo memoryAllocateInfo = {}; // do not forget {} initialize
 	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1389,10 +1403,11 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: the host cache management commands are not needed to flush host writes to the device or make device writes visible to the host
 	// host writes are visible to the device, device writes are also visible to the host 
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+	VkDeviceSize alignedBufferSize = 0;
+	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, alignedBufferSize, stagingBuffer, stagingBufferMemory);
 	
 	void* dst;
-	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
+	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, &dst);
 	// but may not immediately copied to the memory
 	// so use VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure memory visible consistency
 	// or invoke vkFlushMappedMemoryRanges after writing to memory, invoke vkInvalidateMappedMemoryRanges before reading from memory
@@ -1401,7 +1416,7 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 		// memcpy(dst, TrVulkanGlobal::Vertices.data(), (size_t) bufferSize);
 		// memcpy(dst, TrVulkanGlobal::TexVertices.data(), (size_t) bufferSize);
 		// memcpy(dst, TrVulkanGlobal::TexVertices3D.data(), (size_t) bufferSize);
-		memcpy(dst, mModels[0].mVertices.data(), (size_t) bufferSize);
+		memcpy(dst, mModels[0].mVertices.data(), (size_t) alignedBufferSize);
 	}
 	
 	vkUnmapMemory(mDevice, stagingBufferMemory);
@@ -1409,9 +1424,10 @@ void TrVulkanRendererBase::CreateVertexBuffer()
 	// VK_BUFFER_USAGE_TRANSFER_DST_BIT: buffer can be used as the destination of a transfer command
 	// VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for pass as an element of the pBuffers array to vkCmdBindVertexBuffers
 	VkBufferUsageFlags usageVertex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	CreateOrReCreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+	VkDeviceSize alignedVertexBufferSize = 0;
+	CreateOrReCreateBuffer(bufferSize, usageVertex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, alignedVertexBufferSize, mVertexBuffer, mVertexBufferMemory);
 
-	CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
+	CopyBuffer(stagingBuffer, mVertexBuffer, alignedVertexBufferSize);
 	
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -1428,25 +1444,27 @@ void TrVulkanRendererBase::CreateIndexBuffer()
 	
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, stagingBuffer, stagingBufferMemory);
+	VkDeviceSize alignedBufferSize = 0;
+	CreateOrReCreateBuffer(bufferSize, usageStaging, propertyFlags, alignedBufferSize, stagingBuffer, stagingBufferMemory);
 
 	// data from memory to device memory
 	void* dst;
-	vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &dst);
+	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, &dst);
 
 	{
 		// memcpy(dst, TrVulkanGlobal::Indices.data(), (size_t) bufferSize);
 		// memcpy(dst, TrVulkanGlobal::TexIndices3D.data(), (size_t) bufferSize); 
-		memcpy(dst, mModels[0].mIndices.data(), (size_t) bufferSize); 
+		memcpy(dst, mModels[0].mIndices.data(), (size_t) alignedBufferSize); 
 	}
 	
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	VkBufferUsageFlags usageIndex = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	CreateOrReCreateBuffer(bufferSize, usageIndex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+	VkDeviceSize alignedIndexBufferSize = 0;
+	CreateOrReCreateBuffer(bufferSize, usageIndex, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, alignedIndexBufferSize, mIndexBuffer, mIndexBufferMemory);
 
 	// data from host-visible device memory to fast-read-write-access device memory
-	CopyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
+	CopyBuffer(stagingBuffer, mIndexBuffer, alignedIndexBufferSize);
 
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -1469,7 +1487,8 @@ void TrVulkanRendererBase::CreateUniformBuffers()
 	{
 		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		CreateOrReCreateBuffer(bufferSize, usageFlags, propertyFlags, mUniformBuffers[i], mUniformBuffersMemory[i]);
+		VkDeviceSize alignedBufferSize = 0;
+		CreateOrReCreateBuffer(bufferSize, usageFlags, propertyFlags, alignedBufferSize, mUniformBuffers[i], mUniformBuffersMemory[i]);
 	}
 }
 
@@ -1917,12 +1936,12 @@ void TrVulkanRendererBase::CreateTextureImage()
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
-	
-	CreateOrReCreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	VkDeviceSize alignedBufferSize = 0;
+	CreateOrReCreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, alignedBufferSize, stagingBuffer, stagingBufferMemory);
 
 	void* dst;
-	vkMapMemory(mDevice, stagingBufferMemory, 0, imageSize, 0, &dst);
-	memcpy(dst, pixels, (size_t)imageSize);
+	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, &dst);
+	memcpy(dst, pixels, (size_t)alignedBufferSize);
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	// free pixel data
@@ -2052,11 +2071,12 @@ void TrVulkanRendererBase::ImGuiCreateFontsTexture(VkCommandBuffer commandBuffer
 	
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
-	CreateOrReCreateBuffer(uploadSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	VkDeviceSize alignedBufferSize = 0;
+	CreateOrReCreateBuffer(uploadSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, alignedBufferSize, stagingBuffer, stagingBufferMemory);
 
 	char* dst;
-	vkMapMemory(mDevice, stagingBufferMemory, 0, uploadSize, 0, (void**)(&dst));
-	memcpy(dst, pixels, (size_t)uploadSize);
+	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, (void**)(&dst));
+	memcpy(dst, pixels, (size_t)alignedBufferSize);
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
 	TransitionImageLayout(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -2069,7 +2089,7 @@ void TrVulkanRendererBase::ImGuiSetFontTexId()
 {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	// Store our identifier
-	io.Fonts->SetTexID((ImTextureID)mDescriptorSets[mCurrentFrame]);
+	io.Fonts->SetTexID((ImTextureID)mImGuiDescriptorSets[(mCurrentFrame + 1) % 2]);
 }
 
 void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
@@ -2346,6 +2366,19 @@ void TrVulkanRendererBase::CreateImGuiDescriptorSets()
 		std::vector<VkWriteDescriptorSet> descriptorWrites = {samplerDescriptorWrite};
 
 		vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	}
+}
+
+void TrVulkanRendererBase::InitImGuiBufferNum()
+{
+	mImGuiVertexBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mImGuiIndexBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mImGuiVertexBufferMemories.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	mImGuiIndexBufferMemories.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	for(auto i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		mImGuiVertexBuffers[i] = VK_NULL_HANDLE;
+		mImGuiIndexBuffers[i] = VK_NULL_HANDLE;
 	}
 }
 

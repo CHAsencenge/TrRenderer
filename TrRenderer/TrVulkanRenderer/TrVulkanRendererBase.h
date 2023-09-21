@@ -156,7 +156,7 @@ private:
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     // Buffers in Vulkan can save arbitrary data that can be read by graphics memory
-    void CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     
@@ -239,6 +239,8 @@ private:
     void CreateImGuiDescriptorPool();
 
     void CreateImGuiDescriptorSets();
+
+    void InitImGuiBufferNum();
 
 #pragma endregion 
 
@@ -362,13 +364,13 @@ private:
 
     VkSampler mFontSampler;
 
-    VkBuffer mImGuiVertexBuffer = VK_NULL_HANDLE;
+    std::vector<VkBuffer> mImGuiVertexBuffers;
 
-    VkDeviceMemory mImGuiVertexBufferMemory;
+    std::vector<VkDeviceMemory> mImGuiVertexBufferMemories;
 
-    VkBuffer mImGuiIndexBuffer = VK_NULL_HANDLE;
+    std::vector<VkBuffer> mImGuiIndexBuffers;
 
-    VkDeviceMemory mImGuiIndexBufferMemory;
+    std::vector<VkDeviceMemory> mImGuiIndexBufferMemories;
 
     VkPipelineLayout mImGuiPipelineLayout;
 
@@ -379,6 +381,8 @@ private:
     VkDescriptorPool mImGuiDescriptorPool;
 
     std::vector<VkDescriptorSet> mImGuiDescriptorSets;
+
+    VkDeviceSize mBufferMemoryAlignment = 256;
 
 #pragma endregion 
 
