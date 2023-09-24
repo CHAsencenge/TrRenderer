@@ -76,6 +76,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateImGuiGraphicsPipeline();
 	CreateImGuiDescriptorPool();
 	CreateImGuiDescriptorSets();
+
+	
 	ImGuiSetFontTexId();
 	
 	CreateCommandBuffers();
