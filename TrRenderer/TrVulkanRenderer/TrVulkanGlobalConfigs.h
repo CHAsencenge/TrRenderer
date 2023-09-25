@@ -199,17 +199,26 @@ namespace TrVulkanGlobal
     static bool bTestBool = false;
 
     // MVP
+    static float rModelScaleRate = 0.005f; // r means drag float rate
     static float modelScaleRate = 1.0f;
 
+    static float rModelAngleAxis = 0.005f;
     static glm::vec3 modelAngleAxis(0.0f, 0.0f, 1.0f);
+    static float rModelRadiansAngle = 0.05f;
     static float modelRadiansAngle = 0.0f;
-    
-    static glm::vec3 viewEye(0.0f, 1000.0f, 3000.0f);
+
+    static float rViewEye = 1.0f;
+    static glm::vec3 viewEye(0.0f, 1000.0f, 2000.0f);
+    static float rViewCenter = 0.005f;
     static glm::vec3 viewCenter(0.0f, 0.0f, 0.0f);
+    static float rViewUp = 0.005f;
     static glm::vec3 viewUp(0.0f, 0.0f, 1.0f);
 
+    static float rProjRadiansFovy = 0.1f;
     static float projRadiansFovy = 45.0f;
+    static float rProjZNear = 1.0f;
     static float projZNear = 1.0f;
+    static float rProjZFar = 1.0f;
     static float projZFar = 5000.0f;
     
 }

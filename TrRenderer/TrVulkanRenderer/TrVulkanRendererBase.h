@@ -392,9 +392,9 @@ private:
 
 #pragma region DynamicConfigs
 
-    glm::vec3 mMvpModelAngleAxis = TrVulkanGlobal::modelAngleAxis;
+    glm::vec3 mMvpModelAngleAxis = {0.0f, 0.0f, 1.0f};
     
-    float mMvpModelRadiansAngle = TrVulkanGlobal::modelRadiansAngle;
+    float* mMvpModelRadiansAngle = &TrVulkanGlobal::modelRadiansAngle;
 
     glm::vec3 mMvpViewEye = TrVulkanGlobal::viewEye;
     
