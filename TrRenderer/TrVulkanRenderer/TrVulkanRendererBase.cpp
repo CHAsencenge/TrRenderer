@@ -802,7 +802,7 @@ void TrVulkanRendererBase::CreateRenderPass()
 	subPassDescription1.colorAttachmentCount = 1;
 	subPassDescription1.pColorAttachments = &colorAttachmentReference;
 	
-	// subPassDescription1.pDepthStencilAttachment = &depthAttachmentReference; // do not use this for UI
+	subPassDescription1.pDepthStencilAttachment = &depthAttachmentReference; // do not use this for UI
 	
 	std::array<VkSubpassDescription, 2> subPassDescriptions = {subPassDescription0, subPassDescription1};
 	// sync 
@@ -1295,6 +1295,7 @@ void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, ui
 			for (int n = 0; n < imGuiDrawData->CmdListsCount; n++)
 			{
 				const ImDrawList* cmd_list = imGuiDrawData->CmdLists[n];
+				// for (int cmd_i = cmd_list->CmdBuffer.Size -1; cmd_i >= 0; cmd_i--)
 				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 				{
 					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -2233,11 +2234,13 @@ void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
 	// for each frame buffer 
 	VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {};
 	colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	// colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
 	colorBlendAttachmentState.blendEnable = VK_TRUE;
+	// colorBlendAttachmentState.blendEnable = VK_FALSE;
 	colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	colorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	colorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 	// for global color blend
@@ -2245,6 +2248,13 @@ void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
 	colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlendStateCreateInfo.attachmentCount = 1;
 	colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
+
+	/*colorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
+	colorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY;
+	colorBlendStateCreateInfo.blendConstants[0] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[1] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[2] = 0.0f;
+	colorBlendStateCreateInfo.blendConstants[3] = 0.0f;*/
 
 	// few pipeline states can change dynamically without rebuild pipeline
 	std::vector<VkDynamicState> dynamicStates =
@@ -2276,9 +2286,11 @@ void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_FALSE;
 	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_FALSE;
 	depthStencil.depthWriteEnable = VK_TRUE;
-	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS; // new frag can write into attachment when its depth less than depth in depth buffer
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL; // new frag can write into attachment when its depth less than depth in depth buffer
 	depthStencil.minDepthBounds = 0.0f;
 	depthStencil.maxDepthBounds = 1.0f;
 	// stencil
