@@ -242,6 +242,8 @@ private:
 
     void InitImGuiBufferNum();
 
+    void CreateTestRenderPassImGuiOnly();
+
 #pragma endregion 
 
 

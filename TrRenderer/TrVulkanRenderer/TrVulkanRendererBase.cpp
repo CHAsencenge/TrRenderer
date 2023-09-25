@@ -47,6 +47,7 @@ void TrVulkanRendererBase::OnInitVulkan()
 	CreateLogicalDevice();
 	CreateSwapChain();
 	CreateSwapChainImageViews();
+	// CreateTestRenderPassImGuiOnly();
 	CreateRenderPass();
 	// before pipeline
 	CreateDescriptorSetLayout();
@@ -800,7 +801,8 @@ void TrVulkanRendererBase::CreateRenderPass()
 	subPassDescription1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
 	subPassDescription1.colorAttachmentCount = 1;
 	subPassDescription1.pColorAttachments = &colorAttachmentReference;
-	subPassDescription1.pDepthStencilAttachment = &depthAttachmentReference;
+	
+	// subPassDescription1.pDepthStencilAttachment = &depthAttachmentReference; // do not use this for UI
 	
 	std::array<VkSubpassDescription, 2> subPassDescriptions = {subPassDescription0, subPassDescription1};
 	// sync 
@@ -819,7 +821,7 @@ void TrVulkanRendererBase::CreateRenderPass()
 	subpassDependency1.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	subpassDependency1.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpassDependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	subpassDependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 	std::array<VkSubpassDependency, 2> subpassDependencies = {subpassDependency0, subpassDependency1};
 
@@ -833,6 +835,8 @@ void TrVulkanRendererBase::CreateRenderPass()
 
 	renderPassCreateInfo.dependencyCount = 2;
 	renderPassCreateInfo.pDependencies = subpassDependencies.data();
+
+	
 
 	if(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass) != VK_SUCCESS)
 	{
@@ -1066,6 +1070,10 @@ void TrVulkanRendererBase::CreateFrameBuffers()
 			mSwapChainImageViews[i],
 			mDepthImageView,
 		};
+		/*std::array<VkImageView, 1> attachments =
+		{
+			mSwapChainImageViews[i],
+		};*/
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.renderPass = mRenderPass;
@@ -2296,6 +2304,7 @@ void TrVulkanRendererBase::CreateImGuiGraphicsPipeline()
 	pipelineCreateInfo.layout = mImGuiPipelineLayout; // for uniform variables
 	pipelineCreateInfo.renderPass = mRenderPass;
 	pipelineCreateInfo.subpass = 1; // index
+	// pipelineCreateInfo.subpass = 0;
 	// for creating a new graphics pipeline with a created pipeline
 	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -2404,6 +2413,69 @@ void TrVulkanRendererBase::InitImGuiBufferNum()
 	{
 		mImGuiVertexBuffers[i] = VK_NULL_HANDLE;
 		mImGuiIndexBuffers[i] = VK_NULL_HANDLE;
+	}
+}
+
+void TrVulkanRendererBase::CreateTestRenderPassImGuiOnly()
+{
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = mSwapChainImageFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // process approach to attachment before render
+	// the contents generated during the render pass and within the render area are written to memory
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // process approach to attachment after render
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // process approach to stencil of attachment before render
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // process approach to stencil of attachment after render
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // attachment layout before render
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // attachment layout after render, image is used to present in swapchain
+
+	// a render pass can contain multiple sub passes
+	// a sub pass references to the frame buffer content processed by last phase
+	// each sub pass can reference one or more attachments
+	VkAttachmentReference colorAttachmentReference = {};
+	colorAttachmentReference.attachment = 0;
+	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // best image layout for using as color attachment
+
+
+	
+
+	std::array<VkAttachmentDescription, 2> attachments = {colorAttachment};
+
+	VkSubpassDescription subPassDescription1 = {};
+	// pipeline type that want to bind
+	subPassDescription1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; // means this is a graphics sub pass, rather than a compute sub pass
+	subPassDescription1.colorAttachmentCount = 1;
+	subPassDescription1.pColorAttachments = &colorAttachmentReference;
+	
+	std::array<VkSubpassDescription, 2> subPassDescriptions = {subPassDescription1};
+	// sync 
+	// define dependencies between sub passes
+	VkSubpassDependency subpassDependency1 = {};
+	subpassDependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependency1.dstSubpass = 0;
+	subpassDependency1.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency1.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	std::array<VkSubpassDependency, 2> subpassDependencies = {subpassDependency1};
+
+
+	VkRenderPassCreateInfo renderPassCreateInfo = {};
+	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassCreateInfo.attachmentCount = 1;
+	renderPassCreateInfo.pAttachments = attachments.data();
+	renderPassCreateInfo.subpassCount = 1;
+	renderPassCreateInfo.pSubpasses = subPassDescriptions.data();
+
+	renderPassCreateInfo.dependencyCount = 1;
+	renderPassCreateInfo.pDependencies = subpassDependencies.data();
+
+	
+
+	if(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass) != VK_SUCCESS)
+	{
+		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_RENDER_PASS_FAILED]);
 	}
 }
 
