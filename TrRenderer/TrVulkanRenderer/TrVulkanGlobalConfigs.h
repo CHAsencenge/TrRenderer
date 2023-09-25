@@ -191,8 +191,25 @@ namespace TrVulkanGlobal
         
     };
 
+    static bool bShowTrVulkanConfigWindow = true;
     static bool bShowDemoWindow = true;
     static bool bShowAnotherWindow = false;
     static glm::vec4 clearColor = {0.45f, 0.55f, 0.60f, 1.00f};
+
+    static bool bTestBool = false;
+
+    // MVP
+    static float modelScaleRate = 1.0f;
+
+    static glm::vec3 modelAngleAxis(0.0f, 0.0f, 1.0f);
+    static float modelRadiansAngle = 0.0f;
+    
+    static glm::vec3 viewEye(0.0f, 1000.0f, 3000.0f);
+    static glm::vec3 viewCenter(0.0f, 0.0f, 0.0f);
+    static glm::vec3 viewUp(0.0f, 0.0f, 1.0f);
+
+    static float projRadiansFovy = 45.0f;
+    static float projZNear = 1.0f;
+    static float projZFar = 5000.0f;
     
 }

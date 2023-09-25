@@ -244,7 +244,9 @@ private:
 
     void CreateTestRenderPassImGuiOnly();
 
-#pragma endregion 
+#pragma endregion
+
+    void UpdateGlobalConfigs();
 
 
 private:
@@ -386,7 +388,28 @@ private:
 
     VkDeviceSize mBufferMemoryAlignment = 256;
 
-#pragma endregion 
+#pragma endregion
+
+#pragma region DynamicConfigs
+
+    glm::vec3 mMvpModelAngleAxis = TrVulkanGlobal::modelAngleAxis;
+    
+    float mMvpModelRadiansAngle = TrVulkanGlobal::modelRadiansAngle;
+
+    glm::vec3 mMvpViewEye = TrVulkanGlobal::viewEye;
+    
+    glm::vec3 mMvpViewCenter = TrVulkanGlobal::viewCenter;
+    
+    glm::vec3 mMvpViewUp = TrVulkanGlobal::viewUp;
+
+    float mMvpProjRadiansFovy = TrVulkanGlobal::projRadiansFovy;
+    
+    float mMvpProjZNear = TrVulkanGlobal::projZNear;
+    
+    float mMvpProjZFar = TrVulkanGlobal::projZFar;
+
+
+#pragma endregion
 
 };
 

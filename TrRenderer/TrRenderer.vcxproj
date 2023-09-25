@@ -179,6 +179,7 @@
     <ClInclude Include="TrSoftwareRenderer\Window.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanDescriptor.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanGlobalConfigs.h" />
+    <ClInclude Include="TrVulkanRenderer\TrVulkanImGuiConfig.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanModel.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanQueueFamily.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanRendererBase.h" />
@@ -810,6 +811,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TrVulkanRenderer\TrVulkanDescriptor.cpp" />
+    <ClCompile Include="TrVulkanRenderer\TrVulkanImGuiConfig.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanModel.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanQueueFamily.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanRendererBase.cpp" />

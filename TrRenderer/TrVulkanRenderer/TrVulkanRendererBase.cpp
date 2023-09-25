@@ -7,6 +7,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "TrVulkanImGuiConfig.h"
+
 TrVulkanRendererBase::TrVulkanRendererBase()
 {
 }
@@ -123,31 +125,10 @@ void TrVulkanRendererBase::OnRenderImGui()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	if (TrVulkanGlobal::bShowDemoWindow)
-		ImGui::ShowDemoWindow(&TrVulkanGlobal::bShowDemoWindow);
-
-	{
-		bool show_demo_window = true;
-		static float f = 0.0f;
-		static int counter = 0;
-
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", (float*)&TrVulkanGlobal::clearColor); // Edit 3 floats representing a color
-
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::End();
-	}
+	TrVulkanImGuiConfig::ShowTrVulkanConfig(&TrVulkanGlobal::bShowTrVulkanConfigWindow);
+	
+	/*if (TrVulkanGlobal::bShowDemoWindow)
+		ImGui::ShowDemoWindow(&TrVulkanGlobal::bShowDemoWindow);*/
 
 	// Rendering
 	ImGui::Render();
@@ -161,8 +142,6 @@ void TrVulkanRendererBase::OnRender()
 		glfwPollEvents();
 		
 		DrawFrame();
-
-		
 	}
 
 	// because draw frame is an async operation
@@ -1714,6 +1693,8 @@ void TrVulkanRendererBase::DrawFrame()
 	// get an image from the swap chain
 	uint32_t imageIndex; // use this index to commit the correspond command buffer
 	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame] ,VK_NULL_HANDLE, &imageIndex);
+
+	UpdateGlobalConfigs();
 	
 	// update transform per frame
 	UpdateUniformBuffer(mCurrentFrame);
@@ -1779,14 +1760,14 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	ubo.mModel = glm::rotate(glm::mat4(mModels[0].mScale), time * glm::radians(9.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mModel = glm::rotate(glm::mat4(mModels[0].mScale), time * glm::radians(mMvpModelRadiansAngle), mMvpModelAngleAxis);
 	// ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// source, target, up 
 	// ubo.mView = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.mView = glm::lookAt(glm::vec3(0.0f, 1000.0f, 3000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.mView = glm::lookAt(mMvpViewEye, mMvpViewCenter, mMvpViewUp);
 	// fov vertical angle, aspect, near, far
-	ubo.mProj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 1.0f, 5000.0f);
+	ubo.mProj = glm::perspective(glm::radians(mMvpProjRadiansFovy), mSwapChainExtent.width / (float) mSwapChainExtent.height, mMvpProjZNear, mMvpProjZFar);
 	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
 	// ubo.mProj[1][1] *= -1;
 
@@ -2489,6 +2470,11 @@ void TrVulkanRendererBase::CreateTestRenderPassImGuiOnly()
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_RENDER_PASS_FAILED]);
 	}
+}
+
+void TrVulkanRendererBase::UpdateGlobalConfigs()
+{
+	mModels[0].mScale = TrVulkanGlobal::modelScaleRate;
 }
 
 // all extensions needed by vulkan instance (for GLFW and for debugging)
