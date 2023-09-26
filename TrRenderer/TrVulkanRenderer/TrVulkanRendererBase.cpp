@@ -58,8 +58,8 @@ void TrVulkanRendererBase::OnInitVulkan()
 	// before create frame buffers
 	CreateDepthResources();
 	CreateFrameBuffers();
-	// LoadModels(std::vector<std::string>(1, "chalet"));
-	LoadModels(std::vector<std::string>(1, "Tree"));
+	LoadModels(std::vector<std::string>(1, "chalet"));
+	// LoadModels(std::vector<std::string>(1, "Tree"));
 	// after create command pool
 	CreateTextureImage();
 	CreateTextureImageView();
