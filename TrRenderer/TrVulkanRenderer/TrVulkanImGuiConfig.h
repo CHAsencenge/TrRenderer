@@ -3,7 +3,7 @@
 class TrVulkanImGuiConfig
 {
 public:
-    static void ShowTrVulkanConfig(bool* bOpen, float* test);
+    static void ShowTrVulkanConfig(bool* bOpen);
 };
 
 

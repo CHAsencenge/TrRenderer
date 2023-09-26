@@ -125,9 +125,8 @@ void TrVulkanRendererBase::OnRenderImGui()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	TrVulkanImGuiConfig::ShowTrVulkanConfig(&TrVulkanGlobal::bShowTrVulkanConfigWindow, &TrVulkanGlobal::modelRadiansAngle);
-
-	// std::cout << TrVulkanGlobal::modelRadiansAngle << std::endl;
+	TrVulkanImGuiConfig::ShowTrVulkanConfig(&TrVulkanGlobal::bShowTrVulkanConfigWindow);
+	
 	/*if (TrVulkanGlobal::bShowDemoWindow)
 		ImGui::ShowDemoWindow(&TrVulkanGlobal::bShowDemoWindow);*/
 
@@ -1111,8 +1110,6 @@ void TrVulkanRendererBase::CreateCommandBuffers()
 void TrVulkanRendererBase::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
 	OnRenderImGui();
-
-	std::cout << TrVulkanGlobal::modelRadiansAngle << std::endl;
 	
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1690,7 +1687,6 @@ void TrVulkanRendererBase::DrawFrame()
 	// can get fence state by vkWaitForFences, but can not get semaphore state
 
 	// parallel, submit 0 then wait 1, submit 1 then wait 0
-	// std::cout << "TrVulkanRendererBase::DrawFrame 0   " << mCurrentFrame << std::endl;
 	vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 
 	// get an image from the swap chain
@@ -1698,8 +1694,6 @@ void TrVulkanRendererBase::DrawFrame()
 	vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame] ,VK_NULL_HANDLE, &imageIndex);
 
 	UpdateGlobalConfigs();
-
-	std::cout << TrVulkanGlobal::modelRadiansAngle << std::endl;
 	
 	// update transform per frame
 	UpdateUniformBuffer(mCurrentFrame);
@@ -1713,8 +1707,6 @@ void TrVulkanRendererBase::DrawFrame()
 	// execute commands in command buffer for frame buffer attachment
 	vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
 	RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
-
-	std::cout << TrVulkanGlobal::modelRadiansAngle << std::endl;
 	
 	// submit command buffers to command queue
 	VkSubmitInfo submitInfo = {};
@@ -1733,7 +1725,6 @@ void TrVulkanRendererBase::DrawFrame()
 	submitInfo.pSignalSemaphores = signalSemaphores; // sync
 
 	// fence: sync operation when command buffers has been executed
-	// std::cout << "TrVulkanRendererBase::DrawFrame 1   " << mCurrentFrame << std::endl;
 	if(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::SUBMIT_DRAW_COMMAND_BUFFER_FAILED]);
@@ -1754,7 +1745,6 @@ void TrVulkanRendererBase::DrawFrame()
 
 	// vkQueueWaitIdle(mPresentQueue);
 	mCurrentFrame = (mCurrentFrame + 1) % TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT;
-	// std::cout << "TrVulkanRendererBase::DrawFrame 2   " << mCurrentFrame << std::endl;
 }
 
 void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
@@ -1766,8 +1756,7 @@ void TrVulkanRendererBase::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	float a = *mMvpModelRadiansAngle;
-	ubo.mModel = glm::rotate(glm::mat4(mModels[0].mScale), glm::radians(a), mMvpModelAngleAxis);
+	ubo.mModel = glm::rotate(glm::mat4(mModels[0].mScale), glm::radians(mMvpModelRadiansAngle), mMvpModelAngleAxis);
 	// ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// source, target, up 
@@ -2485,7 +2474,7 @@ void TrVulkanRendererBase::UpdateGlobalConfigs()
 	mModels[0].mScale = TrVulkanGlobal::modelScaleRate;
 	
 	mMvpModelAngleAxis = TrVulkanGlobal::modelAngleAxis;
-	// mMvpModelRadiansAngle = TrVulkanGlobal::modelRadiansAngle;
+	mMvpModelRadiansAngle = TrVulkanGlobal::modelRadiansAngle;
 	// mMvpModelRadiansAngle = 45.0f;
 	// View
 	mMvpViewEye = TrVulkanGlobal::viewEye;

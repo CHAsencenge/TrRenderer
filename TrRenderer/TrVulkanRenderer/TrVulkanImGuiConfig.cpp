@@ -5,7 +5,7 @@
 #include "TrVulkanGlobalConfigs.h"
 
 
-void TrVulkanImGuiConfig::ShowTrVulkanConfig(bool* bOpen, float* test)
+void TrVulkanImGuiConfig::ShowTrVulkanConfig(bool* bOpen)
 {
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context.");
     
@@ -44,9 +44,6 @@ void TrVulkanImGuiConfig::ShowTrVulkanConfig(bool* bOpen, float* test)
             static float drag_f = 0.5f;
             ImGui::DragFloat("modelScaleRate", &TrVulkanGlobal::modelScaleRate, TrVulkanGlobal::rModelScaleRate);
             // ImGui::DragFloat("modelScaleRate", &drag_f, 0.01f);
-
-            // static float vec4a[4] = { 0.10f, 0.20f, 0.30f, 0.44f };
-            // ImGui::InputFloat3("input float3", vec4a);
             
             ImGui::InputFloat("rModelAngleAxis", &TrVulkanGlobal::rModelAngleAxis, 0.01f, 1.0f, "%.4f");
             ImGui::DragFloat("modelAngleAxisX", &TrVulkanGlobal::modelAngleAxis.x, TrVulkanGlobal::rModelScaleRate);
@@ -57,13 +54,7 @@ void TrVulkanImGuiConfig::ShowTrVulkanConfig(bool* bOpen, float* test)
             
             static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
             ImGui::InputFloat("rModelRadiansAngle", &TrVulkanGlobal::rModelRadiansAngle, 0.01f, 1.0f, "%.4f");
-            ImGui::DragFloat("modelRadiansAngle", test, 0.05f);
-            // ImGui::DragFloat("modelRadiansAngle", &TrVulkanGlobal::modelRadiansAngle, 0.05f);
-            // std::cout << TrVulkanGlobal::modelRadiansAngle << std::endl;
-            
-            /*static float modelRadiansAngle = 0.0f;
-            ImGui::SliderFloat("modelRadiansAngle", &modelRadiansAngle, 0.0f, 360.0f, "%.3f", flags);*/
-            
+            ImGui::DragFloat("modelRadiansAngle", &TrVulkanGlobal::modelRadiansAngle, 0.05f);
             
             ImGui::SeparatorText("View");
 

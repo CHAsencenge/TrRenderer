@@ -811,6 +811,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TrVulkanRenderer\TrVulkanDescriptor.cpp" />
+    <ClCompile Include="TrVulkanRenderer\TrVulkanGlobalConfigs.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanImGuiConfig.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanModel.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanQueueFamily.cpp" />

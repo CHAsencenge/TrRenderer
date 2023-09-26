@@ -3,16 +3,17 @@
 #include <vector>
 #include "TrVulkanVertex.h"
 
-// make variables static, prevent from defining multiple times in each cpp including this header
-namespace TrVulkanGlobal
+
+class TrVulkanGlobal
 {
-    static const std::vector<const char*> validationLayers =
+public:
+    inline static const std::vector<const char*> validationLayers =
     {
         "VK_LAYER_KHRONOS_validation"
     };
 
     // device extensions needed
-    static const std::vector<const char*> deviceExtensions =
+    inline static const std::vector<const char*> deviceExtensions =
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         // VK_KHR_MAINTENANCE_1_EXTENSION_NAME,
@@ -57,7 +58,7 @@ namespace TrVulkanGlobal
         LOAD_TEXTURE_IMAGE_FAILED,
     };
     
-    static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
+    inline static std::unordered_map<RUNTIME_ERROR_ENUM, const char*> RUNTIME_ERROR_STRING =
     {
         {RUNTIME_ERROR_ENUM::CREATE_INSTANCE_FAILED, "failed to create instance!"},
         {RUNTIME_ERROR_ENUM::SETUP_DEBUG_MESSENGER_FAILED, "failed to setup debug messenger!"},
@@ -102,15 +103,15 @@ namespace TrVulkanGlobal
         UNSUPPORTED_LAYOUT_TRANSITION,
     };
 
-    static std::unordered_map<INVALID_ARGUMENT_ENUM, const char*> INVALID_ARGUMENT_STRING =
+    inline static std::unordered_map<INVALID_ARGUMENT_ENUM, const char*> INVALID_ARGUMENT_STRING =
     {
         {INVALID_ARGUMENT_ENUM::UNSUPPORTED_LAYOUT_TRANSITION, "unsupported layout transition!"},
     };
 
-    static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    inline static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
     // interleaving vertex attributes
-    static std::vector<TrVulkanVertex2DBase> Vertices =
+    inline static std::vector<TrVulkanVertex2DBase> Vertices =
     {
         {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -119,7 +120,7 @@ namespace TrVulkanGlobal
     };
 
     
-    static std::vector<TrVulkanVertex2DTex> TexVertices =
+    inline static std::vector<TrVulkanVertex2DTex> TexVertices =
     {
         {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
         {{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
@@ -127,7 +128,7 @@ namespace TrVulkanGlobal
         {{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
     };
 
-    static std::vector<TrVulkanVertex3DTex> TexVertices3D =
+    inline static std::vector<TrVulkanVertex3DTex> TexVertices3D =
     {
         {{{-0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, {0.0f, 0.0f}},
         {{{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, {1.0f, 0.0f}},
@@ -140,13 +141,13 @@ namespace TrVulkanGlobal
         {{{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, {1.0f, 1.0f}},
     };
 
-    static std::vector<uint16_t> Indices =
+    inline static std::vector<uint16_t> Indices =
     {
         0, 1, 2,
         2, 3, 0
     };
 
-    static std::vector<uint16_t> TexIndices3D =
+    inline static std::vector<uint16_t> TexIndices3D =
     {
         0, 1, 2,
         1, 3, 2,
@@ -168,7 +169,7 @@ namespace TrVulkanGlobal
         imGuiBase,
     };
 
-    static std::unordered_map<SHADER_FILE_ENUM, const char*> SHADER_FILE_STRING =
+    inline static std::unordered_map<SHADER_FILE_ENUM, const char*> SHADER_FILE_STRING =
     {
         {SHADER_FILE_ENUM::base, "Shaders/shader"},
         {SHADER_FILE_ENUM::vertexbuffer, "Shaders/shader_vertexbuffer"},
@@ -179,10 +180,10 @@ namespace TrVulkanGlobal
         {SHADER_FILE_ENUM::imGuiBase, "Shaders/shader_imgui"},
     };
 
-    static const char* vertSuffix = "_vert.spv";
-    static const char* fragSuffix = "_frag.spv";
+    inline static const char* vertSuffix = "_vert.spv";
+    inline static const char* fragSuffix = "_frag.spv";
 
-    static std::vector<std::string> texSuffix =
+    inline static std::vector<std::string> texSuffix =
     {
         ".jpg",
         ".bmp",
@@ -191,34 +192,41 @@ namespace TrVulkanGlobal
         
     };
 
-    static bool bShowTrVulkanConfigWindow = true;
-    static bool bShowDemoWindow = true;
-    static bool bShowAnotherWindow = false;
-    static glm::vec4 clearColor = {0.45f, 0.55f, 0.60f, 1.00f};
+    inline static bool bShowTrVulkanConfigWindow = true;
+    inline static bool bShowDemoWindow = true;
+    inline static bool bShowAnotherWindow = false;
+    inline static glm::vec4 clearColor = {0.45f, 0.55f, 0.60f, 1.00f};
 
-    static bool bTestBool = false;
+    inline static bool bTestBool = false;
 
     // MVP
-    static float rModelScaleRate = 0.005f; // r means drag float rate
-    static float modelScaleRate = 1.0f;
+    inline static float rModelScaleRate = 0.005f; // r means drag float rate
+    inline static float modelScaleRate = 1.0f;
 
-    static float rModelAngleAxis = 0.005f;
-    static glm::vec3 modelAngleAxis(0.0f, 0.0f, 1.0f);
-    static float rModelRadiansAngle = 0.05f;
-    static float modelRadiansAngle = 0.0f;
+    inline static float rModelAngleAxis = 0.005f;
+    inline static glm::vec3 modelAngleAxis = {0.0f, 0.0f, 1.0f};
+    inline static float rModelRadiansAngle = 0.05f;
+    inline static float modelRadiansAngle = 0.0f;
 
-    static float rViewEye = 1.0f;
-    static glm::vec3 viewEye(0.0f, 1000.0f, 2000.0f);
-    static float rViewCenter = 0.005f;
-    static glm::vec3 viewCenter(0.0f, 0.0f, 0.0f);
-    static float rViewUp = 0.005f;
-    static glm::vec3 viewUp(0.0f, 0.0f, 1.0f);
+    inline static float rViewEye = 1.0f;
+    inline static glm::vec3 viewEye = {0.0f, 1000.0f, 2000.0f};
+    inline static float rViewCenter = 0.005f;
+    inline static glm::vec3 viewCenter = {0.0f, 0.0f, 0.0f};
+    inline static float rViewUp = 0.005f;
+    inline static glm::vec3 viewUp = {0.0f, 0.0f, 1.0f};
 
-    static float rProjRadiansFovy = 0.1f;
-    static float projRadiansFovy = 45.0f;
-    static float rProjZNear = 1.0f;
-    static float projZNear = 1.0f;
-    static float rProjZFar = 1.0f;
-    static float projZFar = 5000.0f;
+    inline static float rProjRadiansFovy = 0.1f;
+    inline static float projRadiansFovy = 45.0f;
+    inline static float rProjZNear = 1.0f;
+    inline static float projZNear = 1.0f;
+    inline static float rProjZFar = 1.0f;
+    inline static float projZFar = 5000.0f;
     
-}
+};
+
+extern TrVulkanGlobal GTrVulkanGlobal;
+
+// if use namespace and make variables static
+// can prevent from defining multiple times in each cpp including this header
+// but "internal link" makes each file has a TrVulkanGlobal::xxx copy
+
