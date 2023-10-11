@@ -19,7 +19,7 @@
 
 #include "TrWindowApp.h"
 #include "TrD3D12Renderer/TrD3D12RendererRaster.h"
-#include "TrVulkanRenderer/TrVulkanRendererBase.h"
+#include "TrVulkanRenderer/TrVulkanRendererRaster.h"
 
 
 // 相机，自身位置eye，目标位置target，向上向量up
@@ -134,7 +134,7 @@
 
 int main()
 {
-    TrVulkanRendererBase VulkanRenderer(1920, 1080, "TrVulkan");
+    TrVulkanRendererRaster VulkanRenderer(1920, 1080, "TrVulkan");
 
     try
     {

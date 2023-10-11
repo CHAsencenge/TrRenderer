@@ -183,6 +183,7 @@
     <ClInclude Include="TrVulkanRenderer\TrVulkanModel.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanQueueFamily.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanRendererBase.h" />
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererRaster.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanSwapChain.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanUtil.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanVertex.h" />
@@ -816,6 +817,7 @@
     <ClCompile Include="TrVulkanRenderer\TrVulkanModel.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanQueueFamily.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanRendererBase.cpp" />
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRaster.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanSwapChain.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanUtil.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanVertex.cpp" />
