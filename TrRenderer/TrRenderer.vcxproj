@@ -120,7 +120,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)imgui\backends;$(ProjectDir)imgui;$(ProjectDir)Libraries\include;C:\VulkanSDK\1.3.261.1\Include;$(ProjectDir)Libraries\glm;$(ProjectDir)Libraries\glfw-3.3.8.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)nvpro_core;$(ProjectDir)imgui\backends;$(ProjectDir)imgui;$(ProjectDir)Libraries\include;C:\VulkanSDK\1.3.261.1\Include;$(ProjectDir)Libraries\glm;$(ProjectDir)Libraries\glfw-3.3.8.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <AdditionalOptions>/std:c++17</AdditionalOptions>
@@ -130,7 +130,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>d3d12.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.261.1\Lib;$(ProjectDir)Libraries\glfw-3.3.8.bin.WIN64\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>E:\GitProjs\TrRenderer\TrRenderer\Libraries\nvpro_core_lib;C:\VulkanSDK\1.3.261.1\Lib;$(ProjectDir)Libraries\glfw-3.3.8.bin.WIN64\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -818,6 +818,7 @@
     <ClCompile Include="TrVulkanRenderer\TrVulkanQueueFamily.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanRendererBase.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRaster.cpp" />
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRayTracing.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanSwapChain.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanUtil.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanVertex.cpp" />
@@ -831,6 +832,9 @@
     <None Include="shaders.hlsl">
       <FileType>Document</FileType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererRayTracing.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,4 @@
 #pragma once
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE  // default glm perspective use opengl depth [-1, 1], now use vulkan depth [0, 1]
-#include "TrVulkanUtil.h"
 #include "TrVulkanQueueFamily.h"
 #include "TrVulkanSwapChain.h"
 #include "TrVulkanVertex.h"
@@ -11,8 +8,6 @@
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
-#define GLFW_INCLUDE_NONE
-
 
 #include "TrVulkanModel.h"
 #include "TrVulkanRendererBase.h"

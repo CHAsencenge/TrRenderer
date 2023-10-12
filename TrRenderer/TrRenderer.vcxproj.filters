@@ -158,6 +158,15 @@
     <ClInclude Include="imgui\backends\imgui_impl_vulkan.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanImGuiConfig.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererRaster.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="TrVulkanRenderer\TrVulkanRendererRayTracing.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -242,6 +251,18 @@
     </ClCompile>
     <ClCompile Include="imgui\backends\imgui_impl_vulkan.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanGlobalConfigs.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanImGuiConfig.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRaster.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRayTracing.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
