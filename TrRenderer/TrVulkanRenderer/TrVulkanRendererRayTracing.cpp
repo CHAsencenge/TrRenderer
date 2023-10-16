@@ -1,19 +1,30 @@
 #include "TrVulkanRendererRayTracing.h"
 
-TrVulkanRendererRayTracing::TrVulkanRendererRayTracing()
+TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase()
 {
 }
 
-TrVulkanRendererRayTracing::TrVulkanRendererRayTracing(uint32_t width, uint32_t height, const char* title) :
+TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase(uint32_t width, uint32_t height, const char* title) :
 TrVulkanRendererBase(width, height, title)
 {
 }
 
-void TrVulkanRendererRayTracing::Run()
+void TrVulkanRendererRayTracingBase::Run()
 {
+    OnInitWindow();
+    OnInitVulkan();
+    OnRender();
+    OnCleanup();
 }
 
-void TrVulkanRendererRayTracing::OnInitVulkan()
+void TrVulkanRendererRayTracingBase::OnInitWindow()
+{
+    TrVulkanRendererBase::OnInitWindow();
+
+    SetupCamera();
+}
+
+void TrVulkanRendererRayTracingBase::OnInitVulkan()
 {
     // extensions and layers
 
@@ -22,16 +33,23 @@ void TrVulkanRendererRayTracing::OnInitVulkan()
     // create example
 }
 
-void TrVulkanRendererRayTracing::OnRender()
+void TrVulkanRendererRayTracingBase::OnRender()
 {
 }
 
-void TrVulkanRendererRayTracing::OnCleanup()
+void TrVulkanRendererRayTracingBase::OnCleanup()
 {
 }
 
-void TrVulkanRendererRayTracing::CreateInstance()
+void TrVulkanRendererRayTracingBase::CreateInstance()
 {
+}
+
+void TrVulkanRendererRayTracingBase::SetupCamera()
+{
+    CameraManip.setWindowSize(mWidth, mHeight);
+    CameraManip.setLookat(mEye, mCenter, mUp);
+    
 }
 
 

@@ -1,9 +1,14 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
+#include <nvmath/nvmath_types.h>
+
 #include "TrVulkanVertex.h"
 
 
+// if use namespace and make variables static
+// can prevent from defining multiple times in each cpp including this header
+// but "internal link" makes each file has a TrVulkanGlobal::xxx copy
 class TrVulkanGlobal
 {
 public:
@@ -226,7 +231,18 @@ public:
 
 extern TrVulkanGlobal GTrVulkanGlobal;
 
-// if use namespace and make variables static
-// can prevent from defining multiple times in each cpp including this header
-// but "internal link" makes each file has a TrVulkanGlobal::xxx copy
+
+class TrVulkanGlobalRT
+{
+public:
+
+    inline static float rCamEye = 1.0f;
+    inline static float rCamCenter = 0.005f;
+    inline static float rCamUp = 0.005f;
+    inline static nvmath::vec3f camEye = {2.0f, 2.0f, 2.0f};
+    inline static nvmath::vec3f camCenter = {0, 0, 0};
+    inline static nvmath::vec3f camUp = {0, 1, 0}; 
+    
+};
+
 

@@ -92,3 +92,48 @@ void TrVulkanImGuiConfig::ShowTrVulkanConfig(bool* bOpen)
     ImGui::PopItemWidth();
     ImGui::End();
 }
+
+void TrVulkanImGuiConfig::ShowTrVulkanConfigRT(bool* bOpen)
+{
+    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context.");
+
+    if (!ImGui::Begin("TrVulkan ImGui Config", bOpen))
+    {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
+
+    ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+
+    if (ImGui::CollapsingHeader("MVP Params"))
+    {
+        if (ImGui::TreeNode("MVP Params"))
+        {
+
+
+            ImGui::SeparatorText("View");
+
+            ImGui::InputFloat("rCamEye", &TrVulkanGlobalRT::rCamEye, 0.01f, 1.0f, "%.4f");
+            ImGui::DragFloat("camEyeX", &TrVulkanGlobalRT::camEye.x, TrVulkanGlobalRT::rCamEye);
+            ImGui::DragFloat("camEyeY", &TrVulkanGlobalRT::camEye.y, TrVulkanGlobalRT::rCamEye);
+            ImGui::DragFloat("camEyeZ", &TrVulkanGlobalRT::camEye.z, TrVulkanGlobalRT::rCamEye);
+
+            ImGui::InputFloat("rCamCenter", &TrVulkanGlobalRT::rCamCenter, 0.01f, 1.0f, "%.4f");
+            ImGui::DragFloat("camCenterX", &TrVulkanGlobalRT::camCenter.x, TrVulkanGlobalRT::rCamCenter);
+            ImGui::DragFloat("camCenterY", &TrVulkanGlobalRT::camCenter.y, TrVulkanGlobalRT::rCamCenter);
+            ImGui::DragFloat("camCenterZ", &TrVulkanGlobalRT::camCenter.z, TrVulkanGlobalRT::rCamCenter);
+
+            ImGui::InputFloat("rCamUp", &TrVulkanGlobalRT::rCamUp, 0.01f, 1.0f, "%.4f");
+            ImGui::DragFloat("camUpX", &TrVulkanGlobalRT::camUp.x, TrVulkanGlobalRT::rCamUp);
+            ImGui::DragFloat("camUpY", &TrVulkanGlobalRT::camUp.y, TrVulkanGlobalRT::rCamUp);
+            ImGui::DragFloat("camUpZ", &TrVulkanGlobalRT::camUp.z, TrVulkanGlobalRT::rCamUp);
+            
+            ImGui::TreePop();
+            ImGui::Spacing();
+        }
+    }
+
+    ImGui::PopItemWidth();
+    ImGui::End();
+}
