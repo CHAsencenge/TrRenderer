@@ -66,17 +66,15 @@
     <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <FXCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
-      <Filter>Shader Sources</Filter>
-    </FXCompile>
-    <FXCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl">
-      <Filter>Shader Sources</Filter>
-    </FXCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">

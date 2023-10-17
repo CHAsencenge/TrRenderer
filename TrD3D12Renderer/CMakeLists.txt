@@ -23,10 +23,12 @@ file(GLOB SOURCE_FILES *.cpp *.hpp *.inl *.h *.c)
 file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
 list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
 include_directories(${TR_RENDERER_DIR}/common)
+# include_directories($ENV{WindowsSDK_LibraryPath})
 file(GLOB HLSL_SOURCE_FILES
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRaster/*.hlsl"
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRayTracing/*.hlsl"
 )
+set_source_files_properties(${HLSL_SOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # ------------------------------------------------------------------------------------------------
 # project pre define
@@ -54,6 +56,7 @@ source_group("Shader Sources"  FILES ${HLSL_SOURCE_FILES})
 # Linkage
 #
 target_link_libraries(${PROJNAME} ${PLATFORM_LIBRARIES})
+target_link_libraries(${PROJNAME} d3dcompiler d3d12 dxgi)
 
 foreach(DEBUGLIB ${LIBRARIES_DEBUG})
   target_link_libraries(${PROJNAME} debug ${DEBUGLIB})
