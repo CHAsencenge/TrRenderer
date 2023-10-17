@@ -23,7 +23,6 @@ file(GLOB SOURCE_FILES *.cpp *.hpp *.inl *.h *.c)
 file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
 list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
 include_directories(${TR_RENDERER_DIR}/common)
-# include_directories($ENV{WindowsSDK_LibraryPath})
 file(GLOB HLSL_SOURCE_FILES
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRaster/*.hlsl"
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRayTracing/*.hlsl"
