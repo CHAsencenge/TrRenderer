@@ -22,7 +22,7 @@ TrD3D12RendererBase::~TrD3D12RendererBase()
 
 std::wstring TrD3D12RendererBase::GetAssetFullPath(LPCWSTR assetName)
 {
-	return mAssetsPath + assetName;
+	return assetName;
 }
 
 // todo: cmd line parse

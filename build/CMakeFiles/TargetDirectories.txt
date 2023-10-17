@@ -15,7 +15,9 @@ E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/INSTALL.
 E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/TrSoftwareRenderer.dir
 E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/INSTALL.dir
 E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/ALL_BUILD.dir
+E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/TrD3D12Renderer.dir
 E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/INSTALL.dir
+E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/ALL_BUILD.dir
 E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/TrVulkanRenderer.dir
 E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/INSTALL.dir
 E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/ALL_BUILD.dir

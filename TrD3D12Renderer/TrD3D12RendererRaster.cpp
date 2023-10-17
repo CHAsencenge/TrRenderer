@@ -1,7 +1,7 @@
 
 #include "TrD3D12RendererRaster.h"
 #include "VertexBase.h"
-#include "../TrWindowApp.h"
+#include "TrWindowApp.h"
 
 
 TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstring title) :
@@ -17,7 +17,7 @@ void TrD3D12RendererRaster::OnInitialize()
 {
     LoadPipeline();
     // LoadAssets(GetAssetFullPath(L"shaders.hlsl"));
-    LoadAssetsTexture(GetAssetFullPath(L"shaders_texture.hlsl"));
+    LoadAssetsTexture(GetAssetFullPath(SHADER_DIR L"DxRaster/shaders_texture.hlsl"));
 }
 
 void TrD3D12RendererRaster::OnUpdate()

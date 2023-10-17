@@ -284,6 +284,15 @@ OUTPUT_PATH:PATH=E:/GitProjs/TrRenderer/bin_x64
 SUPPORT_NVTOOLSEXT:BOOL=OFF
 
 //Value Computed by CMake
+TrD3D12Renderer_BINARY_DIR:STATIC=E:/GitProjs/TrRenderer/build/TrD3D12Renderer
+
+//Value Computed by CMake
+TrD3D12Renderer_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+TrD3D12Renderer_SOURCE_DIR:STATIC=E:/GitProjs/TrRenderer/TrD3D12Renderer
+
+//Value Computed by CMake
 TrRenderer_BINARY_DIR:STATIC=E:/GitProjs/TrRenderer/build
 
 //Value Computed by CMake

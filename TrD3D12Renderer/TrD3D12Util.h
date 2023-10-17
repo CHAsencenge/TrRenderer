@@ -28,7 +28,7 @@ inline std::wstring AnsiToWString(const std::string& str)
     return std::wstring(buffer);
 }
 
-#ifdef TrDxRendererModule
+#ifdef IS_TR_D3D_RENDERER
 class DxException
 {
 public:

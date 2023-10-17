@@ -120,8 +120,6 @@ int main(int argc, char* argv[])
 }
 #endif
 
-
-
 // -----------------------------------------------------------------------------------------
 
 /* note:
@@ -130,15 +128,17 @@ int main(int argc, char* argv[])
 * ANSI encoding is limited in its ability to represent non-Latin characters
  */
 
-//_Use_decl_annotations_
-//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-//    LPSTR cmdLine, int showCmd)
-//{
-//    std::cout << "WinMain" << std::endl;
-//    
-//    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
-//    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
-//}
+#ifdef IS_TR_D3D_RENDERER
+_Use_decl_annotations_
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
+    LPSTR cmdLine, int showCmd)
+{
+    std::cout << "WinMain" << std::endl;
+    
+    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
+    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
+}
+#endif
 
 
 #ifdef IS_TR_VULKAN_RENDERER
