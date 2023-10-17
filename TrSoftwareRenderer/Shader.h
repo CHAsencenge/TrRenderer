@@ -3,7 +3,8 @@
 #include "GlobalUtils.h"
 #include "Model.h"
 #include "Maths.h"
-#include <cmath>
+#include <algorithm>
+// #include <cmath>
 
 typedef struct Cubemap
 {

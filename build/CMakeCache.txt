@@ -293,6 +293,15 @@ TrRenderer_IS_TOP_LEVEL:STATIC=ON
 TrRenderer_SOURCE_DIR:STATIC=E:/GitProjs/TrRenderer
 
 //Value Computed by CMake
+TrSoftwareRenderer_BINARY_DIR:STATIC=E:/GitProjs/TrRenderer/build/TrSoftwareRenderer
+
+//Value Computed by CMake
+TrSoftwareRenderer_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+TrSoftwareRenderer_SOURCE_DIR:STATIC=E:/GitProjs/TrRenderer/TrSoftwareRenderer
+
+//Value Computed by CMake
 TrVulkanRenderer_BINARY_DIR:STATIC=E:/GitProjs/TrRenderer/build/TrVulkanRenderer
 
 //Value Computed by CMake

@@ -173,6 +173,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\TrSoftwareRenderer.vcxproj">
+      <Project>{4A17C5A5-002D-322B-A20E-40F4E8DEBE10}</Project>
+      <Name>TrSoftwareRenderer</Name>
+    </ProjectReference>
     <ProjectReference Include="E:\GitProjs\TrRenderer\build\TrVulkanRenderer\TrVulkanRenderer.vcxproj">
       <Project>{051C1C17-AFF7-3DDF-995A-5F06B1488A4C}</Project>
       <Name>TrVulkanRenderer</Name>

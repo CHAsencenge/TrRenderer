@@ -195,7 +195,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\ALL_BUILD.vcxproj">
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\ALL_BUILD.vcxproj">
       <Project>{88CBB275-6B70-3662-9A4E-87FA06440C27}</Project>
       <Name>ALL_BUILD</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

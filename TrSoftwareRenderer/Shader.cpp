@@ -100,16 +100,16 @@ bool DefaultShader::FragmentShader(const Vec3 barycenter, TGAColor& gl_FragColor
 	// 计算漫反射光照强度，反射光照向量，高光强度
 	// 通过插值后的uv采样颜色贴图中的颜色
 	// 分通道计算叠加光照效果后的颜色
-	float diffuseIntensity = max(0.0f, Dot(SampleNormalmapES, uniformLightDir));
+	float diffuseIntensity = std::max(0.0f, Dot(SampleNormalmapES, uniformLightDir));
 	Vec<3> reflectDir = SampleNormalmapES * (Dot(SampleNormalmapES, uniformLightDir) * 2) - uniformLightDir;
 	float specularIntensity;
 	if (model->GetSpecularMap() != nullptr)
 	{
-		specularIntensity = std::pow(max(-reflectDir.e[2], 0.0f), 5 + Sample2D(*model->GetSpecularMap(), fragUV).bgra[0]);
+		specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5 + Sample2D(*model->GetSpecularMap(), fragUV).bgra[0]);
 	}
 	else
 	{
-		specularIntensity = std::pow(max(-reflectDir.e[2], 0.0f), 5);
+		specularIntensity = std::pow(std::max(-reflectDir.e[2], 0.0f), 5);
 	}
 	TGAColor baseColor = Sample2D(*model->GetDiffuseMap(), fragUV);
 	// TrDebug::PrintArray(baseColor.bgra, true, "DefaultShader::FragmentShader baseColor: ");
