@@ -17,7 +17,7 @@
 //#include "TrSoftwareRenderer/ClassUtils.h"
 
 
-#include "TrWindowApp.h"
+#include "TrD3D12Renderer/TrWindowApp.h"
 #include "TrD3D12Renderer/TrD3D12RendererRaster.h"
 #include "TrVulkanRenderer/TrVulkanRendererRaster.h"
 

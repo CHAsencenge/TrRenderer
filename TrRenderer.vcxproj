@@ -164,6 +164,7 @@
     <ClInclude Include="TrD3D12Renderer\TrD3D12RendererRaster.h" />
     <ClInclude Include="TrD3D12Renderer\TrD3D12Util.h" />
     <ClInclude Include="TrD3D12Renderer\GameTimer.h" />
+    <ClInclude Include="TrD3D12Renderer\TrWindowApp.h" />
     <ClInclude Include="TrD3D12Renderer\VertexBase.h" />
     <ClInclude Include="TrRenderer.h" />
     <ClInclude Include="TrSoftwareRenderer\Camera.h" />
@@ -187,7 +188,6 @@
     <ClInclude Include="TrVulkanRenderer\TrVulkanSwapChain.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanUtil.h" />
     <ClInclude Include="TrVulkanRenderer\TrVulkanVertex.h" />
-    <ClInclude Include="TrWindowApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
@@ -202,6 +202,7 @@
     <ClCompile Include="TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
     <ClCompile Include="TrD3D12Renderer\TrD3D12Util.cpp" />
     <ClCompile Include="TrD3D12Renderer\GameTimer.cpp" />
+    <ClCompile Include="TrD3D12Renderer\TrWindowApp.cpp" />
     <ClCompile Include="TrD3D12Renderer\VertexBase.cpp" />
     <ClCompile Include="TrRenderer.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
@@ -822,7 +823,6 @@
     <ClCompile Include="TrVulkanRenderer\TrVulkanSwapChain.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanUtil.cpp" />
     <ClCompile Include="TrVulkanRenderer\TrVulkanVertex.cpp" />
-    <ClCompile Include="TrWindowApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="TrRenderer.ico" />

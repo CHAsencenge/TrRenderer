@@ -1,6 +1,6 @@
 
 #include "TrWindowApp.h"
-#include "TrD3D12Renderer/TrD3D12RendererBase.h"
+#include "TrD3D12RendererBase.h"
 
 HWND TrWindowApp::mHwnd = nullptr;
 

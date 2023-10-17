@@ -100,7 +100,6 @@
     <ClInclude Include="TrD3D12Renderer\VertexBase.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
-    <ClInclude Include="TrWindowApp.h" />
     <ClInclude Include="TrD3D12Renderer\d3dx12.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
@@ -167,6 +166,9 @@
     <ClInclude Include="TrVulkanRenderer\TrVulkanRendererRayTracing.h">
       <Filter>TrD3D12Renderer\Public</Filter>
     </ClInclude>
+    <ClInclude Include="TrD3D12Renderer\TrWindowApp.h">
+      <Filter>TrD3D12Renderer\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrSoftwareRenderer\Camera.cpp">
@@ -203,7 +205,6 @@
     <ClCompile Include="TrD3D12Renderer\VertexBase.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
-    <ClCompile Include="TrWindowApp.cpp" />
     <ClCompile Include="TrD3D12Renderer\TrD3D12RendererBase.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
@@ -262,6 +263,9 @@
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
     <ClCompile Include="TrVulkanRenderer\TrVulkanRendererRayTracing.cpp">
+      <Filter>TrD3D12Renderer\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="TrD3D12Renderer\TrWindowApp.cpp">
       <Filter>TrD3D12Renderer\Private</Filter>
     </ClCompile>
   </ItemGroup>

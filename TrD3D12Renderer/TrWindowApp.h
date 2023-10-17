@@ -1,5 +1,5 @@
 #pragma once
-#include "TrD3D12Renderer/TrD3D12Util.h"
+#include "TrD3D12Util.h"
 
 class TrD3D12RendererBase;
 
