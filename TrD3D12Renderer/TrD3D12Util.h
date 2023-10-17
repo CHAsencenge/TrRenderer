@@ -28,6 +28,7 @@ inline std::wstring AnsiToWString(const std::string& str)
     return std::wstring(buffer);
 }
 
+#ifdef TrDxRendererModule
 class DxException
 {
 public:
@@ -52,6 +53,7 @@ public:
 #endif
 
 inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
+// inline void GetAssetsPath(_Out_writes_(pathSize) LPSTR path, UINT pathSize)
 {
     if (path == nullptr)
     {
@@ -70,3 +72,5 @@ inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
         *(lastSlash + 1) = L'\0';
     }
 }
+#endif
+

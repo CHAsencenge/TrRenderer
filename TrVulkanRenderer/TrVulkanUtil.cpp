@@ -23,12 +23,12 @@ std::vector<char> TrVulkanUtil::ReadFile(const std::string& filename)
 
 std::string TrVulkanUtil::FilenameToModelFilename(const std::string& filename)
 {
-    return "Models/" + filename + ".obj"; 
+    return SLN_ROOT_DIR "Models/" + filename + ".obj";
 }
 
 std::string TrVulkanUtil::FilenameToTexFilename(const std::string& filename, const std::string& suffix)
 {
-    return "Textures/" + filename + suffix; 
+    return SLN_ROOT_DIR "Textures/" + filename + suffix;
 }
 
 void TrVulkanUtil::CheckVkResult(VkResult err)

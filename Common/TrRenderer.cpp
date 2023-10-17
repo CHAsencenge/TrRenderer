@@ -17,9 +17,9 @@
 //#include "TrSoftwareRenderer/ClassUtils.h"
 
 
-#include "TrD3D12Renderer/TrWindowApp.h"
-#include "TrD3D12Renderer/TrD3D12RendererRaster.h"
-#include "TrVulkanRenderer/TrVulkanRendererRaster.h"
+#include "../../TrD3D12Renderer/TrWindowApp.h"
+#include "../../TrD3D12Renderer/TrD3D12RendererRaster.h"
+#include "../../TrVulkanRenderer/TrVulkanRendererRaster.h"
 
 
 // 相机，自身位置eye，目标位置target，向上向量up

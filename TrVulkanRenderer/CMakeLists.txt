@@ -23,6 +23,13 @@ file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
 list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
 include_directories(${TR_RENDERER_DIR}/common)
 
+# ------------------------------------------------------------------------------------------------
+# project pre define
+add_definitions(-DIS_TR_VULKAN_RENDERER)
+add_definitions(-DUNICODE)
+add_definitions(-DSLN_ROOT_DIR="${TR_RENDERER_DIR}/")
+add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/shaders/")
+
 #--------------------------------------------------------------------------------------------------
 # GLSL to SPIR-V custom build
 compile_glsl_directory(

@@ -1,0 +1,390 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{051C1C17-AFF7-3DDF-995A-5F06B1488A4C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>TrVulkanRenderer</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\bin_x64\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TrVulkanRenderer.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TrVulkanRenderer</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\bin_x64\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TrVulkanRenderer.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TrVulkanRenderer</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\bin_x64\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">TrVulkanRenderer.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">TrVulkanRenderer</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\bin_x64\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">TrVulkanRenderer.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">TrVulkanRenderer</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrVulkanRenderer";PROJECT_RELDIRECTORY="../../TrVulkanRenderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrVulkanRenderer\";PROJECT_RELDIRECTORY=\"../../TrVulkanRenderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/\";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;E:\GitProjs\TrRenderer\bin_x64\Debug\nvpro_core_vk.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;..\nvpro_core\third_party\glfw\src\Debug\glfw3.lib;..\nvpro_core\third_party\Debug\imgui.lib;..\nvpro_core\third_party\Debug\fmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/Debug/TrVulkanRenderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/Debug/TrVulkanRenderer.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrVulkanRenderer";PROJECT_RELDIRECTORY="../../TrVulkanRenderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrVulkanRenderer\";PROJECT_RELDIRECTORY=\"../../TrVulkanRenderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/\";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;E:\GitProjs\TrRenderer\bin_x64\Release\nvpro_core_vk.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;..\nvpro_core\third_party\glfw\src\Release\glfw3.lib;..\nvpro_core\third_party\Release\imgui.lib;..\nvpro_core\third_party\Release\fmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/Release/TrVulkanRenderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/Release/TrVulkanRenderer.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrVulkanRenderer";PROJECT_RELDIRECTORY="../../TrVulkanRenderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrVulkanRenderer\";PROJECT_RELDIRECTORY=\"../../TrVulkanRenderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/\";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;E:\GitProjs\TrRenderer\bin_x64\MinSizeRel\nvpro_core_vk.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;..\nvpro_core\third_party\glfw\src\MinSizeRel\glfw3.lib;..\nvpro_core\third_party\MinSizeRel\imgui.lib;..\nvpro_core\third_party\MinSizeRel\fmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrVulkanRenderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrVulkanRenderer.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrVulkanRenderer";PROJECT_RELDIRECTORY="../../TrVulkanRenderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrVulkanRenderer\";PROJECT_RELDIRECTORY=\"../../TrVulkanRenderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrVulkanRenderer/shaders/\";STBI_MSC_SECURE_CRT;VMA_VULKAN_VERSION=1002000;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrVulkanRenderer;E:\GitProjs\TrRenderer\TrVulkanRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\fmt\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\stb;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader;E:\GitProjs\TrRenderer\nvpro_core\third_party\cgltf;E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include;E:\GitProjs\TrRenderer\nvpro_core\third_party\dxh\include\directx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;E:\GitProjs\TrRenderer\bin_x64\RelWithDebInfo\nvpro_core_vk.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;..\nvpro_core\third_party\glfw\src\RelWithDebInfo\glfw3.lib;..\nvpro_core\third_party\RelWithDebInfo\imgui.lib;..\nvpro_core\third_party\RelWithDebInfo\fmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrVulkanRenderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrVulkanRenderer.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrVulkanRenderer/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\build\TrVulkanRenderer\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrVulkanRenderer/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\build\TrVulkanRenderer\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrVulkanRenderer/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\build\TrVulkanRenderer\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrVulkanRenderer/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\build\TrVulkanRenderer\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.h" />
+    <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\Common\TrRenderer.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\Common\TrRenderer.h" />
+    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\tiny_gltf.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\json.hpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader\tiny_obj_loader.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include\vk_mem_alloc.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include\nvtx3\nvToolsExt.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
+      <Project>{6DF67971-23E2-3AC6-B28A-64EABFC4C0E6}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\fmt.vcxproj">
+      <Project>{47E445CA-F01D-3B23-8683-6D6F17A0E4A5}</Project>
+      <Name>fmt</Name>
+    </ProjectReference>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\glfw.vcxproj">
+      <Project>{985FEBE3-7C29-3105-8132-F7339351137B}</Project>
+      <Name>glfw</Name>
+    </ProjectReference>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\imgui.vcxproj">
+      <Project>{B900A47E-F66B-3084-AA5B-EA579BEC66E6}</Project>
+      <Name>imgui</Name>
+    </ProjectReference>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\nvpro_core\nvpro_core.vcxproj">
+      <Project>{E8639FB7-1FA6-3B3D-9F88-EE11FCCBFC36}</Project>
+      <Name>nvpro_core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -176,13 +176,13 @@ public:
 
     inline static std::unordered_map<SHADER_FILE_ENUM, const char*> SHADER_FILE_STRING =
     {
-        {SHADER_FILE_ENUM::base, "Shaders/shader"},
-        {SHADER_FILE_ENUM::vertexbuffer, "Shaders/shader_vertexbuffer"},
-        {SHADER_FILE_ENUM::ubo, "Shaders/shader_ubo"},
-        {SHADER_FILE_ENUM::textures, "Shaders/shader_textures"},
-        {SHADER_FILE_ENUM::depth, "Shaders/shader_depth"},
+        {SHADER_FILE_ENUM::base, SHADER_DIR "VkRaster/shader"},
+        {SHADER_FILE_ENUM::vertexbuffer, SHADER_DIR "VkRaster/shader_vertexbuffer"},
+        {SHADER_FILE_ENUM::ubo, SHADER_DIR "VkRaster/shader_ubo"},
+        {SHADER_FILE_ENUM::textures, SHADER_DIR "VkRaster/shader_textures"},
+        {SHADER_FILE_ENUM::depth, SHADER_DIR "VkRaster/shader_depth"},
         
-        {SHADER_FILE_ENUM::imGuiBase, "Shaders/shader_imgui"},
+        {SHADER_FILE_ENUM::imGuiBase, SHADER_DIR "VkRaster/shader_imgui"},
     };
 
     inline static const char* vertSuffix = "_vert.spv";

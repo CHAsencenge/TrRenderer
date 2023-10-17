@@ -38,6 +38,7 @@ _add_nvpro_core_lib()
 message(STATUS "COPY ${CMAKE_CURRENT_SOURCE_DIR}/media  to  ${OUTPUT_PATH}")
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/media DESTINATION ${OUTPUT_PATH})
 
+
 #--------------------------------------------------------------------------------------------------
 # Sub examples
 add_subdirectory(TrSoftwareRenderer)
