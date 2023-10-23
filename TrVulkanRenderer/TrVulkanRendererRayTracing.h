@@ -24,6 +24,8 @@ public:
 
     void CreateInstance() override;
 
+    std::vector<const char*> GetRequiredExtensions() override;
+
 #pragma endregion
 
 #pragma region Camera

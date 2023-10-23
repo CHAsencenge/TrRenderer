@@ -24,7 +24,9 @@ public:
 
     virtual void CreateInstance() = 0;
 
-public:
+    virtual std::vector<const char*> GetRequiredExtensions();
+
+protected:
     GLFWwindow* mWindow;
     
     uint32_t mWidth = 1920;
@@ -34,4 +36,12 @@ public:
     const char* mTitle = "Vulkan";
 
     VkInstance mInstance;
+
+    // validation layers switcher
+#ifdef NODEBUG
+    const bool mbEnableValidationLayers = false;
+#else
+    const bool mbEnableValidationLayers = true;
+#endif
+    
 };

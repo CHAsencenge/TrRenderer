@@ -55,7 +55,7 @@ private:
 
 #pragma region Extension
 
-    std::vector<const char*> GetRequiredExtensions();
+    std::vector<const char*> GetRequiredExtensions() override;
 
     bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 
@@ -244,13 +244,7 @@ private:
 
     void UpdateGlobalConfigs();
 
-private:
-    // validation layers switcher
-#ifdef NDEBUG
-    const bool mbEnableValidationLayers = false;
-#else
-    const bool mbEnableValidationLayers = true;
-#endif
+protected:
 
     // save debug callback info
     VkDebugUtilsMessengerEXT mDebugMessenger;

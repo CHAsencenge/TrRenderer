@@ -26,3 +26,12 @@ void TrVulkanRendererBase::OnInitWindow()
     mWindow = glfwCreateWindow(mWidth, mHeight, mTitle, nullptr, nullptr);
 }
 
+std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
+{
+    // vulkan instance extensions required by GLFW
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    return extensions;
+}
+

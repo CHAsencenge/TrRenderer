@@ -235,6 +235,12 @@ extern TrVulkanGlobal GTrVulkanGlobal;
 class TrVulkanGlobalRT
 {
 public:
+    
+    // device extensions needed
+    inline static const std::vector<const char*> deviceExtensions =
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
 
     inline static float rCamEye = 1.0f;
     inline static float rCamCenter = 0.005f;
