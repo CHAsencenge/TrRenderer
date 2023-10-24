@@ -242,6 +242,17 @@ public:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
+    inline static const std::vector<const char*> instanceExtensions =
+    {
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+    };
+
+    inline static const std::vector<const char*> layers =
+    {
+        // "VK_LAYER_KHRONOS_validation", // already in create context
+        "VK_LAYER_LUNARG_monitor", 
+    };
+
     inline static float rCamEye = 1.0f;
     inline static float rCamCenter = 0.005f;
     inline static float rCamUp = 0.005f;

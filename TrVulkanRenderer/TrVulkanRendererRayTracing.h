@@ -2,6 +2,7 @@
 #include "TrVulkanRendererBase.h"
 #include "nvh/cameramanipulator.hpp"
 #include "nvvkhl/appbase_vk.hpp"
+#include "nvvk/context_vk.hpp"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -22,11 +23,22 @@ public:
     
     void OnCleanup() override;
 
-    void CreateInstance() override;
+    // member instance is in AppBaseVk 
+    void CreateInstance() override; 
 
     std::vector<const char*> GetRequiredExtensions() override;
 
 #pragma endregion
+
+
+#pragma region nvvk
+
+    void IsSurfaceSupportPresent();
+
+    // 
+    void Setup();
+
+#pragma endregion 
 
 #pragma region Camera
 
@@ -41,5 +53,11 @@ protected:
     nvmath::vec3f mCenter = TrVulkanGlobalRT::camCenter;
     
     nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
+
+    nvvk::Context mNvContext = {};
+
+    VkSurfaceKHR mSurface;
+
+    // DMA means device memory allocator
 };
 

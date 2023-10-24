@@ -35,7 +35,7 @@ protected:
     
     const char* mTitle = "Vulkan";
 
-    VkInstance mInstance;
+    
 
     // validation layers switcher
 #ifdef NODEBUG

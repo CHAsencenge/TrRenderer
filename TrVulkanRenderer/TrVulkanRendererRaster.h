@@ -246,6 +246,8 @@ private:
 
 protected:
 
+    VkInstance mInstance;
+
     // save debug callback info
     VkDebugUtilsMessengerEXT mDebugMessenger;
 

@@ -1,5 +1,7 @@
 #include "TrVulkanRendererRayTracing.h"
 
+
+
 TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase()
 {
 }
@@ -26,11 +28,11 @@ void TrVulkanRendererRayTracingBase::OnInitWindow()
 
 void TrVulkanRendererRayTracingBase::OnInitVulkan()
 {
-    // extensions and layers
-
     // create application
+    CreateInstance();
 
-    // surface
+    // can GCT queue (graphics, compute, transter) present on the surface
+    IsSurfaceSupportPresent();
 
     // swap chain
 
@@ -91,17 +93,51 @@ void TrVulkanRendererRayTracingBase::OnCleanup()
 
 void TrVulkanRendererRayTracingBase::CreateInstance()
 {
+    // extensions and layers
+    std::vector<const char*> extensions = GetRequiredExtensions();
+    
+    // input: extensions, layers, version, 
+    nvvk::ContextCreateInfo contextCreateInfo;
+    contextCreateInfo.setVersion(1, 2);
+    
+    for(const char* extension : extensions)
+    {
+        contextCreateInfo.addInstanceExtension(extension, true);
+    }
+
+    for(const char* extension : TrVulkanGlobalRT::deviceExtensions)
+    {
+        contextCreateInfo.addDeviceExtension(extension);
+    }
+    
+    for(const char* layer : TrVulkanGlobalRT::layers)
+    {
+        contextCreateInfo.addInstanceLayer(layer, true);
+    }
+
+    // create vulkan instance
+    mNvContext.initInstance(contextCreateInfo);
+
+    // create device
+    std::vector<uint32_t> deviceIndices = mNvContext.getCompatibleDevices(contextCreateInfo);
+    assert(!deviceIndices.empty());
+    mNvContext.initDevice(deviceIndices[0], contextCreateInfo);
+
+    
 }
 
 std::vector<const char*> TrVulkanRendererRayTracingBase::GetRequiredExtensions()
 {
     std::vector<const char*> extensions = TrVulkanRendererBase::GetRequiredExtensions();
-    // extension for debugging
-    if(mbEnableValidationLayers)
-    {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  // VK_EXT_debug_utils
-    }
-    
+    return extensions;
+}
+
+void TrVulkanRendererRayTracingBase::IsSurfaceSupportPresent()
+{
+    mSurface = getVkSurface(mNvContext.m_instance, mWindow);
+    // determine whether a queue family of a physical device supports presentation to a given surface
+    bool bSupportPresent = mNvContext.setGCTQueueWithPresent(mSurface);
+    assert(bSupportPresent);
 }
 
 void TrVulkanRendererRayTracingBase::SetupCamera()
