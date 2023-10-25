@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
+#include "nvvk/resourceallocator_vk.hpp"
 
 
 class TrVulkanModelBase
@@ -35,3 +36,21 @@ struct std::hash<TrVulkanVertex3DTex>
         return ((std::hash<glm::vec3>()(vertex.mPos) ^ (std::hash<glm::vec3>()(vertex.mColor) << 1)) >> 1) ^ (std::hash<glm::vec2>()(vertex.mTexCoord) << 1);
     }
 };
+
+struct TrObjModelRtBase
+{
+    uint32_t mNumIndices{0};
+    uint32_t mNumVertices{0};
+    nvvk::Buffer mVertexBuffer;
+    nvvk::Buffer mIndexBuffer;
+    nvvk::Buffer mMatColorBuffer;
+    nvvk::Buffer mMatIndexBuffer;
+};
+
+struct TrObjInstanceRtBase
+{
+    nvmath::mat4f mTransform;
+    uint32_t mObjIndex{0};
+};
+
+

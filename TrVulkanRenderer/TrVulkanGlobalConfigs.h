@@ -258,8 +258,16 @@ public:
     inline static float rCamUp = 0.005f;
     inline static nvmath::vec3f camEye = {2.0f, 2.0f, 2.0f};
     inline static nvmath::vec3f camCenter = {0, 0, 0};
-    inline static nvmath::vec3f camUp = {0, 1, 0}; 
+    inline static nvmath::vec3f camUp = {0, 1, 0};
+
+    inline static std::vector<std::string> defaultSearchPaths =
+    {
+        SLN_ROOT_DIR,
+        PROJECT_RELDIRECTORY,
+    };
     
 };
+
+extern TrVulkanGlobalRT GTrVulkanGlobalRT;
 
 
