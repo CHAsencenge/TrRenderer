@@ -1,5 +1,7 @@
 #include "TrVulkanRendererRayTracing.h"
 
+#include <stb_image.h>
+
 #include "obj_loader.h"
 #include "TrVulkanModel.h"
 #include "nvh/fileoperations.hpp"
@@ -208,11 +210,11 @@ void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, nvma
     auto texOffset = static_cast<uint32_t>(mTextures.size());
     CreateTextureImages(cmdBuffer, objLoader.m_textures);
 
-
     // submit and wait
-
+    cmdPool.submitAndWait(cmdBuffer);
 
     // staging memory release
+    mResourceAllocDma.finalizeAndReleaseStaging();
 
 
     // debug obj name
@@ -245,10 +247,44 @@ void TrVulkanRendererRayTracingBase::CreateTextureImages(const VkCommandBuffer c
         nvvk::Image image = mResourceAllocDma.createImage(cmdBuffer, size, color.data(), imgCreateInfo);
         VkImageViewCreateInfo imgViewCreateInfo = nvvk::makeImageViewCreateInfo(image.image, imgCreateInfo);
         texture = mResourceAllocDma.createTexture(image, imgViewCreateInfo, samplerCreateInfo);
+
+        // when createImage, image layout is VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        // nvvk::cmdBarrierImageLayout(cmdBuffer, texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        mTextures.push_back(texture);
     }
     else
     {
-        
+        for(const auto& texture : textures)
+        {
+            // find texture file
+            std::string path = "media/textures/" + texture;
+            int texWidth, texHeight, texChannels;
+            std::string texFile = nvh::findFile(path, TrVulkanGlobalRT::defaultSearchPaths, true);
+            std::cout << "TrVulkanRendererRayTracingBase::CreateTextureImages: " << texture << " " << texFile << std::endl;
+
+            // load file (unsigned char)
+            std::array<stbi_uc, 4> color{255u, 0u, 255u, 255u};
+            stbi_uc* pixels = stbi_load(texFile.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            if(!pixels)
+            {
+                texWidth = texHeight = 1;
+                texChannels = 4;
+                pixels = color.data();
+            }
+            
+            // compute buffer size, img extent, img create info
+            VkDeviceSize bufferSize = static_cast<uint64_t>(texWidth) * texHeight * sizeof(uint8_t) * 4;
+            auto imgExtent = VkExtent2D{(uint32_t)texWidth, (uint32_t)texHeight};
+            auto imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format, VK_IMAGE_USAGE_SAMPLED_BIT, true);
+
+            // create texture
+            nvvk::Image image = mResourceAllocDma.createImage(cmdBuffer, bufferSize, pixels, imgCreateInfo);
+            nvvk::cmdGenerateMipmaps(cmdBuffer, image.image, format, imgExtent, imgCreateInfo.mipLevels);
+            VkImageViewCreateInfo imgViewCreateInfo = nvvk::makeImageViewCreateInfo(image.image, imgCreateInfo);
+            nvvk::Texture nvvkTexture = mResourceAllocDma.createTexture(image, imgViewCreateInfo);
+            mTextures.push_back(nvvkTexture);
+            stbi_image_free(pixels);
+        }
     }
 }
 
