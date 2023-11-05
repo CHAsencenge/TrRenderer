@@ -5,6 +5,7 @@
 #include "nvvk/context_vk.hpp"
 #include "nvvk/debug_util_vk.hpp"
 #include "nvvk/resourceallocator_vk.hpp"
+#include "TrVulkanModel.h"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -59,6 +60,8 @@ public:
 
     void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures);
 
+    void CreateOffscreenRender();
+
 #pragma endregion 
 
 protected:
@@ -83,5 +86,11 @@ protected:
     VkFormat mOffscreenDepthFormat {VK_FORMAT_X8_D24_UNORM_PACK32};
 
     std::vector<nvvk::Texture> mTextures;
+
+    std::vector<TrObjModelRtBase> mObjModels;
+
+    std::vector<TrObjDescRtBase> mObjDescs;
+
+    std::vector<TrObjInstanceRtBase> mObjInstances;
 };
 

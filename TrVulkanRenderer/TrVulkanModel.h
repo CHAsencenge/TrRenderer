@@ -53,4 +53,13 @@ struct TrObjInstanceRtBase
     uint32_t mObjIndex{0};
 };
 
+struct TrObjDescRtBase
+{
+    int mTexOffset;  // texture index offset in the array of textures
+    uint64_t mVertexAddress;
+    uint64_t mIndexAddress;
+    uint64_t mMaterialAddress;  // address of the material buffer
+    uint64_t mMaterialIndexAddress;
+};
+
 

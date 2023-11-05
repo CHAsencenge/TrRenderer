@@ -5,6 +5,7 @@
 #include "obj_loader.h"
 #include "TrVulkanModel.h"
 #include "nvh/fileoperations.hpp"
+#include "nvvk/buffers_vk.hpp"
 #include "nvvk/commands_vk.hpp"
 #include "nvvk/images_vk.hpp"
 #include "nvvk/renderpasses_vk.hpp"
@@ -64,6 +65,7 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
 
     // offscreen render
+    CreateOffs
 
     // descriptor set layout
 
@@ -218,9 +220,28 @@ void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, nvma
 
 
     // debug obj name
-
+    std::string objNb = std::to_string(mObjModels.size());
+    mDebugger.setObjectName(model.mVertexBuffer.buffer, (std::string("vertex_" + objNb)));
+    mDebugger.setObjectName(model.mIndexBuffer.buffer, (std::string("index_" + objNb)));
+    mDebugger.setObjectName(model.mMatColorBuffer.buffer, (std::string("mat_" + objNb)));
+    mDebugger.setObjectName(model.mMatIndexBuffer.buffer, (std::string("matIdx_" + objNb)));
 
     // set obj instance transform
+    TrObjInstanceRtBase instance;
+    instance.mTransform = transform;
+    instance.mObjIndex = static_cast<uint32_t>(mObjModels.size());
+    mObjInstances.push_back(instance);
+
+    TrObjDescRtBase objDesc;
+    objDesc.mTexOffset = texOffset;
+    objDesc.mVertexAddress = nvvk::getBufferDeviceAddress(m_device, model.mVertexBuffer.buffer);
+    objDesc.mIndexAddress = nvvk::getBufferDeviceAddress(m_device, model.mIndexBuffer.buffer);
+    objDesc.mMaterialAddress = nvvk::getBufferDeviceAddress(m_device, model.mMatColorBuffer.buffer);
+    objDesc.mMaterialIndexAddress = nvvk::getBufferDeviceAddress(m_device, model.mMatIndexBuffer.buffer);
+
+    mObjModels.emplace_back(model);
+    mObjDescs.emplace_back(objDesc);
+    
 }
 
 void TrVulkanRendererRayTracingBase::CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures)
