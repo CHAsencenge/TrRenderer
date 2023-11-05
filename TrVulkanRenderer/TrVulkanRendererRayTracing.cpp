@@ -65,7 +65,7 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
 
     // offscreen render
-    CreateOffs
+    CreateOffscreenRender();
 
     // descriptor set layout
 
@@ -307,6 +307,40 @@ void TrVulkanRendererRayTracingBase::CreateTextureImages(const VkCommandBuffer c
             stbi_image_free(pixels);
         }
     }
+}
+
+void TrVulkanRendererRayTracingBase::CreateOffscreenRender()
+{
+    mResourceAllocDma.destroy(mOffscreenColorTex);
+    mResourceAllocDma.destroy(mOffscreenDepthTex);
+    // create color image
+    VkImageCreateInfo colorCreateInfo = nvvk::makeImage2DCreateInfo(m_size, mOffscreenColorFormat, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+    nvvk::Image colorImage = mResourceAllocDma.createImage(colorCreateInfo);
+    VkImageViewCreateInfo colorViewCreateInfo = nvvk::makeImageViewCreateInfo(colorImage.image, colorCreateInfo);
+    VkSamplerCreateInfo samplerCreateInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+    mOffscreenColorTex = mResourceAllocDma.createTexture(colorImage, colorViewCreateInfo, samplerCreateInfo);
+    
+    // create depth buffer
+    VkImageCreateInfo depthCreateInfo = nvvk::makeImage2DCreateInfo(m_size, mOffscreenDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    nvvk::Image depthImage = mResourceAllocDma.createImage(depthCreateInfo);
+    VkImageViewCreateInfo depthViewCreateInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    depthViewCreateInfo.format = mOffscreenDepthFormat;
+    depthViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    depthViewCreateInfo.image = depthImage.image;
+    depthViewCreateInfo.subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1};
+    mOffscreenDepthTex = mResourceAllocDma.createTexture(depthImage, depthViewCreateInfo);
+    
+    // set image layout for color and depth
+    nvvk::CommandPool cmdPool(m_device, m_graphicsQueueIndex);
+    auto cmdBuf = cmdPool.createCommandBuffer();
+    nvvk::cmdBarrierImageLayout(cmdBuf, mOffscreenColorTex.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    nvvk::cmdBarrierImageLayout(cmdBuf, mOffscreenDepthTex.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
+    cmdPool.submitAndWait(cmdBuf);
+    
+    // create render pass for offscreen
+
+    
+    // create frame buffer for offscreen 
 }
 
 

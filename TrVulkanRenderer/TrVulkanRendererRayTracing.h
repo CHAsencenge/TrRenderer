@@ -81,10 +81,6 @@ protected:
 
     nvvk::DebugUtil mDebugger; // can set object name, give label
 
-    VkFormat mOffscreenColorFormat {VK_FORMAT_R32G32B32A32_SFLOAT};
-
-    VkFormat mOffscreenDepthFormat {VK_FORMAT_X8_D24_UNORM_PACK32};
-
     std::vector<nvvk::Texture> mTextures;
 
     std::vector<TrObjModelRtBase> mObjModels;
@@ -92,5 +88,18 @@ protected:
     std::vector<TrObjDescRtBase> mObjDescs;
 
     std::vector<TrObjInstanceRtBase> mObjInstances;
+
+    nvvk::Texture mOffscreenColorTex;
+
+    nvvk::Texture mOffscreenDepthTex;
+
+    VkRenderPass mOffscreenRenderPass{VK_NULL_HANDLE};
+
+    VkFramebuffer mOffscreenFrameBuffer{VK_NULL_HANDLE};
+
+    VkFormat mOffscreenColorFormat {VK_FORMAT_R32G32B32A32_SFLOAT};
+
+    VkFormat mOffscreenDepthFormat {VK_FORMAT_X8_D24_UNORM_PACK32};
+    
 };
 
