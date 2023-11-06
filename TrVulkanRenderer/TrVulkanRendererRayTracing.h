@@ -39,7 +39,7 @@ public:
 
     void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex) override;
 
-#pragma endregion 
+#pragma endregion
 
 
 #pragma region nvvk
@@ -70,6 +70,14 @@ public:
     void CreateUniformBuffer();
 
     void CreateObjDescriptionBuffer();
+
+    void UpdateDescriptorSet();
+
+    void CreatePostDescriptor();
+
+    void CreatePostPipeline();
+
+    void UpdatePostDescriptorSet();
 
 #pragma endregion 
 
@@ -111,6 +119,14 @@ protected:
     VkFormat mOffscreenDepthFormat {VK_FORMAT_X8_D24_UNORM_PACK32};
 
     nvvk::DescriptorSetBindings mDescSetLayoutBindings;
+
+    nvvk::Buffer mBufferGlobals;
+
+    nvvk::Buffer mBufferObjDesc;
+
+    nvvk::DescriptorSetBindings mPostDescSetLayoutBindings;
+
+    
     
 };
 

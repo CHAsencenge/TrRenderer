@@ -382,6 +382,31 @@ void TrVulkanRendererRayTracingBase::CreateUniformBuffer()
 
 void TrVulkanRendererRayTracingBase::CreateObjDescriptionBuffer()
 {
+    
+}
+
+void TrVulkanRendererRayTracingBase::UpdateDescriptorSet()
+{
+    // use descriptor buffer info and image info to make write
+
+    // use writes to update descriptor sets
+        
+}
+
+void TrVulkanRendererRayTracingBase::CreatePostDescriptor()
+{
+    // allocate descriptor set for post
+}
+
+void TrVulkanRendererRayTracingBase::CreatePostPipeline()
+{
+    // create pipeline layout
+
+    // create pipeline
+}
+
+void TrVulkanRendererRayTracingBase::UpdatePostDescriptorSet()
+{
 }
 
 
