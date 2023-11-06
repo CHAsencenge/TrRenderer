@@ -6,6 +6,7 @@
 #include "nvvk/debug_util_vk.hpp"
 #include "nvvk/resourceallocator_vk.hpp"
 #include "TrVulkanModel.h"
+#include "nvvk/descriptorsets_vk.hpp"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -62,6 +63,14 @@ public:
 
     void CreateOffscreenRender();
 
+    void CreateDescriptorSetLayout();
+
+    void CreateGraphicsPipeline();
+
+    void CreateUniformBuffer();
+
+    void CreateObjDescriptionBuffer();
+
 #pragma endregion 
 
 protected:
@@ -100,6 +109,8 @@ protected:
     VkFormat mOffscreenColorFormat {VK_FORMAT_R32G32B32A32_SFLOAT};
 
     VkFormat mOffscreenDepthFormat {VK_FORMAT_X8_D24_UNORM_PACK32};
+
+    nvvk::DescriptorSetBindings mDescSetLayoutBindings;
     
 };
 

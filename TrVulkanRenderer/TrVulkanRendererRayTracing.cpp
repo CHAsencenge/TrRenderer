@@ -68,12 +68,16 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     CreateOffscreenRender();
 
     // descriptor set layout
+    CreateDescriptorSetLayout();
 
     // pipeline
+    CreateGraphicsPipeline();
 
     // uniform buffer
+    CreateUniformBuffer();
 
     // obj buffer
+    CreateObjDescriptionBuffer();
 
     // update descriptor set
 
@@ -341,6 +345,43 @@ void TrVulkanRendererRayTracingBase::CreateOffscreenRender()
 
     
     // create frame buffer for offscreen 
+}
+
+void TrVulkanRendererRayTracingBase::CreateDescriptorSetLayout()
+{
+    // add bindings
+
+
+    // create layout for bindings
+
+
+    // create pool
+
+
+    // allocate descriptor set
+}
+
+void TrVulkanRendererRayTracingBase::CreateGraphicsPipeline()
+{
+    // push constant ranges (model matrix, light info, obj index)
+
+    
+    // create pipeline layout
+
+
+    // create pipeline (shader, binding, attribute)
+
+
+    
+}
+
+void TrVulkanRendererRayTracingBase::CreateUniformBuffer()
+{
+    // global uniforms include viewProj viewInverse projInverse
+}
+
+void TrVulkanRendererRayTracingBase::CreateObjDescriptionBuffer()
+{
 }
 
 
