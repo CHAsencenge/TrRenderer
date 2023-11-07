@@ -1,9 +1,6 @@
 #pragma once
-#include <vector>
 #include "TrVulkanVertex.h"
-#include <glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
-
+#include <tiny_obj_loader.h>
 #include "nvvk/resourceallocator_vk.hpp"
 
 

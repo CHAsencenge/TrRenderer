@@ -26,6 +26,7 @@
 
 #ifdef IS_TR_VULKAN_RENDERER
 #include "../../TrVulkanRenderer/TrVulkanRendererRaster.h"
+#include "../../TrVulkanRenderer/TrVulkanRendererRayTracing.h"
 #endif
 
 
@@ -144,7 +145,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 #ifdef IS_TR_VULKAN_RENDERER
 int main()
 {
-    TrVulkanRendererRaster VulkanRenderer(1920, 1080, "TrVulkan");
+    // TrVulkanRendererRaster VulkanRenderer(1920, 1080, "TrVulkan");
+    TrVulkanRendererRayTracingBase VulkanRenderer(1920, 1080, "TrVulkan");
 
     try
     {

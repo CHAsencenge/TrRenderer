@@ -1,17 +1,5 @@
 #include "TrVulkanRendererRayTracing.h"
 
-#include <stb_image.h>
-
-#include "obj_loader.h"
-#include "TrVulkanModel.h"
-#include "nvh/fileoperations.hpp"
-#include "nvvk/buffers_vk.hpp"
-#include "nvvk/commands_vk.hpp"
-#include "nvvk/images_vk.hpp"
-#include "nvvk/pipeline_vk.hpp"
-#include "nvvk/renderpasses_vk.hpp"
-
-
 TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase()
 {
 }
@@ -106,49 +94,85 @@ void TrVulkanRendererRayTracingBase::OnRender()
         {
             continue;
         }
-    }
-    // imgui new frame
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    // imgui style
-    nvmath::vec4f clearColor = nvmath::vec4f(1, 1, 1, 1.00f);
-    if(showGui())
-    {
-        ImGuiH::Panel::Begin();
-        ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
-        RenderUI();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
-        ImGuiH::Panel::End();
-    }
-
-    // prepare rendering scene
-    prepareFrame();
-
-    auto curFrame = getCurFrame();
-    const VkCommandBuffer& cmdBuf = getCommandBuffers()[curFrame];
-
-    VkCommandBufferBeginInfo cmdBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    cmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(cmdBuf, &cmdBufferBeginInfo);
     
-    // update uniform buffer
-    UpdateUniformBuffer(cmdBuf);
+        // imgui new frame
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-    // clear screen
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color        = {{clearColor[0], clearColor[1], clearColor[2], clearColor[3]}};
-    clearValues[1].depthStencil = {1.0f, 0};
+        // imgui style
+        nvmath::vec4f clearColor = nvmath::vec4f(1, 1, 1, 1.00f);
+        if(showGui())
+        {
+            ImGuiH::Panel::Begin();
+            ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
+            RenderUI();
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
+            ImGuiH::Panel::End();
+        }
 
-    // offscreen render pass
+        // prepare rendering scene
+        prepareFrame();
 
-    // post render pass
-    
+        auto curFrame = getCurFrame();
+        const VkCommandBuffer& cmdBuf = getCommandBuffers()[curFrame];
+
+        VkCommandBufferBeginInfo cmdBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        cmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        vkBeginCommandBuffer(cmdBuf, &cmdBufferBeginInfo);
+        
+        // update uniform buffer
+        UpdateUniformBuffer(cmdBuf);
+
+        // clear screen
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color        = {{clearColor[0], clearColor[1], clearColor[2], clearColor[3]}};
+        clearValues[1].depthStencil = {1.0f, 0};
+
+        // offscreen render pass
+        VkRenderPassBeginInfo offscreenRenderPassBeginInfo {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        offscreenRenderPassBeginInfo.framebuffer = mOffscreenFrameBuffer;
+        offscreenRenderPassBeginInfo.renderArea = {{0, 0}, getSize()};
+        offscreenRenderPassBeginInfo.renderPass = mOffscreenRenderPass;
+        offscreenRenderPassBeginInfo.clearValueCount = 2;
+        offscreenRenderPassBeginInfo.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(cmdBuf, &offscreenRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        Rasterize(cmdBuf);
+
+        vkCmdEndRenderPass(cmdBuf);
+        
+        // post render pass
+        VkRenderPassBeginInfo postRenderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        postRenderPassBeginInfo.framebuffer = getFramebuffers()[curFrame];
+        postRenderPassBeginInfo.renderArea = {{0, 0}, getSize()};
+        postRenderPassBeginInfo.renderPass = getRenderPass();
+        postRenderPassBeginInfo.clearValueCount = 2;
+        postRenderPassBeginInfo.pClearValues = clearValues.data();
+        
+        vkCmdBeginRenderPass(cmdBuf, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        DrawPost(cmdBuf);
+
+        ImGui::Render();
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmdBuf);
+
+        vkCmdEndRenderPass(cmdBuf);
+
+        vkEndCommandBuffer(cmdBuf);
+        submitFrame();
+    }
 }
 
 void TrVulkanRendererRayTracingBase::OnCleanup()
 {
+    vkDeviceWaitIdle(getDevice());
+    DestroyResources();
+    destroy();
+    mNvContext.deinit();
+    glfwDestroyWindow(mWindow);
+    glfwTerminate();
 }
 
 void TrVulkanRendererRayTracingBase::CreateInstance()
@@ -311,7 +335,7 @@ void TrVulkanRendererRayTracingBase::CreateTextureImages(const VkCommandBuffer c
         texture = mResourceAllocDma.createTexture(image, imgViewCreateInfo, samplerCreateInfo);
 
         // when createImage, image layout is VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        // nvvk::cmdBarrierImageLayout(cmdBuffer, texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        nvvk::cmdBarrierImageLayout(cmdBuffer, texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         mTextures.push_back(texture);
     }
     else
@@ -360,6 +384,7 @@ void TrVulkanRendererRayTracingBase::CreateOffscreenRender()
     VkImageViewCreateInfo colorViewCreateInfo = nvvk::makeImageViewCreateInfo(colorImage.image, colorCreateInfo);
     VkSamplerCreateInfo samplerCreateInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
     mOffscreenColorTex = mResourceAllocDma.createTexture(colorImage, colorViewCreateInfo, samplerCreateInfo);
+    mOffscreenColorTex.descriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     
     // create depth buffer
     VkImageCreateInfo depthCreateInfo = nvvk::makeImage2DCreateInfo(m_size, mOffscreenDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -473,7 +498,7 @@ void TrVulkanRendererRayTracingBase::UpdateDescriptorSet()
     writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eGlobals, &descBufferInfoUnif));
 
     VkDescriptorBufferInfo descBufferInfoSceneDesc{mBufferObjDesc.buffer, 0, VK_WHOLE_SIZE};
-    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eObjDescs, &descBufferInfoUnif));
+    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eObjDescs, &descBufferInfoSceneDesc));
 
     std::vector<VkDescriptorImageInfo> descImageInfos;
     for(auto& texture : mTextures)
@@ -509,7 +534,7 @@ void TrVulkanRendererRayTracingBase::CreatePostPipeline()
     // create pipeline
     nvvk::GraphicsPipelineGeneratorCombined pipelineGenerator(m_device, mPostPipelineLayout, m_renderPass);
     pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/passthrough.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_VERTEX_BIT);
-    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/post.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT);
+    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/post.frag.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT);
     pipelineGenerator.rasterizationState.cullMode = VK_CULL_MODE_NONE;
     mPostGraphicsPipeline = pipelineGenerator.createPipeline();
     mDebugger.setObjectName(mPostGraphicsPipeline, "PostGraphicsPipeline");
@@ -535,7 +560,7 @@ void TrVulkanRendererRayTracingBase::RenderUI()
     }
 }
 
-void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer c)
+void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& cmdBuf)
 {
     // prepare new ubo on host
     const float aspectRatio = m_size.width / static_cast<float>(m_size.height);
@@ -550,24 +575,94 @@ void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer c
     VkBuffer deviceUbo = mBufferGlobals.buffer;
     auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
 
-    VkBufferMemoryBarrier beforeBarrier {VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+    VkBufferMemoryBarrier beforeBarrier {VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
     beforeBarrier.buffer = deviceUbo;
     beforeBarrier.offset = 0;
     beforeBarrier.size = sizeof(hostUbo);
     beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
     beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    vkCmdPipelineBarrier(cmdBuf, uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &beforeBarrier, 0, nullptr)
+    vkCmdPipelineBarrier(cmdBuf, uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &beforeBarrier, 0, nullptr);
 
     vkCmdUpdateBuffer(cmdBuf, mBufferGlobals.buffer, 0, sizeof(GlobalUniforms), &hostUbo);
 
-    VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+    VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
     afterBarrier.buffer = deviceUbo;
     afterBarrier.offset = 0;
     afterBarrier.size = sizeof(hostUbo);
     afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &afterBarrier, 0, nullptr)
+    vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &afterBarrier, 0, nullptr);
 
+}
+
+void TrVulkanRendererRayTracingBase::Rasterize(const VkCommandBuffer& cmdBuf)
+{
+    VkDeviceSize offset{0};
+
+    setViewport(cmdBuf);
+
+    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+    vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescSet, 0, nullptr);
+
+    for(const TrObjInstanceRtBase inst : mObjInstances)
+    {
+        auto& model = mObjModels[inst.mObjIndex];
+        mPushConstantRaster.objIndex = inst.mObjIndex;
+        mPushConstantRaster.modelMatrix = inst.mTransform;
+
+        vkCmdPushConstants(cmdBuf, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster), &mPushConstantRaster);
+        vkCmdBindVertexBuffers(cmdBuf, 0, 1, &model.mVertexBuffer.buffer, &offset);
+        vkCmdBindIndexBuffer(cmdBuf, model.mIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(cmdBuf, model.mNumIndices, 1, 0, 0, 0);
+    }
+}
+
+void TrVulkanRendererRayTracingBase::DrawPost(const VkCommandBuffer& cmdBuf)
+{
+    setViewport(cmdBuf);
+
+    auto aspectRatio = static_cast<float>(m_size.width) / static_cast<float>(m_size.height);
+
+    vkCmdPushConstants(cmdBuf, mPostPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float), &aspectRatio);
+    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, mPostGraphicsPipeline);
+    vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, mPostPipelineLayout, 0, 1, &mPostDescSet, 0, nullptr);
+    vkCmdDraw(cmdBuf, 3, 1, 0, 0);
+}
+
+void TrVulkanRendererRayTracingBase::DestroyResources()
+{
+    vkDestroyPipeline(m_device, mGraphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, mPipelineLayout, nullptr);
+    vkDestroyDescriptorPool(m_device, mDescPool, nullptr);
+    vkDestroyDescriptorSetLayout(m_device, mDescSetLayout, nullptr);
+
+    mResourceAllocDma.destroy(mBufferGlobals);
+    mResourceAllocDma.destroy(mBufferObjDesc);
+
+    for(auto& m : mObjModels)
+    {
+        mResourceAllocDma.destroy(m.mVertexBuffer);
+        mResourceAllocDma.destroy(m.mIndexBuffer);
+        mResourceAllocDma.destroy(m.mMatColorBuffer);
+        mResourceAllocDma.destroy(m.mMatIndexBuffer);
+    }
+
+    for(auto& t : mTextures)
+    {
+        mResourceAllocDma.destroy(t);
+    }
+
+    //#Post
+    mResourceAllocDma.destroy(mOffscreenColorTex);
+    mResourceAllocDma.destroy(mOffscreenDepthTex);
+    vkDestroyPipeline(m_device, mPostGraphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, mPostPipelineLayout, nullptr);
+    vkDestroyDescriptorPool(m_device, mPostDescPool, nullptr);
+    vkDestroyDescriptorSetLayout(m_device, mPostDescSetLayout, nullptr);
+    vkDestroyRenderPass(m_device, mOffscreenRenderPass, nullptr);
+    vkDestroyFramebuffer(m_device, mOffscreenFrameBuffer, nullptr);
+
+    mResourceAllocDma.deinit();
 }
 
 

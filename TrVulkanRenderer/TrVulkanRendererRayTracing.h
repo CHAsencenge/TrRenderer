@@ -4,7 +4,6 @@
 #include "nvvkhl/appbase_vk.hpp"
 #include "nvvk/context_vk.hpp"
 #include "nvvk/debug_util_vk.hpp"
-#include "nvvk/resourceallocator_vk.hpp"
 #include "TrVulkanModel.h"
 #include "nvvk/descriptorsets_vk.hpp"
 #include "shaders/VkRayTracing/host_device.h"
@@ -12,6 +11,16 @@
 #include "imgui.h"
 #include <imgui/imgui_helper.h>
 #include "imgui/imgui_camera_widget.h"
+#include <imgui/backends/imgui_impl_vulkan.h>
+#include "TrVulkanModel.h"
+#include <stb_image.h>
+#include "obj_loader.h"
+#include "nvh/fileoperations.hpp"
+#include "nvvk/buffers_vk.hpp"
+#include "nvvk/commands_vk.hpp"
+#include "nvvk/images_vk.hpp"
+#include "nvvk/pipeline_vk.hpp"
+#include "nvvk/renderpasses_vk.hpp"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -87,7 +96,13 @@ public:
     void RenderUI();
 
     // each frame to update the camera matrix
-    void UpdateUniformBuffer(const VkCommandBuffer cmdBuf);
+    void UpdateUniformBuffer(const VkCommandBuffer& cmdBuf);
+
+    void Rasterize(const VkCommandBuffer& cmdBuf);
+
+    void DrawPost(const VkCommandBuffer& cmdBuf);
+
+    void DestroyResources();
 
 #pragma endregion 
 
