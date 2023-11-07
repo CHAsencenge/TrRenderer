@@ -7,6 +7,11 @@
 #include "nvvk/resourceallocator_vk.hpp"
 #include "TrVulkanModel.h"
 #include "nvvk/descriptorsets_vk.hpp"
+#include "shaders/VkRayTracing/host_device.h"
+#include "backends/imgui_impl_glfw.h"
+#include "imgui.h"
+#include <imgui/imgui_helper.h>
+#include "imgui/imgui_camera_widget.h"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -79,6 +84,11 @@ public:
 
     void UpdatePostDescriptorSet();
 
+    void RenderUI();
+
+    // each frame to update the camera matrix
+    void UpdateUniformBuffer(const VkCommandBuffer cmdBuf);
+
 #pragma endregion 
 
 protected:
@@ -87,8 +97,16 @@ protected:
     nvmath::vec3f mCenter = TrVulkanGlobalRT::camCenter;
     
     nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
-    
 
+    // Information pushed at each draw call
+    PushConstantRaster mPushConstantRaster{
+          {1},                // Identity matrix
+          {10.f, 15.f, 8.f},  // light position
+          0,                  // instance Id
+          100.f,              // light intensity
+          0                   // light type
+    };
+    
     nvvk::Context mNvContext = {};
 
     VkSurfaceKHR mSurface;
@@ -120,13 +138,32 @@ protected:
 
     nvvk::DescriptorSetBindings mDescSetLayoutBindings;
 
+    VkDescriptorPool mDescPool;
+
+    VkDescriptorSetLayout mDescSetLayout;
+
+    VkDescriptorSet mDescSet;
+
     nvvk::Buffer mBufferGlobals;
 
     nvvk::Buffer mBufferObjDesc;
 
     nvvk::DescriptorSetBindings mPostDescSetLayoutBindings;
 
+    VkDescriptorSetLayout mPostDescSetLayout;
+
+    VkDescriptorPool mPostDescPool;
+
+    VkDescriptorSet mPostDescSet;
+
+    VkPipelineLayout mPipelineLayout;
+
+    VkPipeline mGraphicsPipeline;
+
+    VkPipelineLayout mPostPipelineLayout;
     
+    VkPipeline mPostGraphicsPipeline;
+
     
 };
 

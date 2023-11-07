@@ -8,6 +8,7 @@
 #include "nvvk/buffers_vk.hpp"
 #include "nvvk/commands_vk.hpp"
 #include "nvvk/images_vk.hpp"
+#include "nvvk/pipeline_vk.hpp"
 #include "nvvk/renderpasses_vk.hpp"
 
 
@@ -80,29 +81,65 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     CreateObjDescriptionBuffer();
 
     // update descriptor set
+    UpdateDescriptorSet();
 
     // post descriptor
-
+    CreatePostDescriptor();
+    
     // post pipeline
+    CreatePostPipeline();
 
     // update post descriptor set
+    UpdatePostDescriptorSet();
 
     // imgui init for vulkan
-    
+    ImGui_ImplGlfw_InitForVulkan(mWindow, true);
 }
 
 void TrVulkanRendererRayTracingBase::OnRender()
 {
+    while(!glfwWindowShouldClose(mWindow))
+    {
+        glfwPollEvents();
 
+        if(isMinimized())
+        {
+            continue;
+        }
+    }
     // imgui new frame
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     // imgui style
+    nvmath::vec4f clearColor = nvmath::vec4f(1, 1, 1, 1.00f);
+    if(showGui())
+    {
+        ImGuiH::Panel::Begin();
+        ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
+        RenderUI();
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
+        ImGuiH::Panel::End();
+    }
 
     // prepare rendering scene
+    prepareFrame();
 
+    auto curFrame = getCurFrame();
+    const VkCommandBuffer& cmdBuf = getCommandBuffers()[curFrame];
+
+    VkCommandBufferBeginInfo cmdBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+    cmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmdBuf, &cmdBufferBeginInfo);
+    
     // update uniform buffer
+    UpdateUniformBuffer(cmdBuf);
 
     // clear screen
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color        = {{clearColor[0], clearColor[1], clearColor[2], clearColor[3]}};
+    clearValues[1].depthStencil = {1.0f, 0};
 
     // offscreen render pass
 
@@ -342,71 +379,195 @@ void TrVulkanRendererRayTracingBase::CreateOffscreenRender()
     cmdPool.submitAndWait(cmdBuf);
     
     // create render pass for offscreen
-
+    if(!mOffscreenRenderPass)
+    {
+        mOffscreenRenderPass = nvvk::createRenderPass(m_device, {mOffscreenColorFormat}, mOffscreenDepthFormat, 1, true, true, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL);
+    }
     
-    // create frame buffer for offscreen 
+    // create frame buffer for offscreen
+    vkDestroyFramebuffer(m_device, mOffscreenFrameBuffer, nullptr);
+    
+    std::vector<VkImageView> imageViews = {mOffscreenColorTex.descriptor.imageView, mOffscreenDepthTex.descriptor.imageView};
+    VkFramebufferCreateInfo frameBufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+    frameBufferCreateInfo.attachmentCount = static_cast<uint32_t>(imageViews.size());
+    frameBufferCreateInfo.pAttachments = imageViews.data();
+    frameBufferCreateInfo.renderPass = mOffscreenRenderPass;
+    frameBufferCreateInfo.width = m_size.width;
+    frameBufferCreateInfo.height = m_size.height;
+    frameBufferCreateInfo.layers = 1;
+
+    vkCreateFramebuffer(m_device, &frameBufferCreateInfo, nullptr, &mOffscreenFrameBuffer);
 }
 
 void TrVulkanRendererRayTracingBase::CreateDescriptorSetLayout()
 {
     // add bindings
-
+    auto texNumber = static_cast<uint32_t>(mTextures.size());
+    // VK_SHADER_STAGE_RAYGEN_BIT_KHR: ray generation stage
+    mDescSetLayoutBindings.addBinding(SceneBindings::eGlobals, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texNumber, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
 
     // create layout for bindings
-
+    mDescSetLayout = mDescSetLayoutBindings.createLayout(m_device);
 
     // create pool
-
+    mDescPool = mDescSetLayoutBindings.createPool(m_device, 1);
 
     // allocate descriptor set
+    mDescSet = nvvk::allocateDescriptorSet(m_device, mDescPool, mDescSetLayout);
 }
 
 void TrVulkanRendererRayTracingBase::CreateGraphicsPipeline()
 {
     // push constant ranges (model matrix, light info, obj index)
-
+    VkPushConstantRange pushConstantRange = {VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster)};
     
     // create pipeline layout
-
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    pipelineLayoutCreateInfo.setLayoutCount = 1;
+    pipelineLayoutCreateInfo.pSetLayouts = &mDescSetLayout;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
+    vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout);
 
     // create pipeline (shader, binding, attribute)
+    nvvk::GraphicsPipelineGeneratorCombined graphicsPipelineGenerator(m_device, mPipelineLayout, mOffscreenRenderPass);
+    graphicsPipelineGenerator.depthStencilState.depthTestEnable = true;
+    graphicsPipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/vert_shader.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_VERTEX_BIT);
+    graphicsPipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/frag_shader.frag.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT);
+    graphicsPipelineGenerator.addBindingDescription({0, sizeof(VertexObj)});
+    graphicsPipelineGenerator.addAttributeDescriptions({
+        {0, 0, VK_FORMAT_R32G32B32_SFLOAT, static_cast<uint32_t>(offsetof(VertexObj, pos))},
+        {1, 0, VK_FORMAT_R32G32B32_SFLOAT, static_cast<uint32_t>(offsetof(VertexObj, nrm))},
+        {2, 0, VK_FORMAT_R32G32B32_SFLOAT, static_cast<uint32_t>(offsetof(VertexObj, color))},
+        {3, 0, VK_FORMAT_R32G32_SFLOAT, static_cast<uint32_t>(offsetof(VertexObj, texCoord))},
+    });
 
-
-    
+    mGraphicsPipeline = graphicsPipelineGenerator.createPipeline();
+    mDebugger.setObjectName(mGraphicsPipeline, "GraphicsPipeline");
 }
 
 void TrVulkanRendererRayTracingBase::CreateUniformBuffer()
 {
     // global uniforms include viewProj viewInverse projInverse
+    mBufferGlobals = mResourceAllocDma.createBuffer(sizeof(GlobalUniforms), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    mDebugger.setObjectName(mBufferGlobals.buffer, "BufferGlobals");
 }
 
 void TrVulkanRendererRayTracingBase::CreateObjDescriptionBuffer()
 {
-    
+    nvvk::CommandPool cmdPool(m_device, m_graphicsQueueIndex);
+    auto cmdBuf = cmdPool.createCommandBuffer();
+    mBufferObjDesc = mResourceAllocDma.createBuffer(cmdBuf, mObjDescs, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+    cmdPool.submitAndWait(cmdBuf);
+    mResourceAllocDma.finalizeAndReleaseStaging();
+    mDebugger.setObjectName(mBufferObjDesc.buffer, "BufferObjDesc");
 }
 
 void TrVulkanRendererRayTracingBase::UpdateDescriptorSet()
 {
     // use descriptor buffer info and image info to make write
+    std::vector<VkWriteDescriptorSet> writes;
+    VkDescriptorBufferInfo descBufferInfoUnif{mBufferGlobals.buffer, 0, VK_WHOLE_SIZE};
+    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eGlobals, &descBufferInfoUnif));
+
+    VkDescriptorBufferInfo descBufferInfoSceneDesc{mBufferObjDesc.buffer, 0, VK_WHOLE_SIZE};
+    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eObjDescs, &descBufferInfoUnif));
+
+    std::vector<VkDescriptorImageInfo> descImageInfos;
+    for(auto& texture : mTextures)
+    {
+        descImageInfos.emplace_back(texture.descriptor);
+    }
+    writes.emplace_back(mDescSetLayoutBindings.makeWriteArray(mDescSet, SceneBindings::eTextures, descImageInfos.data()));
 
     // use writes to update descriptor sets
-        
+    vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void TrVulkanRendererRayTracingBase::CreatePostDescriptor()
 {
     // allocate descriptor set for post
+    mPostDescSetLayoutBindings.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+    mPostDescSetLayout = mPostDescSetLayoutBindings.createLayout(m_device);
+    mPostDescPool = mPostDescSetLayoutBindings.createPool(m_device);
+    mPostDescSet = nvvk::allocateDescriptorSet(m_device, mPostDescPool, mPostDescSetLayout);
 }
 
 void TrVulkanRendererRayTracingBase::CreatePostPipeline()
 {
     // create pipeline layout
-
+    VkPushConstantRange pushConstantRanges = {VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float)};
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    pipelineLayoutCreateInfo.setLayoutCount = 1;
+    pipelineLayoutCreateInfo.pSetLayouts = &mPostDescSetLayout;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRanges;
+    vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &mPostPipelineLayout);
+    
     // create pipeline
+    nvvk::GraphicsPipelineGeneratorCombined pipelineGenerator(m_device, mPostPipelineLayout, m_renderPass);
+    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/passthrough.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_VERTEX_BIT);
+    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/post.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT);
+    pipelineGenerator.rasterizationState.cullMode = VK_CULL_MODE_NONE;
+    mPostGraphicsPipeline = pipelineGenerator.createPipeline();
+    mDebugger.setObjectName(mPostGraphicsPipeline, "PostGraphicsPipeline");
 }
 
 void TrVulkanRendererRayTracingBase::UpdatePostDescriptorSet()
 {
+    VkWriteDescriptorSet writeDescriptorSets = mPostDescSetLayoutBindings.makeWrite(mPostDescSet, 0, &mOffscreenColorTex.descriptor);
+    vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSets, 0, nullptr);
+}
+
+void TrVulkanRendererRayTracingBase::RenderUI()
+{
+    ImGuiH::CameraWidget();
+    if(ImGui::CollapsingHeader("Light"))
+    {
+        ImGui::RadioButton("Point", &mPushConstantRaster.lightType, 0);
+        ImGui::SameLine();
+        ImGui::RadioButton("Infinite", &mPushConstantRaster.lightType, 1);
+
+        ImGui::SliderFloat3("Position", &mPushConstantRaster.lightPosition.x, -20.f, 20.f);
+        ImGui::SliderFloat("Intensity", &mPushConstantRaster.lightIntensity, 0.f, 150.f);
+    }
+}
+
+void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer c)
+{
+    // prepare new ubo on host
+    const float aspectRatio = m_size.width / static_cast<float>(m_size.height);
+    GlobalUniforms hostUbo = {};
+    const auto& view = CameraManip.getMatrix();
+    const auto& proj = nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.1f, 1000.0f);
+
+    hostUbo.viewProj = proj * view;
+    hostUbo.viewInverse = nvmath::invert(view);
+    hostUbo.projInverse = nvmath::invert(proj);
+
+    VkBuffer deviceUbo = mBufferGlobals.buffer;
+    auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+
+    VkBufferMemoryBarrier beforeBarrier {VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+    beforeBarrier.buffer = deviceUbo;
+    beforeBarrier.offset = 0;
+    beforeBarrier.size = sizeof(hostUbo);
+    beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    vkCmdPipelineBarrier(cmdBuf, uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &beforeBarrier, 0, nullptr)
+
+    vkCmdUpdateBuffer(cmdBuf, mBufferGlobals.buffer, 0, sizeof(GlobalUniforms), &hostUbo);
+
+    VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+    afterBarrier.buffer = deviceUbo;
+    afterBarrier.offset = 0;
+    afterBarrier.size = sizeof(hostUbo);
+    afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &afterBarrier, 0, nullptr)
+
 }
 
 
