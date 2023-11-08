@@ -35,7 +35,7 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     // resource allocator, debug util, depth format
     setup(mNvContext.m_instance, mNvContext.m_device, mNvContext.m_physicalDevice, mNvContext.m_queueGCT.familyIndex);
     
-    // swap chain
+    // swap chain: for rendering onto the surface
     createSwapchain(mSurface, mWidth, mHeight);
 
     // depth buffer
@@ -81,6 +81,7 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     UpdatePostDescriptorSet();
 
     // imgui init for vulkan
+    setupGlfwCallbacks(mWindow); // response to cursor drag events
     ImGui_ImplGlfw_InitForVulkan(mWindow, true);
 }
 
@@ -103,12 +104,7 @@ void TrVulkanRendererRayTracingBase::OnRender()
         nvmath::vec4f clearColor = nvmath::vec4f(1, 1, 1, 1.00f);
         if(showGui())
         {
-            ImGuiH::Panel::Begin();
-            ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
-            RenderUI();
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
-            ImGuiH::Panel::End();
+            RenderUI(clearColor);
         }
 
         // prepare rendering scene
@@ -546,8 +542,11 @@ void TrVulkanRendererRayTracingBase::UpdatePostDescriptorSet()
     vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSets, 0, nullptr);
 }
 
-void TrVulkanRendererRayTracingBase::RenderUI()
+void TrVulkanRendererRayTracingBase::RenderUI(nvmath::vec4f clearColor)
 {
+    ImGuiH::Panel::Begin();
+    ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
+    
     ImGuiH::CameraWidget();
     if(ImGui::CollapsingHeader("Light"))
     {
@@ -558,6 +557,9 @@ void TrVulkanRendererRayTracingBase::RenderUI()
         ImGui::SliderFloat3("Position", &mPushConstantRaster.lightPosition.x, -20.f, 20.f);
         ImGui::SliderFloat("Intensity", &mPushConstantRaster.lightIntensity, 0.f, 150.f);
     }
+    
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGuiH::Panel::End();
 }
 
 void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& cmdBuf)

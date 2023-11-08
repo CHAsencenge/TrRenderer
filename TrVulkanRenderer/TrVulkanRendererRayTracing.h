@@ -93,7 +93,7 @@ public:
 
     void UpdatePostDescriptorSet();
 
-    void RenderUI();
+    void RenderUI(nvmath::vec4f clearColor);
 
     // each frame to update the camera matrix
     void UpdateUniformBuffer(const VkCommandBuffer& cmdBuf);
