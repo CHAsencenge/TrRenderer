@@ -529,8 +529,8 @@ void TrVulkanRendererRayTracingBase::CreatePostPipeline()
     
     // create pipeline
     nvvk::GraphicsPipelineGeneratorCombined pipelineGenerator(m_device, mPostPipelineLayout, m_renderPass);
-    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/passthrough.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_VERTEX_BIT);
-    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/post.frag.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT);
+    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/passthrough.vert.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_VERTEX_BIT); // pass through full screen triangle
+    pipelineGenerator.addShader(nvh::loadFile("spv/VkRayTracing/post.frag.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true), VK_SHADER_STAGE_FRAGMENT_BIT); // fragment tone mapper shader
     pipelineGenerator.rasterizationState.cullMode = VK_CULL_MODE_NONE;
     mPostGraphicsPipeline = pipelineGenerator.createPipeline();
     mDebugger.setObjectName(mPostGraphicsPipeline, "PostGraphicsPipeline");
