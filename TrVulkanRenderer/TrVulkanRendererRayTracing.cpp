@@ -51,7 +51,7 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     initGUI(0);
 
     // load model
-    LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/wuson.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
 
     // offscreen render
     CreateOffscreenRender();
@@ -425,9 +425,9 @@ void TrVulkanRendererRayTracingBase::CreateDescriptorSetLayout()
     // add bindings
     auto texNumber = static_cast<uint32_t>(mTextures.size());
     // VK_SHADER_STAGE_RAYGEN_BIT_KHR: ray generation stage
-    mDescSetLayoutBindings.addBinding(SceneBindings::eGlobals, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
-    mDescSetLayoutBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-    mDescSetLayoutBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texNumber, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(ETrSceneBindings::Globals, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(ETrSceneBindings::ObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(ETrSceneBindings::Textures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texNumber, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
 
     // create layout for bindings
     mDescSetLayout = mDescSetLayoutBindings.createLayout(m_device);
@@ -442,7 +442,7 @@ void TrVulkanRendererRayTracingBase::CreateDescriptorSetLayout()
 void TrVulkanRendererRayTracingBase::CreateGraphicsPipeline()
 {
     // push constant ranges (model matrix, light info, obj index)
-    VkPushConstantRange pushConstantRange = {VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster)};
+    VkPushConstantRange pushConstantRange = {VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(TrPushConstantRaster)};
     
     // create pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
@@ -472,7 +472,7 @@ void TrVulkanRendererRayTracingBase::CreateGraphicsPipeline()
 void TrVulkanRendererRayTracingBase::CreateUniformBuffer()
 {
     // global uniforms include viewProj viewInverse projInverse
-    mBufferGlobals = mResourceAllocDma.createBuffer(sizeof(GlobalUniforms), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    mBufferGlobals = mResourceAllocDma.createBuffer(sizeof(TrGlobalUniforms), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     mDebugger.setObjectName(mBufferGlobals.buffer, "BufferGlobals");
 }
 
@@ -550,12 +550,12 @@ void TrVulkanRendererRayTracingBase::RenderUI(nvmath::vec4f clearColor)
     ImGuiH::CameraWidget();
     if(ImGui::CollapsingHeader("Light"))
     {
-        ImGui::RadioButton("Point", &mPushConstantRaster.lightType, 0);
+        ImGui::RadioButton("Point", &mPushConstantRaster.mLightType, 0);
         ImGui::SameLine();
-        ImGui::RadioButton("Infinite", &mPushConstantRaster.lightType, 1);
+        ImGui::RadioButton("Infinite", &mPushConstantRaster.mLightType, 1);
 
-        ImGui::SliderFloat3("Position", &mPushConstantRaster.lightPosition.x, -20.f, 20.f);
-        ImGui::SliderFloat("Intensity", &mPushConstantRaster.lightIntensity, 0.f, 150.f);
+        ImGui::SliderFloat3("Position", &mPushConstantRaster.mLightPosition.x, -20.f, 20.f);
+        ImGui::SliderFloat("Intensity", &mPushConstantRaster.mLightIntensity, 0.f, 150.f);
     }
     
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -566,13 +566,13 @@ void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& 
 {
     // prepare new ubo on host
     const float aspectRatio = m_size.width / static_cast<float>(m_size.height);
-    GlobalUniforms hostUbo = {};
+    TrGlobalUniforms hostUbo = {};
     const auto& view = CameraManip.getMatrix();
     const auto& proj = nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.1f, 1000.0f);
 
-    hostUbo.viewProj = proj * view;
-    hostUbo.viewInverse = nvmath::invert(view);
-    hostUbo.projInverse = nvmath::invert(proj);
+    hostUbo.mViewProj = proj * view;
+    hostUbo.mViewInverse = nvmath::invert(view);
+    hostUbo.mProjInverse = nvmath::invert(proj);
 
     VkBuffer deviceUbo = mBufferGlobals.buffer;
     auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -585,7 +585,7 @@ void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& 
     beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     vkCmdPipelineBarrier(cmdBuf, uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &beforeBarrier, 0, nullptr);
 
-    vkCmdUpdateBuffer(cmdBuf, mBufferGlobals.buffer, 0, sizeof(GlobalUniforms), &hostUbo);
+    vkCmdUpdateBuffer(cmdBuf, mBufferGlobals.buffer, 0, sizeof(TrGlobalUniforms), &hostUbo);
 
     VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
     afterBarrier.buffer = deviceUbo;
@@ -609,10 +609,10 @@ void TrVulkanRendererRayTracingBase::Rasterize(const VkCommandBuffer& cmdBuf)
     for(const TrObjInstanceRtBase inst : mObjInstances)
     {
         auto& model = mObjModels[inst.mObjIndex];
-        mPushConstantRaster.objIndex = inst.mObjIndex;
-        mPushConstantRaster.modelMatrix = inst.mTransform;
+        mPushConstantRaster.mObjIndex = inst.mObjIndex;
+        mPushConstantRaster.mModelMatrix = inst.mTransform;
 
-        vkCmdPushConstants(cmdBuf, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster), &mPushConstantRaster);
+        vkCmdPushConstants(cmdBuf, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(TrPushConstantRaster), &mPushConstantRaster);
         vkCmdBindVertexBuffers(cmdBuf, 0, 1, &model.mVertexBuffer.buffer, &offset);
         vkCmdBindIndexBuffer(cmdBuf, model.mIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(cmdBuf, model.mNumIndices, 1, 0, 0, 0);

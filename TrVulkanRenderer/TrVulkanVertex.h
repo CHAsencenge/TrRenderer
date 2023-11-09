@@ -4,6 +4,18 @@
 #include <glm/gtx/hash.hpp>
 #include <array>
 
+
+#ifdef __cplusplus
+#include "nvmath/nvmath.h"
+// GLSL Type
+using vec2 = nvmath::vec2f;
+using vec3 = nvmath::vec3f;
+using vec4 = nvmath::vec4f;
+using mat4 = nvmath::mat4f;
+using uint = unsigned int;
+#endif
+
+
 class TrVulkanVertex2DBase
 {
 public:
@@ -57,4 +69,12 @@ public:
     static VkVertexInputBindingDescription GetBindingDescription();
 
     static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
+};
+
+struct TrVulkanVertexRT
+{
+    vec3 mPos;
+    vec3 mNrm;
+    vec3 mColor;
+    vec2 mTexCoord;
 };

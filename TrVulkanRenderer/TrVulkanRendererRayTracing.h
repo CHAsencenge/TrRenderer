@@ -15,6 +15,7 @@
 #include "TrVulkanModel.h"
 #include <stb_image.h>
 #include "obj_loader.h"
+#include "TrVulkanShader.h"
 #include "nvh/fileoperations.hpp"
 #include "nvvk/buffers_vk.hpp"
 #include "nvvk/commands_vk.hpp"
@@ -114,7 +115,7 @@ protected:
     nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
 
     // Information pushed at each draw call
-    PushConstantRaster mPushConstantRaster{
+    TrPushConstantRaster mPushConstantRaster{
           {1},                // Identity matrix
           {10.f, 15.f, 8.f},  // light position
           0,                  // instance Id

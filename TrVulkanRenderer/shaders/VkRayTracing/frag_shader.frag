@@ -31,11 +31,11 @@
 
 layout(push_constant) uniform _PushConstantRaster
 {
-  PushConstantRaster pcRaster;
+  TrPushConstantRaster pcRaster;
 };
 
 // clang-format off
-// Incoming 
+// Incoming
 layout(location = 1) in vec3 i_worldPos;
 layout(location = 2) in vec3 i_worldNrm;
 layout(location = 3) in vec3 i_viewDir;
@@ -43,12 +43,17 @@ layout(location = 4) in vec2 i_texCoord;
 // Outgoing
 layout(location = 0) out vec4 o_color;
 
-layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; }; // Positions of an object
+// buffer_reference表示这是个缓冲区引用
+// scalar表示使用标量布局，每个元素都单独对齐
+// buffer表示定义 对象是个缓冲区对象
+// Vertices是定义的缓冲区对象的名称
+// {TrVulkanVertexRT v[]; }定义了缓冲区对象的内容，包含一个TrVulkanVertexRT类型的数组v
+layout(buffer_reference, scalar) buffer Vertices {TrVulkanVertexRT v[]; }; // Positions of an object
 layout(buffer_reference, scalar) buffer Indices {uint i[]; }; // Triangle indices
-layout(buffer_reference, scalar) buffer Materials {WaveFrontMaterial m[]; }; // Array of all materials on an object
+layout(buffer_reference, scalar) buffer Materials {TrVulkanWaveFrontMaterial m[]; }; // Array of all materials on an object
 layout(buffer_reference, scalar) buffer MatIndices {int i[]; }; // Material ID for each triangle
 
-layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
+layout(binding = eObjDescs, scalar) buffer ObjDesc_ { TrObjDescRtBase i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
 // clang-format on
 
@@ -56,37 +61,37 @@ layout(binding = eTextures) uniform sampler2D[] textureSamplers;
 void main()
 {
   // Material of the object
-  ObjDesc    objResource = objDesc.i[pcRaster.objIndex];
-  MatIndices matIndices  = MatIndices(objResource.materialIndexAddress);
-  Materials  materials   = Materials(objResource.materialAddress);
+  TrObjDescRtBase    objResource = objDesc.i[pcRaster.mObjIndex];
+  MatIndices matIndices  = MatIndices(objResource.mMaterialIndexAddress);
+  Materials  materials   = Materials(objResource.mMaterialAddress);
 
   int               matIndex = matIndices.i[gl_PrimitiveID];
-  WaveFrontMaterial mat      = materials.m[matIndex];
+  TrVulkanWaveFrontMaterial mat      = materials.m[matIndex];
 
   vec3 N = normalize(i_worldNrm);
 
   // Vector toward light
   vec3  L;
-  float lightIntensity = pcRaster.lightIntensity;
-  if(pcRaster.lightType == 0)
+  float lightIntensity = pcRaster.mLightIntensity;
+  if(pcRaster.mLightType == 0)
   {
-    vec3  lDir     = pcRaster.lightPosition - i_worldPos;
+    vec3  lDir     = pcRaster.mLightPosition - i_worldPos;
     float d        = length(lDir);
-    lightIntensity = pcRaster.lightIntensity / (d * d);
+    lightIntensity = pcRaster.mLightIntensity / (d * d);
     L              = normalize(lDir);
   }
   else
   {
-    L = normalize(pcRaster.lightPosition);
+    L = normalize(pcRaster.mLightPosition);
   }
 
 
   // Diffuse
   vec3 diffuse = computeDiffuse(mat, L, N);
-  if(mat.textureId >= 0)
+  if(mat.mTextureId >= 0)
   {
-    int  txtOffset  = objDesc.i[pcRaster.objIndex].txtOffset;
-    uint txtId      = txtOffset + mat.textureId;
+    int  txtOffset  = objDesc.i[pcRaster.mObjIndex].txtOffset;
+    uint txtId      = txtOffset + mat.mTextureId;
     vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], i_texCoord).xyz;
     diffuse *= diffuseTxt;
   }
