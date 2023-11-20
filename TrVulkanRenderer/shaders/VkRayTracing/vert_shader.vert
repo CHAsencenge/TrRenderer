@@ -28,12 +28,12 @@
 
 layout(binding = 0) uniform _GlobalUniforms
 {
-  TrGlobalUniforms uni;
+  GlobalUniforms uni;
 };
 
 layout(push_constant) uniform _PushConstantRaster
 {
-  TrPushConstantRaster pcRaster;
+  PushConstantRaster pcRaster;
 };
 
 layout(location = 0) in vec3 i_position;
@@ -55,12 +55,12 @@ out gl_PerVertex
 
 void main()
 {
-  vec3 origin = vec3(uni.mViewInverse * vec4(0, 0, 0, 1));
+  vec3 origin = vec3(uni.viewInverse * vec4(0, 0, 0, 1));
 
-  o_worldPos = vec3(pcRaster.mModelMatrix * vec4(i_position, 1.0));
+  o_worldPos = vec3(pcRaster.modelMatrix * vec4(i_position, 1.0));
   o_viewDir  = vec3(o_worldPos - origin);
   o_texCoord = i_texCoord;
-  o_worldNrm = mat3(pcRaster.mModelMatrix) * i_normal;
+  o_worldNrm = mat3(pcRaster.modelMatrix) * i_normal;
 
-  gl_Position = uni.mViewProj * vec4(o_worldPos, 1.0);
+  gl_Position = uni.viewProj * vec4(o_worldPos, 1.0);
 }

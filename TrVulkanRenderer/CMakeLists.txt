@@ -7,6 +7,7 @@ get_filename_component(PROJNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(${PROJNAME} LANGUAGES C CXX)
 message(STATUS "-------------------------------")
 message(STATUS "Processing Project ${PROJNAME}:")
+message(STATUS "current source dir ${CMAKE_CURRENT_SOURCE_DIR}:")
 
 #--------------------------------------------------------------------------------------------------
 # C++ target and defines
@@ -19,9 +20,9 @@ _add_project_definitions(${PROJNAME})
 # Source files for this project
 #
 file(GLOB SOURCE_FILES *.cpp *.hpp *.inl *.h *.c)
-file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
+file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/Common/*.*)
 list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
-include_directories(${TR_RENDERER_DIR}/common)
+include_directories(${TR_RENDERER_DIR}/Common)
 
 # ------------------------------------------------------------------------------------------------
 # project pre define
@@ -45,7 +46,7 @@ compile_glsl_directory(
 	VULKAN_TARGET "vulkan1.2"
 	DEPENDENCY ${VULKAN_BUILD_DEPENDENCIES}
 )
-
+message(STATUS "RT spv dir ${CMAKE_CURRENT_SOURCE_DIR}/spv/VkRayTracing:")
 
 #--------------------------------------------------------------------------------------------------
 # Sources
