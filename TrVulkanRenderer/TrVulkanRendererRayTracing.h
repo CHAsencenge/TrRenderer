@@ -22,6 +22,7 @@
 #include "nvvk/images_vk.hpp"
 #include "nvvk/pipeline_vk.hpp"
 #include "nvvk/renderpasses_vk.hpp"
+#include "nvvk/raytraceKHR_vk.hpp"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -63,12 +64,14 @@ public:
 
 #pragma endregion 
 
+
 #pragma region Camera
 
     // nvh singleton camera manipulator
     void SetupCamera();
 
 #pragma endregion
+
 
 #pragma region TrVulkanRendererRayTracingBase
 
@@ -105,15 +108,32 @@ public:
 
     void DestroyResources();
 
+#pragma endregion
+
+
+#pragma region Simple
+
+void InitRayTracing();
+
+
+
 #pragma endregion 
 
 protected:
+
+#pragma region Gui
+    
     nvmath::vec3f mEye = TrVulkanGlobalRT::camEye;
     
     nvmath::vec3f mCenter = TrVulkanGlobalRT::camCenter;
     
     nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
 
+#pragma endregion 
+
+
+#pragma region Shader
+    
     // Information pushed at each draw call
     TrPushConstantRaster mPushConstantRaster{
           {1},                // Identity matrix
@@ -122,6 +142,8 @@ protected:
           100.f,              // light intensity
           0                   // light type
     };
+
+#pragma endregion Before
     
     nvvk::Context mNvContext = {};
 
@@ -180,6 +202,15 @@ protected:
     
     VkPipeline mPostGraphicsPipeline;
 
+#pragma endregion
+
+
+#pragma region Simple
+
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR mRtProperties {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+
+    nvvk::RaytracingBuilderKHR mRtBuilder; // helper class as a container for one TLAS referencing an array of BLASes
+#pragma endregion 
     
 };
 

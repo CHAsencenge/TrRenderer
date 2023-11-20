@@ -71,6 +71,11 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     // update descriptor set
     UpdateDescriptorSet();
 
+    /// simple begin: RT init
+    InitRayTracing();
+    
+    /// simple end 
+
     // post descriptor
     CreatePostDescriptor();
     
@@ -189,6 +194,16 @@ void TrVulkanRendererRayTracingBase::CreateInstance()
     {
         contextCreateInfo.addDeviceExtension(extension);
     }
+
+    /// simple begin: activate the ray tracing extension
+    // feature structures
+    // physical device will place the structs on the pNext chain of CreateInfo before calling CreateDevice
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelFeature{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR}; 
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeature{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR};
+    contextCreateInfo.addDeviceExtension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, false, &accelFeature);
+    contextCreateInfo.addDeviceExtension(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false, &rtPipelineFeature);
+    contextCreateInfo.addDeviceExtension(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME); // required by ray tracing pipeline
+    /// simple end
     
     for(const char* layer : TrVulkanGlobalRT::layers)
     {
@@ -665,6 +680,16 @@ void TrVulkanRendererRayTracingBase::DestroyResources()
     vkDestroyFramebuffer(m_device, mOffscreenFrameBuffer, nullptr);
 
     mResourceAllocDma.deinit();
+}
+
+// query the rt capabilities of the GPU
+void TrVulkanRendererRayTracingBase::InitRayTracing()
+{
+    VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+    prop2.pNext = &mRtProperties;
+    vkGetPhysicalDeviceProperties2(m_physicalDevice, &prop2); // properties into mRtProperties?
+
+    
 }
 
 
