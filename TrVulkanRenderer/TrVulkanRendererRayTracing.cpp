@@ -55,7 +55,9 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     initGUI(0);
 
     // load model
-    LoadModel(nvh::findFile("media/scenes/wuson.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    // LoadModel(nvh::findFile("media/scenes/Medieval_building.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    // LoadModel(nvh::findFile("media/scenes/plane.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
 
     // offscreen render
     CreateOffscreenRender();
@@ -147,11 +149,17 @@ void TrVulkanRendererRayTracingBase::OnRender()
         offscreenRenderPassBeginInfo.clearValueCount = 2;
         offscreenRenderPassBeginInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(cmdBuf, &offscreenRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        Rasterize(cmdBuf);
-
-        vkCmdEndRenderPass(cmdBuf);
+        // rendering scene
+        if(mbUseRayTracer)
+        {
+            RayTrace(cmdBuf, clearColor);
+        }
+        else
+        {
+            vkCmdBeginRenderPass(cmdBuf, &offscreenRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+            Rasterize(cmdBuf);
+            vkCmdEndRenderPass(cmdBuf);
+        }
         
         // post render pass
         VkRenderPassBeginInfo postRenderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -574,6 +582,8 @@ void TrVulkanRendererRayTracingBase::RenderUI(nvmath::vec4f clearColor)
 {
     ImGuiH::Panel::Begin();
     ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
+
+    ImGui::Checkbox("Enable Ray Tracer", &mbUseRayTracer);
     
     ImGuiH::CameraWidget();
     if(ImGui::CollapsingHeader("Light"))
@@ -603,7 +613,7 @@ void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& 
     hostUbo.mProjInverse = nvmath::invert(proj);
 
     VkBuffer deviceUbo = mBufferGlobals.buffer;
-    auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
 
     VkBufferMemoryBarrier beforeBarrier {VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
     beforeBarrier.buffer = deviceUbo;
@@ -692,8 +702,6 @@ void TrVulkanRendererRayTracingBase::DestroyResources()
     vkDestroyRenderPass(m_device, mOffscreenRenderPass, nullptr);
     vkDestroyFramebuffer(m_device, mOffscreenFrameBuffer, nullptr);
 
-    mResourceAllocDma.deinit();
-
     mRtBuilder.destroy();
     vkDestroyDescriptorPool(m_device, mRtDescPool, nullptr);
     vkDestroyDescriptorSetLayout(m_device, mRtDescSetLayout, nullptr);
@@ -701,6 +709,8 @@ void TrVulkanRendererRayTracingBase::DestroyResources()
     vkDestroyPipeline(m_device, mRtPipeline, nullptr);
     vkDestroyPipelineLayout(m_device, mRtPipelineLayout, nullptr);
     mResourceAllocDma.destroy(mRtSbtBuffer);
+
+    mResourceAllocDma.deinit();
 }
 
 void TrVulkanRendererRayTracingBase::onResize(int, int)
@@ -792,7 +802,7 @@ void TrVulkanRendererRayTracingBase::CreateTLAS()
 
 void TrVulkanRendererRayTracingBase::CreateRtDescriptorSet()
 {
-    mRtDescSetLayoutBindings.addBinding(ETrRtxBindings::Tlas, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+    mRtDescSetLayoutBindings.addBinding(ETrRtxBindings::Tlas, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
     mRtDescSetLayoutBindings.addBinding(ETrRtxBindings::OutImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 
     mRtDescPool = mRtDescSetLayoutBindings.createPool(m_device);
@@ -830,7 +840,7 @@ void TrVulkanRendererRayTracingBase::UpdateRtDescriptorSet()
 void TrVulkanRendererRayTracingBase::CreateRtPipeline()
 {
     // all shader stages (create info)
-    std::array<VkPipelineShaderStageCreateInfo, TrStageIndices> stages{};
+    std::array<VkPipelineShaderStageCreateInfo, ShaderGroupCount> stages{};
     VkPipelineShaderStageCreateInfo stage{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
     stage.pName = "main"; // all the same entry
     // raygen
@@ -884,7 +894,7 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     // ray tracing pipeline can contain an arbitrary number of stages depending on the number of active shaders in the scene
     VkRayTracingPipelineCreateInfoKHR rtPipelineCreateInfo{VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR};
     rtPipelineCreateInfo.stageCount = static_cast<uint32_t>(stages.size());
-    rtPipelineCreateInfo.pStages = &stages;
+    rtPipelineCreateInfo.pStages = stages.data();
     rtPipelineCreateInfo.groupCount = static_cast<uint32_t>(mRtShaderGroupCreateInfos.size());
     rtPipelineCreateInfo.pGroups = mRtShaderGroupCreateInfos.data();
     rtPipelineCreateInfo.maxPipelineRayRecursionDepth = 1;
@@ -981,6 +991,23 @@ void TrVulkanRendererRayTracingBase::CreateSBT()
 
     mResourceAllocDma.unmap(mRtSbtBuffer);
     mResourceAllocDma.finalizeAndReleaseStaging();
+}
+
+// record commands to call the ray trace shaders
+// ray trace the scene
+void TrVulkanRendererRayTracingBase::RayTrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor)
+{
+    // init push constant values
+    mPushConstantRay.mClearColor = clearColor;
+    mPushConstantRay.mLightPosition = mPushConstantRaster.mLightPosition;
+    mPushConstantRay.mLightIntensity = mPushConstantRaster.mLightIntensity;
+    mPushConstantRay.mLightType = mPushConstantRaster.mLightType;
+
+    std::vector<VkDescriptorSet> descSets{mRtDescSet, mDescSet};
+    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, mRtPipeline);
+    vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, mRtPipelineLayout, 0, (uint32_t)descSets.size(), descSets.data(), 0, nullptr);
+    vkCmdPushConstants(cmdBuf, mRtPipelineLayout, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, 0, sizeof(TrPushConstantRay), &mPushConstantRay);
+    vkCmdTraceRaysKHR(cmdBuf, &mRaygenRegion, &mMissRegion, &mClosestHitRegion, &mCallRegion, m_size.width, m_size.height, 1);
 }
 
 

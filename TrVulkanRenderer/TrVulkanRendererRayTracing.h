@@ -135,6 +135,8 @@ public:
 
     // shader binding table
     void CreateSBT();
+
+    void RayTrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor);
 #pragma endregion 
 
 protected:
@@ -146,6 +148,8 @@ protected:
     nvmath::vec3f mCenter = TrVulkanGlobalRT::camCenter;
     
     nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
+
+    bool mbUseRayTracer = true;
 
 #pragma endregion 
 
