@@ -46,3 +46,11 @@ struct TrGlobalUniforms
   mat4 mViewInverse;  // Camera inverse view matrix
   mat4 mProjInverse;  // Camera inverse projection matrix
 };
+
+enum TrStageIndices
+{
+    Raygen,
+    Miss,
+    ClosestHit,
+    ShaderGroupCount
+};

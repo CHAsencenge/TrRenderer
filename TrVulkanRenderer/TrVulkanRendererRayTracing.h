@@ -23,6 +23,9 @@
 #include "nvvk/pipeline_vk.hpp"
 #include "nvvk/renderpasses_vk.hpp"
 #include "nvvk/raytraceKHR_vk.hpp"
+#include "../TrSoftwareRenderer/Transform.h"
+#include "nvh/alignment.hpp"
+#include "nvvk/shaders_vk.hpp"
 
 class TrVulkanRendererRayTracingBase : public TrVulkanRendererBase, public nvvkhl::AppBaseVk
 {
@@ -54,6 +57,8 @@ public:
 #pragma region AppBaseVk
 
     void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex) override;
+
+    void onResize(int, int) override;
 
 #pragma endregion
 
@@ -108,15 +113,28 @@ public:
 
     void DestroyResources();
 
+
 #pragma endregion
 
 
 #pragma region Simple
 
-void InitRayTracing();
+    void InitRayTracing();
 
+    nvvk::RaytracingBuilderKHR::BlasInput ObjectToVkGeometryKHR(const TrObjModelRtBase& model);
 
+    void CreateBLAS();
 
+    void CreateTLAS();
+
+    void CreateRtDescriptorSet();
+
+    void UpdateRtDescriptorSet();
+
+    void CreateRtPipeline();
+
+    // shader binding table
+    void CreateSBT();
 #pragma endregion 
 
 protected:
@@ -142,6 +160,8 @@ protected:
           100.f,              // light intensity
           0                   // light type
     };
+
+    TrPushConstantRay mPushConstantRay{};
 
 #pragma endregion Before
     
@@ -180,6 +200,8 @@ protected:
 
     VkDescriptorSetLayout mDescSetLayout;
 
+    // when drawing a scene using different materials, we can group objects by material and order draws by material used
+    // A material's pipeline and descriptors only need to be bound when drawing objects of that material
     VkDescriptorSet mDescSet;
 
     nvvk::Buffer mBufferGlobals;
@@ -210,6 +232,33 @@ protected:
     VkPhysicalDeviceRayTracingPipelinePropertiesKHR mRtProperties {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
 
     nvvk::RaytracingBuilderKHR mRtBuilder; // helper class as a container for one TLAS referencing an array of BLASes
+
+    nvvk::DescriptorSetBindings mRtDescSetLayoutBindings;
+
+    VkDescriptorPool mRtDescPool;
+
+    VkDescriptorSetLayout mRtDescSetLayout;
+
+    // use external resources referenced by a descriptor set
+    // uses a single set of descriptor sets containing all the resources necessary to render the scene
+    VkDescriptorSet mRtDescSet;
+
+    std::vector<VkRayTracingShaderGroupCreateInfoKHR> mRtShaderGroupCreateInfos;
+
+    VkPipelineLayout mRtPipelineLayout;
+
+    VkPipeline mRtPipeline;
+
+    nvvk::Buffer mRtSbtBuffer;
+
+    VkStridedDeviceAddressRegionKHR mRaygenRegion{};
+    
+    VkStridedDeviceAddressRegionKHR mMissRegion{};
+    
+    VkStridedDeviceAddressRegionKHR mClosestHitRegion{};
+    
+    VkStridedDeviceAddressRegionKHR mCallRegion{};
+
 #pragma endregion 
     
 };

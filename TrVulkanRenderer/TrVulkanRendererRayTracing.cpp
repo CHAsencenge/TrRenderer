@@ -1,5 +1,9 @@
 #include "TrVulkanRendererRayTracing.h"
 
+#include <corecrt_io.h>
+
+
+
 TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase()
 {
 }
@@ -73,6 +77,11 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
 
     /// simple begin: RT init
     InitRayTracing();
+    CreateBLAS();
+    CreateTLAS();
+    CreateRtDescriptorSet();
+    CreateRtPipeline();
+    CreateSBT();
     
     /// simple end 
 
@@ -275,10 +284,14 @@ void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, nvma
 
     // use vkGetBufferDeviceAddress can retrieve buffer, and can use that address to access buffer's memory from a shader
     VkBufferUsageFlags flag   = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    /// simple begin
+    // // used also for building acceleration structures
+    VkBufferUsageFlags rayTracingFlags = flag | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    /// simple end
     // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: buffer is suitable for passing to vkCmdBindVertexBuffers
-    model.mVertexBuffer = mResourceAllocDma.createBuffer(cmdBuffer, objLoader.m_vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | flag);
+    model.mVertexBuffer = mResourceAllocDma.createBuffer(cmdBuffer, objLoader.m_vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | rayTracingFlags);
     // VK_BUFFER_USAGE_INDEX_BUFFER_BIT: buffer is suitable for passing to vkCmdBindIndexBuffer
-    model.mIndexBuffer = mResourceAllocDma.createBuffer(cmdBuffer, objLoader.m_indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | flag);
+    model.mIndexBuffer = mResourceAllocDma.createBuffer(cmdBuffer, objLoader.m_indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | rayTracingFlags);
     // VK_BUFFER_USAGE_STORAGE_BUFFER_BIT: buffer can be used in VkDescriptorBufferInfo
     // suitable for occupying VK_DESCRIPTOR_TYPE_STORAGE_BUFFER or VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC VkDescriptorSet slot
     model.mMatColorBuffer = mResourceAllocDma.createBuffer(cmdBuffer, objLoader.m_materials, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag);
@@ -680,6 +693,22 @@ void TrVulkanRendererRayTracingBase::DestroyResources()
     vkDestroyFramebuffer(m_device, mOffscreenFrameBuffer, nullptr);
 
     mResourceAllocDma.deinit();
+
+    mRtBuilder.destroy();
+    vkDestroyDescriptorPool(m_device, mRtDescPool, nullptr);
+    vkDestroyDescriptorSetLayout(m_device, mRtDescSetLayout, nullptr);
+
+    vkDestroyPipeline(m_device, mRtPipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, mRtPipelineLayout, nullptr);
+    mResourceAllocDma.destroy(mRtSbtBuffer);
+}
+
+void TrVulkanRendererRayTracingBase::onResize(int, int)
+{
+    
+    CreateOffscreenRender();
+    UpdatePostDescriptorSet();
+    UpdateRtDescriptorSet();
 }
 
 // query the rt capabilities of the GPU
@@ -689,7 +718,269 @@ void TrVulkanRendererRayTracingBase::InitRayTracing()
     prop2.pNext = &mRtProperties;
     vkGetPhysicalDeviceProperties2(m_physicalDevice, &prop2); // properties into mRtProperties?
 
+    mRtBuilder.setup(m_device, &mResourceAllocDma, m_graphicsQueueIndex);
+}
+
+// put obj model data into structures consumed by the AS builder
+nvvk::RaytracingBuilderKHR::BlasInput TrVulkanRendererRayTracingBase::ObjectToVkGeometryKHR(const TrObjModelRtBase& model)
+{
+    // BLAS builder requires raw device addresses
+    VkDeviceAddress vertexAddress = nvvk::getBufferDeviceAddress(m_device, model.mVertexBuffer.buffer);
+    VkDeviceAddress indexAddress = nvvk::getBufferDeviceAddress(m_device, model.mIndexBuffer.buffer);
+    uint32_t maxPrimitiveCount = model.mNumIndices / 3;
     
+    // device pointer to the buffers holding vertex/index data
+    // describe buffer as array of VertexObj
+    VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
+    triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+    triangles.vertexData.deviceAddress = vertexAddress;
+    triangles.vertexStride = sizeof(TrVulkanVertexRT);
+    triangles.indexType = VK_INDEX_TYPE_UINT32;
+    triangles.indexData.deviceAddress = indexAddress;
+    triangles.maxVertex = model.mNumVertices - 1;
+
+    // geometry type enum + flags (for AS builder)
+    // Identify the above data as containing opaque triangles
+    VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
+    asGeom.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    asGeom.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+    asGeom.geometry.triangles = triangles;
+    
+    // the indices within the vertex arrays to source input geometry for the BLAS
+    // The entire array will be used to build the BLAS
+    VkAccelerationStructureBuildRangeInfoKHR asRange;
+    asRange.firstVertex = 0;
+    asRange.primitiveCount = maxPrimitiveCount;
+    asRange.primitiveOffset = 0;
+    asRange.transformOffset = 0;
+
+    nvvk::RaytracingBuilderKHR::BlasInput input;
+    input.asGeometry.emplace_back(asGeom);
+    input.asBuildOffsetInfo.emplace_back(asRange);
+
+    return input;
+}
+
+void TrVulkanRendererRayTracingBase::CreateBLAS()
+{
+    std::vector<nvvk::RaytracingBuilderKHR::BlasInput> blasInputs;
+    for(const auto& obj : mObjModels)
+    {
+        auto input = ObjectToVkGeometryKHR(obj);
+        blasInputs.emplace_back(input);
+    }
+    mRtBuilder.buildBlas(blasInputs, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR); // prioritize trace performance over build time
+}
+
+void TrVulkanRendererRayTracingBase::CreateTLAS()
+{
+    std::vector<VkAccelerationStructureInstanceKHR> asInstances;
+    asInstances.reserve(mObjInstances.size());
+    for(const TrObjInstanceRtBase& inst : mObjInstances)
+    {
+        VkAccelerationStructureInstanceKHR asInst{};
+        asInst.transform = nvvk::toTransformMatrixKHR(inst.mTransform);
+        asInst.instanceCustomIndex = inst.mObjIndex;  // for shader gl_InstanceCustomIndexEXT usage
+        asInst.accelerationStructureReference = mRtBuilder.getBlasDeviceAddress(inst.mObjIndex);
+        asInst.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR; // disables face culling for this instance
+        asInst.mask = 0xFF;
+        asInst.instanceShaderBindingTableRecordOffset = 0; // will use the same hit group for all objects
+        asInstances.emplace_back(asInst);
+    }
+    mRtBuilder.buildTlas(asInstances, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
+}
+
+void TrVulkanRendererRayTracingBase::CreateRtDescriptorSet()
+{
+    mRtDescSetLayoutBindings.addBinding(ETrRtxBindings::Tlas, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+    mRtDescSetLayoutBindings.addBinding(ETrRtxBindings::OutImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+
+    mRtDescPool = mRtDescSetLayoutBindings.createPool(m_device);
+    mRtDescSetLayout = mRtDescSetLayoutBindings.createLayout(m_device);
+
+    VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+    allocInfo.descriptorPool = mRtDescPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &mRtDescSetLayout;
+    vkAllocateDescriptorSets(m_device, &allocInfo, &mRtDescSet);
+
+    VkAccelerationStructureKHR tlas = mRtBuilder.getAccelerationStructure();
+    VkWriteDescriptorSetAccelerationStructureKHR descAS{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR};
+    descAS.accelerationStructureCount = 1;
+    descAS.pAccelerationStructures = &tlas;
+
+    VkDescriptorImageInfo imageInfo{{}, mOffscreenColorTex.descriptor.imageView, VK_IMAGE_LAYOUT_GENERAL};
+
+    std::vector<VkWriteDescriptorSet> writes;
+    writes.emplace_back(mRtDescSetLayoutBindings.makeWrite(mRtDescSet, ETrRtxBindings::Tlas, &descAS));
+    writes.emplace_back(mRtDescSetLayoutBindings.makeWrite(mRtDescSet, ETrRtxBindings::OutImage, &imageInfo));
+    vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+    
+}
+
+// the ray tracing descriptor set needs to be updated if its contents change
+// when resizing the window, as the output image is recreated and needs to be re-linked to the descriptor set
+void TrVulkanRendererRayTracingBase::UpdateRtDescriptorSet()
+{
+    VkDescriptorImageInfo imageInfo{{}, mOffscreenColorTex.descriptor.imageView, VK_IMAGE_LAYOUT_GENERAL};
+    VkWriteDescriptorSet write = mRtDescSetLayoutBindings.makeWrite(mRtDescSet, ETrRtxBindings::OutImage, &imageInfo);
+    vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+}
+
+void TrVulkanRendererRayTracingBase::CreateRtPipeline()
+{
+    // all shader stages (create info)
+    std::array<VkPipelineShaderStageCreateInfo, TrStageIndices> stages{};
+    VkPipelineShaderStageCreateInfo stage{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+    stage.pName = "main"; // all the same entry
+    // raygen
+    stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rgen.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
+    stage.stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+    stages[TrStageIndices::Raygen] = stage;
+    // miss
+    stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rmiss.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
+    stage.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
+    stages[TrStageIndices::Miss] = stage;
+
+    // hit group - closest hit
+    stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rchit.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
+    stage.stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+    stages[TrStageIndices::ClosestHit] = stage;
+
+    // shader groups
+    VkRayTracingShaderGroupCreateInfoKHR group{VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR};
+    group.anyHitShader = VK_SHADER_UNUSED_KHR;  // use a built-in pass-through shader
+    group.closestHitShader = VK_SHADER_UNUSED_KHR;
+    group.generalShader = VK_SHADER_UNUSED_KHR;
+    group.intersectionShader = VK_SHADER_UNUSED_KHR;  // ray trace hardware therefore takes the place of the intersection shader
+
+    // raygen
+    group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+    group.generalShader = TrStageIndices::Raygen;
+    mRtShaderGroupCreateInfos.push_back(group);
+
+    // miss
+    group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+    group.generalShader = TrStageIndices::Miss;
+    mRtShaderGroupCreateInfos.push_back(group);
+
+    // intersection shader, any-hit shader and closest hit shader are bound into a hit group
+    group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;  // because the geometry is made of triangles
+    group.generalShader = VK_SHADER_UNUSED_KHR;
+    group.closestHitShader = TrStageIndices::ClosestHit;
+    mRtShaderGroupCreateInfos.push_back(group);
+
+    // allow the ray tracing shaders to access the global uniform values
+    VkPushConstantRange pushConstant{VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR, 0, sizeof(TrPushConstantRay)};
+
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO}; // describe how the pipeline will access external data
+    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+    std::vector<VkDescriptorSetLayout> rtDescSetLayouts = {mRtDescSetLayout, mDescSetLayout};
+    pipelineLayoutCreateInfo.pSetLayouts = rtDescSetLayouts.data();
+    pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(rtDescSetLayouts.size());
+    vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &mRtPipelineLayout);
+
+    // ray tracing pipeline can contain an arbitrary number of stages depending on the number of active shaders in the scene
+    VkRayTracingPipelineCreateInfoKHR rtPipelineCreateInfo{VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR};
+    rtPipelineCreateInfo.stageCount = static_cast<uint32_t>(stages.size());
+    rtPipelineCreateInfo.pStages = &stages;
+    rtPipelineCreateInfo.groupCount = static_cast<uint32_t>(mRtShaderGroupCreateInfos.size());
+    rtPipelineCreateInfo.pGroups = mRtShaderGroupCreateInfos.data();
+    rtPipelineCreateInfo.maxPipelineRayRecursionDepth = 1;
+    rtPipelineCreateInfo.layout = mRtPipelineLayout;
+    // can create multiple pipeline once
+    vkCreateRayTracingPipelinesKHR(m_device, {}, {}, 1, &rtPipelineCreateInfo, nullptr, &mRtPipeline);
+
+    // once the pipeline has been created we discard the shader modules
+    for(auto& s : stages)
+    {
+        vkDestroyShaderModule(m_device, s.module, nullptr);
+    }
+    
+}
+
+// in a typical rasterization setup, a current shader and its associated resources are bound prior to drawing the corresponding objects
+// another shader and resource set can be bound for some other objects
+// but ray tracing can hit any surface of the scene at any time, all shaders must be available simultaneously
+// allows us to select which ray generation shader to use as the entry point, which miss shader to execute if no intersections are found, and which hit shader groups can be executed for each instance
+// instances --- shader groups association: for each instance we provided a hitGroupId in the TLAS
+void TrVulkanRendererRayTracingBase::CreateSBT()
+{
+    uint32_t missCount{1};
+    uint32_t hitCount{1};
+    auto handleCount = 1 + missCount + hitCount;  // always and only 1 raygen
+    // ensure that all starting groups start with an address aligned to shaderGroupBaseAlignment
+    // and that each entry in the group is aligned to shaderGroupHandleAlignment bytes
+    uint32_t handleSize = mRtProperties.shaderGroupHandleSize; // each entry in the SBT consists of shaderGroupHandleSize bytes of data
+
+    // shaderGroupHandleAlignment is the required alignment in bytes for each SBT entry. The value must be a power of two
+    uint32_t handleSizeAligned = nvh::align_up(handleSize, mRtProperties.shaderGroupHandleAlignment);
+    
+    // shaderGroupBaseAlignment is the required alignment in bytes for the base of the SBT
+    mRaygenRegion.stride = nvh::align_up(handleSizeAligned, mRtProperties.shaderGroupBaseAlignment);
+    mRaygenRegion.size = mRaygenRegion.stride;
+    mMissRegion.stride = handleSizeAligned;
+    mMissRegion.size = nvh::align_up(handleSizeAligned * missCount, mRtProperties.shaderGroupBaseAlignment);
+    mClosestHitRegion.stride = handleSizeAligned;
+    mClosestHitRegion.size = nvh::align_up(handleSizeAligned * hitCount, mRtProperties.shaderGroupBaseAlignment);
+
+    // fetch the handles to the shader groups of the pipeline
+    uint32_t dataSize = handleCount * handleSize;
+    std::vector<uint8_t> handles(dataSize);
+    auto result = vkGetRayTracingShaderGroupHandlesKHR(m_device, mRtPipeline, 0, handleCount, dataSize, handles.data());
+    assert(result == VK_SUCCESS);
+
+    // allocate the buffer that will hold the handle data
+    VkDeviceSize sbtSize = mRaygenRegion.size + mMissRegion.size + mClosestHitRegion.size + mCallRegion.size;
+    // VK_BUFFER_USAGE_TRANSFER_SRC_BIT specifies that the buffer can be used as the source of a transfer command
+    // VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT specifies that the buffer can be used to retrieve a
+    // buffer device address via vkGetBufferDeviceAddress and use that address to access the buffer’s memory from a shader
+    // VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR specifies that the buffer is suitable for use as a SBT
+    auto bufUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+    // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT bit specifies that memory allocated with this type can be mapped for host access using vkMapMemory
+    // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT bit specifies that the host cache management commands vkFlushMappedMemoryRanges and vkInvalidateMappedMemoryRanges 
+    // are not needed to flush host writes to the device or make device writes visible to the host, respectively
+    auto memProp = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    mRtSbtBuffer = mResourceAllocDma.createBuffer(sbtSize, bufUsage, memProp);
+
+    // store the device address of each shader group (region)
+    VkBufferDeviceAddressInfo bufDeviceAddressInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, mRtSbtBuffer.buffer};
+    VkDeviceAddress sbtAddress = vkGetBufferDeviceAddress(m_device, &bufDeviceAddressInfo);
+    mRaygenRegion.deviceAddress = sbtAddress;
+    mMissRegion.deviceAddress = sbtAddress + mRaygenRegion.size;
+    mClosestHitRegion.deviceAddress = sbtAddress + mRaygenRegion.size + mMissRegion.size;
+
+    // lambda returns the pointer to the previously retrieved handle to copy the data from the handle into the SBT buffer
+    auto GetHandle = [&](int i){ return handles.data() + i * handleSize; };
+
+    // buffer is visible to the host (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT), map its memory in preparation for the data copy
+    auto* pSbtBuffer = reinterpret_cast<uint8_t*>(mResourceAllocDma.map(mRtSbtBuffer));
+    uint8_t* pData{nullptr};
+    uint32_t handleIdx{0};
+
+    // raygen
+    pData = pSbtBuffer;
+    memcpy(pData, GetHandle(handleIdx++), handleSize);
+
+    // miss
+    pData = pSbtBuffer + mRaygenRegion.size;
+    for(uint32_t c = 0; c < missCount; c++)
+    {
+        memcpy(pData, GetHandle(handleIdx++), handleSize);
+        pData += mMissRegion.stride;
+    }
+
+    // hit
+    pData = pSbtBuffer + mRaygenRegion.size + mMissRegion.size;
+    for(uint32_t c = 0; c < hitCount; c++)
+    {
+        memcpy(pData, GetHandle(handleIdx++), handleSize);
+        pData += mClosestHitRegion.stride;
+    }
+
+    mResourceAllocDma.unmap(mRtSbtBuffer);
+    mResourceAllocDma.finalizeAndReleaseStaging();
 }
 
 
