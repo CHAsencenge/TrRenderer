@@ -45,7 +45,7 @@ layout(location = 0) out vec4 o_color;
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; }; // Positions of an object
 layout(buffer_reference, scalar) buffer Indices {uint i[]; }; // Triangle indices
-layout(buffer_reference, scalar) buffer Materials {WaveFrontMaterial m[]; }; // Array of all materials on an object
+layout(buffer_reference, scalar) buffer Materials {TrVulkanWaveFrontMaterial m[]; }; // Array of all materials on an object
 layout(buffer_reference, scalar) buffer MatIndices {int i[]; }; // Material ID for each triangle
 
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
@@ -61,7 +61,7 @@ void main()
   Materials  materials   = Materials(objResource.materialAddress);
 
   int               matIndex = matIndices.i[gl_PrimitiveID];
-  WaveFrontMaterial mat      = materials.m[matIndex];
+  TrVulkanWaveFrontMaterial mat      = materials.m[matIndex];
 
   vec3 N = normalize(i_worldNrm);
 
@@ -83,10 +83,10 @@ void main()
 
   // Diffuse
   vec3 diffuse = computeDiffuse(mat, L, N);
-  if(mat.textureId >= 0)
+  if(mat.mTextureId >= 0)
   {
     int  txtOffset  = objDesc.i[pcRaster.objIndex].txtOffset;
-    uint txtId      = txtOffset + mat.textureId;
+    uint txtId      = txtOffset + mat.mTextureId;
     vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], i_texCoord).xyz;
     diffuse *= diffuseTxt;
   }

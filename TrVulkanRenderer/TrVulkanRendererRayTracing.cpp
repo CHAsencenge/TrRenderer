@@ -55,9 +55,9 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     initGUI(0);
 
     // load model
-    LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
-    // LoadModel(nvh::findFile("media/scenes/Medieval_building.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
-    // LoadModel(nvh::findFile("media/scenes/plane.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    // LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/Medieval_building.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/plane.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
 
     // offscreen render
     CreateOffscreenRender();
@@ -399,7 +399,7 @@ void TrVulkanRendererRayTracingBase::CreateTextureImages(const VkCommandBuffer c
             nvvk::Image image = mResourceAllocDma.createImage(cmdBuffer, bufferSize, pixels, imgCreateInfo);
             nvvk::cmdGenerateMipmaps(cmdBuffer, image.image, format, imgExtent, imgCreateInfo.mipLevels);
             VkImageViewCreateInfo imgViewCreateInfo = nvvk::makeImageViewCreateInfo(image.image, imgCreateInfo);
-            nvvk::Texture nvvkTexture = mResourceAllocDma.createTexture(image, imgViewCreateInfo);
+            nvvk::Texture nvvkTexture = mResourceAllocDma.createTexture(image, imgViewCreateInfo, samplerCreateInfo);
             mTextures.push_back(nvvkTexture);
             stbi_image_free(pixels);
         }
@@ -527,17 +527,17 @@ void TrVulkanRendererRayTracingBase::UpdateDescriptorSet()
     // use descriptor buffer info and image info to make write
     std::vector<VkWriteDescriptorSet> writes;
     VkDescriptorBufferInfo descBufferInfoUnif{mBufferGlobals.buffer, 0, VK_WHOLE_SIZE};
-    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eGlobals, &descBufferInfoUnif));
+    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, ETrSceneBindings::Globals, &descBufferInfoUnif));
 
     VkDescriptorBufferInfo descBufferInfoSceneDesc{mBufferObjDesc.buffer, 0, VK_WHOLE_SIZE};
-    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, SceneBindings::eObjDescs, &descBufferInfoSceneDesc));
+    writes.emplace_back(mDescSetLayoutBindings.makeWrite(mDescSet, ETrSceneBindings::ObjDescs, &descBufferInfoSceneDesc));
 
     std::vector<VkDescriptorImageInfo> descImageInfos;
     for(auto& texture : mTextures)
     {
         descImageInfos.emplace_back(texture.descriptor);
     }
-    writes.emplace_back(mDescSetLayoutBindings.makeWriteArray(mDescSet, SceneBindings::eTextures, descImageInfos.data()));
+    writes.emplace_back(mDescSetLayoutBindings.makeWriteArray(mDescSet, ETrSceneBindings::Textures, descImageInfos.data()));
 
     // use writes to update descriptor sets
     vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);

@@ -71,10 +71,3 @@ public:
     static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
 };
 
-struct TrVulkanVertexRT
-{
-    vec3 mPos;
-    vec3 mNrm;
-    vec3 mColor;
-    vec2 mTexCoord;
-};

@@ -34,6 +34,7 @@ struct std::hash<TrVulkanVertex3DTex>
     }
 };
 
+// Model
 struct TrObjModelRtBase
 {
     uint32_t mNumIndices{0};
@@ -48,15 +49,6 @@ struct TrObjInstanceRtBase
 {
     nvmath::mat4f mTransform;
     uint32_t mObjIndex{0};
-};
-
-struct TrObjDescRtBase
-{
-    int mTexOffset;  // texture index offset in the array of textures
-    uint64_t mVertexAddress;
-    uint64_t mIndexAddress;
-    uint64_t mMaterialAddress;  // address of the material buffer
-    uint64_t mMaterialIndexAddress;
 };
 
 

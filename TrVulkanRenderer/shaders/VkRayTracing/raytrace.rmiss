@@ -29,10 +29,11 @@ layout(location = 0) rayPayloadInEXT hitPayload prd;
 
 layout(push_constant) uniform _PushConstantRay
 {
-  PushConstantRay pcRay;
+  TrPushConstantRay pcRay;
 };
 
 void main()
 {
-  prd.hitValue = pcRay.clearColor.xyz * 0.8;
+  // prd.hitValue = vec3(0.2, 0.2, 0.2);
+  prd.hitValue = pcRay.mClearColor.xyz * 0.8;
 }

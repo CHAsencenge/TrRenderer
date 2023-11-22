@@ -35,73 +35,79 @@ hitAttributeEXT vec2 attribs;
 layout(location = 0) rayPayloadInEXT hitPayload prd;
 layout(location = 1) rayPayloadEXT bool isShadowed;
 
-layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; }; // Positions of an object
+layout(buffer_reference, scalar) buffer Vertices {TrVulkanVertexRT v[]; }; // Positions of an object
 layout(buffer_reference, scalar) buffer Indices {ivec3 i[]; }; // Triangle indices
-layout(buffer_reference, scalar) buffer Materials {WaveFrontMaterial m[]; }; // Array of all materials on an object
+layout(buffer_reference, scalar) buffer Materials {TrVulkanWaveFrontMaterial m[]; }; // Array of all materials on an object
 layout(buffer_reference, scalar) buffer MatIndices {int i[]; }; // Material ID for each triangle
-layout(set = 0, binding = eTlas) uniform accelerationStructureEXT topLevelAS;
-layout(set = 1, binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
-layout(set = 1, binding = eTextures) uniform sampler2D textureSamplers[];
+layout(set = 0, binding = Tlas) uniform accelerationStructureEXT topLevelAS;
+layout(set = 1, binding = ObjDescs, scalar) buffer ObjDesc_ { TrObjDescRtBase i[]; } objDesc;
+layout(set = 1, binding = Textures) uniform sampler2D textureSamplers[];
 
-layout(push_constant) uniform _PushConstantRay { PushConstantRay pcRay; };
+layout(push_constant) uniform _PushConstantRay { TrPushConstantRay pcRay; };
 // clang-format on
 
 
 void main()
 {
   // Object data
-  ObjDesc    objResource = objDesc.i[gl_InstanceCustomIndexEXT];
-  MatIndices matIndices  = MatIndices(objResource.materialIndexAddress);
-  Materials  materials   = Materials(objResource.materialAddress);
-  Indices    indices     = Indices(objResource.indexAddress);
-  Vertices   vertices    = Vertices(objResource.vertexAddress);
+  TrObjDescRtBase objResource = objDesc.i[gl_InstanceCustomIndexEXT];
+  MatIndices matIndices  = MatIndices(objResource.mMaterialIndexAddress);
+  Materials  materials   = Materials(objResource.mMaterialAddress);
+  Indices    indices     = Indices(objResource.mIndexAddress);
+  Vertices   vertices    = Vertices(objResource.mVertexAddress);
 
   // Indices of the triangle
   ivec3 ind = indices.i[gl_PrimitiveID];
 
   // Vertex of the triangle
-  Vertex v0 = vertices.v[ind.x];
-  Vertex v1 = vertices.v[ind.y];
-  Vertex v2 = vertices.v[ind.z];
+  TrVulkanVertexRT v0 = vertices.v[ind.x];
+  TrVulkanVertexRT v1 = vertices.v[ind.y];
+  TrVulkanVertexRT v2 = vertices.v[ind.z];
 
   const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
   // Computing the coordinates of the hit position
-  const vec3 pos      = v0.pos * barycentrics.x + v1.pos * barycentrics.y + v2.pos * barycentrics.z;
+  const vec3 pos      = v0.mPos * barycentrics.x + v1.mPos * barycentrics.y + v2.mPos * barycentrics.z;
+  // 一般认作列向量，并搭配左乘
   const vec3 worldPos = vec3(gl_ObjectToWorldEXT * vec4(pos, 1.0));  // Transforming the position to world space
 
   // Computing the normal at hit position
-  const vec3 nrm      = v0.nrm * barycentrics.x + v1.nrm * barycentrics.y + v2.nrm * barycentrics.z;
-  const vec3 worldNrm = normalize(vec3(nrm * gl_WorldToObjectEXT));  // Transforming the normal to world space
+  const vec3 nrm      = v0.mNrm * barycentrics.x + v1.mNrm * barycentrics.y + v2.mNrm * barycentrics.z;
+  // const vec3 worldNrm = normalize(vec3(nrm * gl_WorldToObjectEXT));  // Transforming the normal to world space
+  const vec3 worldNrm = normalize(vec3(gl_ObjectToWorldEXT * vec4(nrm, 1.0)));  // Transforming the normal to world space
 
   // Vector toward the light
   vec3  L;
-  float lightIntensity = pcRay.lightIntensity;
+  float lightIntensity = pcRay.mLightIntensity;
   float lightDistance  = 100000.0;
   // Point light
-  if(pcRay.lightType == 0)
+  if(pcRay.mLightType == 0)
   {
-    vec3 lDir      = pcRay.lightPosition - worldPos;
+    vec3 lDir      = pcRay.mLightPosition - worldPos;
     lightDistance  = length(lDir);
-    lightIntensity = pcRay.lightIntensity / (lightDistance * lightDistance);
+    lightIntensity = pcRay.mLightIntensity / (lightDistance * lightDistance);
     L              = normalize(lDir);
   }
   else  // Directional light
   {
-    L = normalize(pcRay.lightPosition);
+    L = normalize(pcRay.mLightPosition);
   }
 
   // Material of the object
   int               matIdx = matIndices.i[gl_PrimitiveID];
-  WaveFrontMaterial mat    = materials.m[matIdx];
-
+  TrVulkanWaveFrontMaterial mat    = materials.m[matIdx];
+  
+  
+  // test code
+  // mat.mDiffuse = vec3(0.8, 0.8, 0.8);
+  
 
   // Diffuse
   vec3 diffuse = computeDiffuse(mat, L, worldNrm);
-  if(mat.textureId >= 0)
+  if(mat.mTextureId >= 0)
   {
-    uint txtId    = mat.textureId + objDesc.i[gl_InstanceCustomIndexEXT].txtOffset;
-    vec2 texCoord = v0.texCoord * barycentrics.x + v1.texCoord * barycentrics.y + v2.texCoord * barycentrics.z;
+    uint txtId    = mat.mTextureId + objDesc.i[gl_InstanceCustomIndexEXT].mTexOffset;
+    vec2 texCoord = v0.mTexCoord * barycentrics.x + v1.mTexCoord * barycentrics.y + v2.mTexCoord * barycentrics.z;
     diffuse *= texture(textureSamplers[nonuniformEXT(txtId)], texCoord).xyz;
   }
 
@@ -112,7 +118,7 @@ void main()
   if(dot(worldNrm, L) > 0)
   {
     float tMin   = 0.001;
-    float tMax   = lightDistance;
+    float tMax   = lightDistance * 2;
     vec3  origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
     vec3  rayDir = L;
     uint  flags  = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
