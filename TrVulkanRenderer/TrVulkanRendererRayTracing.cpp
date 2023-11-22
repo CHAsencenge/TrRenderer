@@ -117,7 +117,7 @@ void TrVulkanRendererRayTracingBase::OnRender()
         ImGui::NewFrame();
 
         // imgui style
-        nvmath::vec4f clearColor = nvmath::vec4f(1, 1, 1, 1.00f);
+        glm::vec4 clearColor = glm::vec4(1, 1, 1, 1.00f);
         if(showGui())
         {
             RenderUI(clearColor);
@@ -269,7 +269,7 @@ void TrVulkanRendererRayTracingBase::SetupCamera()
     
 }
 
-void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, nvmath::mat4f transform)
+void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, glm::mat4 transform)
 {
     ObjLoader objLoader;
     objLoader.loadModel(filename);
@@ -277,9 +277,9 @@ void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, nvma
     // material tone mapping, from srgb to linear
     for(MaterialObj mat : objLoader.m_materials)
     {
-        mat.diffuse = nvmath::pow(mat.diffuse, 2.2f);
-        mat.specular = nvmath::pow(mat.specular, 2.2f);
-        mat.ambient= nvmath::pow(mat.ambient, 2.2f);
+        mat.diffuse = glm::pow(mat.diffuse, glm::vec3(2.2f));
+        mat.specular = glm::pow(mat.specular, glm::vec3(2.2f));
+        mat.ambient= glm::pow(mat.ambient, glm::vec3(2.2f));
     }
 
     // create buffers for model vertices, indices, material colors, material indices
@@ -578,7 +578,7 @@ void TrVulkanRendererRayTracingBase::UpdatePostDescriptorSet()
     vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSets, 0, nullptr);
 }
 
-void TrVulkanRendererRayTracingBase::RenderUI(nvmath::vec4f clearColor)
+void TrVulkanRendererRayTracingBase::RenderUI(glm::vec4 clearColor)
 {
     ImGuiH::Panel::Begin();
     ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
@@ -606,11 +606,12 @@ void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& 
     const float aspectRatio = m_size.width / static_cast<float>(m_size.height);
     TrGlobalUniforms hostUbo = {};
     const auto& view = CameraManip.getMatrix();
-    const auto& proj = nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.1f, 1000.0f);
-
+    glm::mat4 proj = glm::perspectiveRH_ZO(glm::radians(CameraManip.getFov()), aspectRatio, 0.1f, 1000.0f);
+    proj[1][1] *= -1;  // Inverting Y for Vulkan (not needed with perspectiveVK).
+    
     hostUbo.mViewProj = proj * view;
-    hostUbo.mViewInverse = nvmath::invert(view);
-    hostUbo.mProjInverse = nvmath::invert(proj);
+    hostUbo.mViewInverse = glm::inverse(view);
+    hostUbo.mProjInverse = glm::inverse(proj);
 
     VkBuffer deviceUbo = mBufferGlobals.buffer;
     auto uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
@@ -852,11 +853,16 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     stage.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
     stages[TrStageIndices::Miss] = stage;
 
+    // shadow miss is invoked when a shadow ray misses the geometry
+    stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytraceShadow.rmiss.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
+    stage.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
+    stages[TrStageIndices::MissForShadow] = stage;
+
     // hit group - closest hit
     stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rchit.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
     stage.stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
     stages[TrStageIndices::ClosestHit] = stage;
-
+    
     // shader groups
     VkRayTracingShaderGroupCreateInfoKHR group{VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR};
     group.anyHitShader = VK_SHADER_UNUSED_KHR;  // use a built-in pass-through shader
@@ -872,6 +878,10 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     // miss
     group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
     group.generalShader = TrStageIndices::Miss;
+    mRtShaderGroupCreateInfos.push_back(group);
+
+    group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+    group.generalShader = TrStageIndices::MissForShadow;
     mRtShaderGroupCreateInfos.push_back(group);
 
     // intersection shader, any-hit shader and closest hit shader are bound into a hit group
@@ -897,7 +907,7 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     rtPipelineCreateInfo.pStages = stages.data();
     rtPipelineCreateInfo.groupCount = static_cast<uint32_t>(mRtShaderGroupCreateInfos.size());
     rtPipelineCreateInfo.pGroups = mRtShaderGroupCreateInfos.data();
-    rtPipelineCreateInfo.maxPipelineRayRecursionDepth = 1;
+    rtPipelineCreateInfo.maxPipelineRayRecursionDepth = 2; // has to allow shooting rays from the closest hit program (check is point in shadow)
     rtPipelineCreateInfo.layout = mRtPipelineLayout;
     // can create multiple pipeline once
     vkCreateRayTracingPipelinesKHR(m_device, {}, {}, 1, &rtPipelineCreateInfo, nullptr, &mRtPipeline);
@@ -917,7 +927,7 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
 // instances --- shader groups association: for each instance we provided a hitGroupId in the TLAS
 void TrVulkanRendererRayTracingBase::CreateSBT()
 {
-    uint32_t missCount{1};
+    uint32_t missCount{2};
     uint32_t hitCount{1};
     auto handleCount = 1 + missCount + hitCount;  // always and only 1 raygen
     // ensure that all starting groups start with an address aligned to shaderGroupBaseAlignment
@@ -995,7 +1005,7 @@ void TrVulkanRendererRayTracingBase::CreateSBT()
 
 // record commands to call the ray trace shaders
 // ray trace the scene
-void TrVulkanRendererRayTracingBase::RayTrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor)
+void TrVulkanRendererRayTracingBase::RayTrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor)
 {
     // init push constant values
     mPushConstantRay.mClearColor = clearColor;

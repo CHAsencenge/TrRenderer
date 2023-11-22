@@ -47,7 +47,7 @@ struct TrObjModelRtBase
 
 struct TrObjInstanceRtBase
 {
-    nvmath::mat4f mTransform;
+    glm::mat4 mTransform;
     uint32_t mObjIndex{0};
 };
 

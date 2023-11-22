@@ -11,7 +11,8 @@
 #include "imgui.h"
 #include <imgui/imgui_helper.h>
 #include "imgui/imgui_camera_widget.h"
-#include <imgui/backends/imgui_impl_vulkan.h>
+// #include <imgui/backends/imgui_impl_vulkan.h>
+#include "backends/imgui_impl_vulkan.h"
 #include "TrVulkanModel.h"
 #include <stb_image.h>
 #include "obj_loader.h"
@@ -80,7 +81,7 @@ public:
 
 #pragma region TrVulkanRendererRayTracingBase
 
-    void LoadModel(const std::string& filename, nvmath::mat4f transform = nvmath::mat4f(1));
+    void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1));
 
     void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures);
 
@@ -102,7 +103,7 @@ public:
 
     void UpdatePostDescriptorSet();
 
-    void RenderUI(nvmath::vec4f clearColor);
+    void RenderUI(glm::vec4 clearColor);
 
     // each frame to update the camera matrix
     void UpdateUniformBuffer(const VkCommandBuffer& cmdBuf);
@@ -136,18 +137,18 @@ public:
     // shader binding table
     void CreateSBT();
 
-    void RayTrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor);
+    void RayTrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor);
 #pragma endregion 
 
 protected:
 
 #pragma region Gui
     
-    nvmath::vec3f mEye = TrVulkanGlobalRT::camEye;
+    glm::vec3 mEye = TrVulkanGlobalRT::camEye;
     
-    nvmath::vec3f mCenter = TrVulkanGlobalRT::camCenter;
+    glm::vec3 mCenter = TrVulkanGlobalRT::camCenter;
     
-    nvmath::vec3f mUp = TrVulkanGlobalRT::camUp;
+    glm::vec3 mUp = TrVulkanGlobalRT::camUp;
 
     bool mbUseRayTracer = true;
 
@@ -158,7 +159,7 @@ protected:
     
     // Information pushed at each draw call
     TrPushConstantRaster mPushConstantRaster{
-          {1},                // Identity matrix
+          {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},   // Identity matrix
           {10.f, 15.f, 8.f},  // light position
           0,                  // instance Id
           100.f,              // light intensity

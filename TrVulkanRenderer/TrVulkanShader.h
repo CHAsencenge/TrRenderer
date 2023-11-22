@@ -2,12 +2,12 @@
 #pragma once
 
 #ifdef __cplusplus
-#include "nvmath/nvmath.h"
+#include <glm/glm.hpp>
 // GLSL Type
-using vec2 = nvmath::vec2f;
-using vec3 = nvmath::vec3f;
-using vec4 = nvmath::vec4f;
-using mat4 = nvmath::mat4f;
+using vec2 = glm::vec2;
+using vec3 = glm::vec3;
+using vec4 = glm::vec4;
+using mat4 = glm::mat4;
 using uint = unsigned int;
 #endif
 
@@ -55,12 +55,7 @@ struct TrGlobalUniforms
   mat4 mProjInverse;  // Camera inverse projection matrix
 };
 
-START_BINDING (TrStageIndices)
-    Raygen = 0,
-    Miss = 1,
-    ClosestHit = 2,
-    ShaderGroupCount = 3
-END_BINDING();
+
 
 struct TrVulkanVertexRT
 {

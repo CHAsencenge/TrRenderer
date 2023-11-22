@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
-#include <nvmath/nvmath_types.h>
+#include <glm/glm.hpp>
 
 #include "TrVulkanVertex.h"
 
@@ -256,9 +256,9 @@ public:
     inline static float rCamEye = 1.0f;
     inline static float rCamCenter = 0.005f;
     inline static float rCamUp = 0.005f;
-    inline static nvmath::vec3f camEye = {4.0f, 4.0f, 4.0f};
-    inline static nvmath::vec3f camCenter = {0, 1, 0};
-    inline static nvmath::vec3f camUp = {0, 1, 0};
+    inline static glm::vec3 camEye = {4.0f, 4.0f, 4.0f};
+    inline static glm::vec3 camCenter = {0, 1, 0};
+    inline static glm::vec3 camUp = {0, 1, 0};
 
     inline static std::vector<std::string> defaultSearchPaths =
     {
@@ -266,6 +266,14 @@ public:
         PROJECT_RELDIRECTORY,
     };
     
+};
+enum TrStageIndices
+{
+    Raygen,
+    Miss,
+    MissForShadow,
+    ClosestHit,
+    ShaderGroupCount
 };
 
 extern TrVulkanGlobalRT GTrVulkanGlobalRT;
