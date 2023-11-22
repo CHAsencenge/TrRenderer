@@ -118,7 +118,7 @@ void main()
   if(dot(worldNrm, L) > 0)
   {
     float tMin   = 0.001;
-    float tMax   = lightDistance * 2;
+    float tMax   = lightDistance;
     vec3  origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
     vec3  rayDir = L;
     uint  flags  = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
@@ -128,7 +128,7 @@ void main()
                 0xFF,        // cullMask
                 0,           // sbtRecordOffset
                 0,           // sbtRecordStride
-                1,           // missIndex
+                1,           // missIndex 这个做到选择shadow miss shader
                 origin,      // ray origin
                 tMin,        // ray min range
                 rayDir,      // ray direction
