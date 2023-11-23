@@ -114,7 +114,6 @@ public:
 
     void DestroyResources();
 
-
 #pragma endregion
 
 
@@ -138,7 +137,21 @@ public:
     void CreateSBT();
 
     void RayTrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor);
+
 #pragma endregion 
+
+
+#pragma region Jitter For Anti-Aliasing
+
+    void ResetFrameVal();
+
+    void UpdateFrameVal();
+
+#pragma endregion 
+
+
+
+
 
 protected:
 
@@ -168,7 +181,10 @@ protected:
 
     TrPushConstantRay mPushConstantRay{};
 
-#pragma endregion Before
+#pragma endregion
+
+
+#pragma region Before
     
     nvvk::Context mNvContext = {};
 
@@ -263,6 +279,13 @@ protected:
     VkStridedDeviceAddressRegionKHR mClosestHitRegion{};
     
     VkStridedDeviceAddressRegionKHR mCallRegion{};
+
+#pragma endregion
+
+
+#pragma region Jitter For Anti-Aliasing
+
+    
 
 #pragma endregion 
     

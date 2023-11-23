@@ -21,7 +21,7 @@ void TrVulkanRendererBase::OnInitWindow()
 
     // prevent it from automatically creating OpenGL context
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     mWindow = glfwCreateWindow(mWidth, mHeight, mTitle, nullptr, nullptr);
 }

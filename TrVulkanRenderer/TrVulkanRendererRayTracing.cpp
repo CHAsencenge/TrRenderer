@@ -1020,5 +1020,15 @@ void TrVulkanRendererRayTracingBase::RayTrace(const VkCommandBuffer& cmdBuf, con
     vkCmdTraceRaysKHR(cmdBuf, &mRaygenRegion, &mMissRegion, &mClosestHitRegion, &mCallRegion, m_size.width, m_size.height, 1);
 }
 
+void TrVulkanRendererRayTracingBase::ResetFrameVal()
+{
+    mPushConstantRay.mFrame = -1;
+}
+
+void TrVulkanRendererRayTracingBase::UpdateFrameVal()
+{
+
+}
+
 
 
