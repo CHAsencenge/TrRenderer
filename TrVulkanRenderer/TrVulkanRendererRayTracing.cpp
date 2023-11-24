@@ -1027,7 +1027,19 @@ void TrVulkanRendererRayTracingBase::ResetFrameVal()
 
 void TrVulkanRendererRayTracingBase::UpdateFrameVal()
 {
+    static glm::mat4 oldCamMatrix;
+    static float oldFov{CameraManip.getFov()};
 
+    const auto& curCamMatrix = CameraManip.getMatrix();
+    const auto curFov = CameraManip.getFov();
+
+    if(oldCamMatrix != curCamMatrix || oldFov != curFov)
+    {
+        ResetFrameVal();
+        oldCamMatrix = curCamMatrix;
+        oldFov = curFov;
+    }
+    mPushConstantRay.mFrame++;
 }
 
 

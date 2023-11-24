@@ -46,6 +46,7 @@ struct TrPushConstantRay
     vec3  mLightPosition;
     float mLightIntensity;
     int   mLightType;
+    int   mFrame;
 };
 
 struct TrGlobalUniforms

@@ -285,7 +285,7 @@ protected:
 
 #pragma region Jitter For Anti-Aliasing
 
-    
+    int mMaxFrames {10};
 
 #pragma endregion 
     
