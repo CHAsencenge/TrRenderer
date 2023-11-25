@@ -59,6 +59,8 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     // LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
     LoadModel(nvh::findFile("media/scenes/Medieval_building.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
     LoadModel(nvh::findFile("media/scenes/plane.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/wuson.obj", TrVulkanGlobalRT::defaultSearchPaths, true), glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f)));
+    LoadModel(nvh::findFile("media/scenes/sphere.obj", TrVulkanGlobalRT::defaultSearchPaths, true), glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f)));
 
     // offscreen render
     CreateOffscreenRender();
@@ -463,9 +465,10 @@ void TrVulkanRendererRayTracingBase::CreateDescriptorSetLayout()
     auto texNumber = static_cast<uint32_t>(mTextures.size());
     // VK_SHADER_STAGE_RAYGEN_BIT_KHR: ray generation stage
     mDescSetLayoutBindings.addBinding(ETrSceneBindings::Globals, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
-    mDescSetLayoutBindings.addBinding(ETrSceneBindings::ObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+    mDescSetLayoutBindings.addBinding(ETrSceneBindings::ObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
     mDescSetLayoutBindings.addBinding(ETrSceneBindings::Textures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texNumber, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-
+    
+    
     // create layout for bindings
     mDescSetLayout = mDescSetLayoutBindings.createLayout(m_device);
 
@@ -765,7 +768,8 @@ nvvk::RaytracingBuilderKHR::BlasInput TrVulkanRendererRayTracingBase::ObjectToVk
     // Identify the above data as containing opaque triangles
     VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
     asGeom.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-    asGeom.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+    asGeom.flags =  VK_GEOMETRY_OPAQUE_BIT_KHR; // avoided invoking the any hit shader
+    asGeom.flags = VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR; // to have the any hit shader process only one hit per triangle
     asGeom.geometry.triangles = triangles;
     
     // the indices within the vertex arrays to source input geometry for the BLAS
@@ -873,6 +877,11 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rchit.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
     stage.stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
     stages[TrStageIndices::ClosestHit] = stage;
+
+    // any hit
+    stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/VkRayTracing/raytrace.rahit.spv", true, TrVulkanGlobalRT::defaultSearchPaths, true));
+    stage.stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+    stages[TrStageIndices::AnyHit] = stage;
     
     // shader groups
     VkRayTracingShaderGroupCreateInfoKHR group{VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR};
@@ -899,6 +908,7 @@ void TrVulkanRendererRayTracingBase::CreateRtPipeline()
     group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;  // because the geometry is made of triangles
     group.generalShader = VK_SHADER_UNUSED_KHR;
     group.closestHitShader = TrStageIndices::ClosestHit;
+    group.anyHitShader = TrStageIndices::AnyHit;
     mRtShaderGroupCreateInfos.push_back(group);
 
     // allow the ray tracing shaders to access the global uniform values

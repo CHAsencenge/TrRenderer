@@ -273,6 +273,7 @@ enum TrStageIndices
     Miss,
     MissForShadow,
     ClosestHit,
+    AnyHit,
     ShaderGroupCount
 };
 

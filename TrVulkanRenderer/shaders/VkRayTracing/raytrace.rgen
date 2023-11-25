@@ -45,13 +45,13 @@ layout(push_constant) uniform _PushConstantRay { TrPushConstantRay pushConstantR
 
 void main()
 {
-  uint seed = tea(gl_LaunchIDEXT.y * gl_LaunchSizeEXT.x + gl_LaunchIDEXT.x, pushConstantRay.mFrame);
+  prd.seed = tea(gl_LaunchIDEXT.y * gl_LaunchSizeEXT.x + gl_LaunchIDEXT.x, pushConstantRay.mFrame);
   vec3 hitValues = vec3(0);
   
   for(int smpl = 0; smpl < pushConstantRay.mNumRayGenSamples; smpl++)
   {
-      float r1 = rnd(seed);
-      float r2 = rnd(seed);
+      float r1 = rnd(prd.seed);
+      float r2 = rnd(prd.seed);
       vec2 subpixelJitter = pushConstantRay.mFrame == 0 ? vec2(0.5f, 0.5f) : vec2(r1, r2);
       
       const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + subpixelJitter;
@@ -64,7 +64,8 @@ void main()
       vec4 target    = uni.mProjInverse * vec4(d.x, d.y, 1, 1);
       vec4 direction = uni.mViewInverse * vec4(normalize(target.xyz), 0);
     
-      uint  rayFlags = gl_RayFlagsOpaqueEXT;
+      // uint  rayFlags = gl_RayFlagsOpaqueEXT; // will skip the any hit shader
+      uint  rayFlags = gl_RayFlagsNoneEXT; 
       float tMin     = 0.001;
       float tMax     = 10000.0;
     
