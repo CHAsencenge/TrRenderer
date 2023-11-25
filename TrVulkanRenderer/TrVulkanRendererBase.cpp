@@ -35,3 +35,15 @@ std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
     return extensions;
 }
 
+void TrVulkanRendererBase::LoadModel(const std::string& filename, glm::mat4 transform)
+{
+}
+
+void TrVulkanRendererBase::LoadScene(TrScene scene)
+{
+    for(const TrActor& actor : scene.mSceneActors)
+    {
+        LoadModel(actor.mModelReferencePath);
+    }
+}
+

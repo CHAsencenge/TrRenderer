@@ -81,7 +81,7 @@ public:
 
 #pragma region TrVulkanRendererRayTracingBase
 
-    void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1));
+    void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1)) override;
 
     void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures);
 
@@ -288,6 +288,13 @@ protected:
     int mMaxFrames {10};
 
     int mNumSamples {10};
+
+#pragma endregion
+
+
+#pragma region Emission
+
+
 
 #pragma endregion 
     
