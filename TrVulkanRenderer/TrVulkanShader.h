@@ -47,6 +47,7 @@ struct TrPushConstantRay
     float mLightIntensity;
     int   mLightType;
     int   mFrame;
+    int   mNumRayGenSamples;
 };
 
 struct TrGlobalUniforms

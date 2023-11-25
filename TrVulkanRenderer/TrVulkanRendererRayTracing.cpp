@@ -11,6 +11,7 @@ TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase()
 TrVulkanRendererRayTracingBase::TrVulkanRendererRayTracingBase(uint32_t width, uint32_t height, const char* title) :
 TrVulkanRendererBase(width, height, title)
 {
+    mPushConstantRay.mNumRayGenSamples = 10;
 }
 
 void TrVulkanRendererRayTracingBase::Run()
@@ -580,24 +581,34 @@ void TrVulkanRendererRayTracingBase::UpdatePostDescriptorSet()
 
 void TrVulkanRendererRayTracingBase::RenderUI(glm::vec4 clearColor)
 {
+    bool bChanged = false;
     ImGuiH::Panel::Begin();
-    ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
+    bChanged |= ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
 
-    ImGui::Checkbox("Enable Ray Tracer", &mbUseRayTracer);
+    bChanged |= ImGui::Checkbox("Enable Ray Tracer", &mbUseRayTracer);
+
+    bChanged |= ImGui::SliderInt("Max Frames", &mMaxFrames, 1, 100);
+
+    bChanged |= ImGui::SliderInt("Ray Generate Sample Number", &mPushConstantRay.mNumRayGenSamples, 1, 50);
     
-    ImGuiH::CameraWidget();
+    bChanged |= ImGuiH::CameraWidget();
     if(ImGui::CollapsingHeader("Light"))
     {
-        ImGui::RadioButton("Point", &mPushConstantRaster.mLightType, 0);
+        bChanged |= ImGui::RadioButton("Point", &mPushConstantRaster.mLightType, 0);
         ImGui::SameLine();
-        ImGui::RadioButton("Infinite", &mPushConstantRaster.mLightType, 1);
+        bChanged |= ImGui::RadioButton("Infinite", &mPushConstantRaster.mLightType, 1);
 
-        ImGui::SliderFloat3("Position", &mPushConstantRaster.mLightPosition.x, -20.f, 20.f);
-        ImGui::SliderFloat("Intensity", &mPushConstantRaster.mLightIntensity, 0.f, 150.f);
+        bChanged |= ImGui::SliderFloat3("Position", &mPushConstantRaster.mLightPosition.x, -20.f, 20.f);
+        bChanged |= ImGui::SliderFloat("Intensity", &mPushConstantRaster.mLightIntensity, 0.f, 150.f);
     }
     
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGuiH::Panel::End();
+
+    if(bChanged)
+    {
+        ResetFrameVal();
+    }
 }
 
 void TrVulkanRendererRayTracingBase::UpdateUniformBuffer(const VkCommandBuffer& cmdBuf)
@@ -716,7 +727,7 @@ void TrVulkanRendererRayTracingBase::DestroyResources()
 
 void TrVulkanRendererRayTracingBase::onResize(int, int)
 {
-    
+    ResetFrameVal();
     CreateOffscreenRender();
     UpdatePostDescriptorSet();
     UpdateRtDescriptorSet();
@@ -1007,6 +1018,12 @@ void TrVulkanRendererRayTracingBase::CreateSBT()
 // ray trace the scene
 void TrVulkanRendererRayTracingBase::RayTrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor)
 {
+    UpdateFrameVal();
+    if(mPushConstantRay.mFrame >= mMaxFrames)
+    {
+        return;
+    }
+    
     // init push constant values
     mPushConstantRay.mClearColor = clearColor;
     mPushConstantRay.mLightPosition = mPushConstantRaster.mLightPosition;

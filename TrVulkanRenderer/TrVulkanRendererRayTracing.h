@@ -287,6 +287,8 @@ protected:
 
     int mMaxFrames {10};
 
+    int mNumSamples {10};
+
 #pragma endregion 
     
 };
