@@ -1,6 +1,11 @@
 #include "TrVulkanLight.h"
 
-TrLightBase::TrLightBase()
+TrLightBase::TrLightBase(std::string modelReferencePath, glm::mat4 transform, glm::vec3 color) : TrActor(modelReferencePath, transform)
 {
-    mColor = {1.0f, 1.0f, 1.0f};
+    mColor = color;
+}
+
+TrLantern::TrLantern(std::string modelReferencePath, glm::mat4 transform, glm::vec3 color) : TrLightBase(modelReferencePath, transform, color)
+{
+    
 }

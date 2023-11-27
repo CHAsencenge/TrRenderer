@@ -155,6 +155,7 @@ public:
 
 protected:
 
+
 #pragma region Gui
     
     glm::vec3 mEye = TrVulkanGlobalRT::camEye;
@@ -296,7 +297,9 @@ protected:
 
 
 
-#pragma endregion 
+#pragma endregion
+
+    
     
 };
 

@@ -3,6 +3,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "TrVulkanScene.h"
 #include "TrVulkanUtil.h"
+#include "nvh/fileoperations.hpp"
 #define GLFW_INCLUDE_NONE
 
 
@@ -29,7 +30,8 @@ public:
 
     virtual void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1));
 
-    void LoadScene(TrScene scene);
+    void LoadScene();
+
 
     
 
@@ -41,6 +43,12 @@ protected:
     uint32_t mHeight = 1080;
     
     const char* mTitle = "Vulkan";
+
+#pragma region Scene
+
+    TrScene mScene;
+
+#pragma endregion 
 
     
 
