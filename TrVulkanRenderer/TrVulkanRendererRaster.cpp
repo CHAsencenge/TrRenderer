@@ -10,6 +10,7 @@
 #include "TrVulkanImGuiConfig.h"
 
 
+
 TrVulkanRendererRaster::TrVulkanRendererRaster()
 {
 }
@@ -298,8 +299,42 @@ void TrVulkanRendererRaster::LoadModel(const std::string& filename, uint32_t act
 	mDeviceMemoriesMap[std::string{"MatIndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model.mVertexBuffer, mem0);
 	CreateOrReCreateBuffer(objLoader.m_matIndx.size() * sizeof(VertexObj), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model.mMatIndexBuffer, *mem3);
 	
-
 	EndSingleTimeCommands(cmdBuffer);
+
+	CreateTextureImages(cmdBuffer, objLoader.m_textures);
+}
+
+void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures)
+{
+	VkSamplerCreateInfo samplerCreateInfo {VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.maxLod = FLT_MAX;
+
+	VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+
+	// if no textures are present, create a dummy texture to accomodate the pipeline layout
+	if(textures.empty() && mTextures.empty())
+	{
+		TrTexture texture;
+		std::array<uint8_t, 4> color{255u, 255u, 255u, 255u}; // u means unsigned
+		VkDeviceSize size = sizeof(color);
+		auto imgExtent = VkExtent2D{1, 1};
+
+		VkImageCreateInfo imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format);
+		TrImage image;
+		CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, *image.mDeviceMemoryPtr);
+		CreateImageView(image.mImage, format, texture.mDescriptor.imageView, VK_IMAGE_ASPECT_COLOR_BIT);
+		texture.mImage = image.mImage;
+		texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
+		texture.mDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	}
+	else
+	{
+		
+	}
 }
 
 void TrVulkanRendererRaster::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& messengerCreateInfo)
@@ -709,7 +744,7 @@ void TrVulkanRendererRaster::CreateSwapChain()
 	mSwapChainExtent = extent2D;
 }
 
-VkImageView TrVulkanRendererRaster::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+VkImageView TrVulkanRendererRaster::CreateImageView(VkImage image, VkFormat format, VkImageView& imageView, VkImageAspectFlags aspectFlags)
 {
 	VkImageViewCreateInfo imageViewCreateInfo = {};
 	imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -727,14 +762,11 @@ VkImageView TrVulkanRendererRaster::CreateImageView(VkImage image, VkFormat form
 	imageViewCreateInfo.subresourceRange.layerCount = 1; // if VR, multiple layers (left eye layer, right eye layer), multiple views for one image
 	imageViewCreateInfo.subresourceRange.levelCount = 1; // no LOD
 	imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-
-	VkImageView imageView;
 	
 	if(vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_VIEW_FAILED]);
 	}
-	return imageView;
 }
 
 // used when creating frame buffer
@@ -743,7 +775,7 @@ void TrVulkanRendererRaster::CreateSwapChainImageViews()
 	mSwapChainImageViews.resize(mSwapChainImages.size());
 	for(size_t i = 0; i < mSwapChainImages.size(); i++)
 	{
-		mSwapChainImageViews[i] = CreateImageView(mSwapChainImages[i], mSwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		CreateImageView(mSwapChainImages[i], mSwapChainImageFormat, mSwapChainImageViews[i], VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 }
 
@@ -1606,9 +1638,13 @@ void TrVulkanRendererRaster::EndSingleTimeCommands(VkCommandBuffer commandBuffer
 }
 
 // before and after vkCmdCopyBufferToImage, need to change image layout
-void TrVulkanRendererRaster::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+void TrVulkanRendererRaster::TransitionImageLayout(VkCommandBuffer cmdBuf, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+	if (cmdBuf == VK_NULL_HANDLE)
+	{
+		commandBuffer = BeginSingleTimeCommands();
+	}
 
 	// change image layout by image memory barrier
 	VkImageMemoryBarrier imageMemoryBarrier = {};
@@ -1644,6 +1680,13 @@ void TrVulkanRendererRaster::TransitionImageLayout(VkImage image, VkFormat forma
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+	else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		imageMemoryBarrier.srcAccessMask = 0;
+		imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
 	else
 	{
 		throw std::invalid_argument(TrVulkanGlobal::INVALID_ARGUMENT_STRING[TrVulkanGlobal::INVALID_ARGUMENT_ENUM::UNSUPPORTED_LAYOUT_TRANSITION]);
@@ -1651,7 +1694,10 @@ void TrVulkanRendererRaster::TransitionImageLayout(VkImage image, VkFormat forma
 
 	vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 
-	EndSingleTimeCommands(commandBuffer);
+	if (cmdBuf == VK_NULL_HANDLE)
+	{
+		EndSingleTimeCommands(commandBuffer);
+	}
 }
 
 void TrVulkanRendererRaster::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
@@ -1681,7 +1727,7 @@ void TrVulkanRendererRaster::CreateDepthResources()
 	VkFormat depthFormat = FindDepthFormat();
 	CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMemory);
 
-	mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	CreateImageView(mDepthImage, depthFormat, mDepthImageView, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 VkFormat TrVulkanRendererRaster::FindDepthFormat()
@@ -2004,9 +2050,9 @@ void TrVulkanRendererRaster::CreateTextureImage()
 	CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
 	
 	// change image layout by image memory barrier and then copy buffer data to image
-	TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	TransitionImageLayout(VK_NULL_HANDLE, mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	CopyBufferToImage(stagingBuffer, mTextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-	TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	TransitionImageLayout(VK_NULL_HANDLE, mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -2058,7 +2104,7 @@ void TrVulkanRendererRaster::CreateImage(uint32_t width, uint32_t height, VkForm
 // access image should use image view
 void TrVulkanRendererRaster::CreateTextureImageView()
 {
-	mTextureImageView = CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+	 CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, mTextureImageView, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 // sampler can filter and transform (address rules) texture data automatically
@@ -2116,7 +2162,7 @@ void TrVulkanRendererRaster::ImGuiCreateFontsTexture(VkCommandBuffer commandBuff
 
 	CreateImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mFontImage, mFontImageMemory);
 
-	mFontImageView = CreateImageView(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+	CreateImageView(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, mFontImageView, VK_IMAGE_ASPECT_COLOR_BIT);
 	
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
@@ -2128,9 +2174,9 @@ void TrVulkanRendererRaster::ImGuiCreateFontsTexture(VkCommandBuffer commandBuff
 	memcpy(dst, pixels, (size_t)alignedBufferSize);
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
-	TransitionImageLayout(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	TransitionImageLayout(VK_NULL_HANDLE, mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	CopyBufferToImage(stagingBuffer, mFontImage, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-	TransitionImageLayout(mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	TransitionImageLayout(VK_NULL_HANDLE, mFontImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	
 }
 

@@ -274,7 +274,7 @@ void TrVulkanRendererRayTracingBase::SetupCamera()
     
 }
 
-void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, glm::mat4 transform)
+void TrVulkanRendererRayTracingBase::LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform)
 {
     ObjLoader objLoader;
     objLoader.loadModel(filename);

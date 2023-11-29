@@ -1,4 +1,5 @@
 #pragma once
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 #include <glm/glm.hpp>
@@ -10,3 +11,21 @@ using mat4 = glm::mat4;
 using uint = unsigned int;
 #endif
 
+struct TrTexture
+{
+    VkImage mImage = VK_NULL_HANDLE;
+    VkDescriptorImageInfo mDescriptor{};
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
+};
+
+struct TrImage
+{
+    VkImage mImage = VK_NULL_HANDLE;
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
+};
+
+struct TrBuffer
+{
+    VkBuffer mBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
+};
