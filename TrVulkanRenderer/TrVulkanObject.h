@@ -2,11 +2,13 @@
 #include <string>
 #include <glm/glm.hpp>
 
+class TrScene;
+
 // can be added to a scene
 class TrActor
 {
 public:
-    TrActor(std::string modelReferencePath, glm::mat4 transform = glm::mat4(1.0f));
+    TrActor(std::string modelReferencePath, TrScene* ownerScene, glm::mat4 transform = glm::mat4(1.0f));
 
     glm::vec3 GetActorPosition();
     glm::vec3 GetActorRotation();
@@ -15,4 +17,8 @@ public:
     glm::mat4 mTransform;
 
     std::string mModelReferencePath;
+
+    uint32_t mId;
+
+    TrScene* mOwnerScene;
 };

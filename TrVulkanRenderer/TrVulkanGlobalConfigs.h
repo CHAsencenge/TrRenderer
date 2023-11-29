@@ -214,7 +214,7 @@ public:
     inline static float modelRadiansAngle = 0.0f;
 
     inline static float rViewEye = 1.0f;
-    inline static glm::vec3 viewEye = {0.0f, 1000.0f, 2000.0f};
+    inline static glm::vec3 viewEye = {0.0f, 10.0f, 10.0f};
     inline static float rViewCenter = 0.005f;
     inline static glm::vec3 viewCenter = {0.0f, 0.0f, 0.0f};
     inline static float rViewUp = 0.005f;

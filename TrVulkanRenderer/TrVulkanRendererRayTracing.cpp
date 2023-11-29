@@ -57,11 +57,11 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
 
     // load models
     std::vector<TrActor> actors;
-    actors.emplace_back(TrActor{"media/scenes/Medieval_building.obj"});
-    actors.emplace_back(TrActor{"media/scenes/plane.obj"});
-    actors.emplace_back(TrActor{"media/scenes/wuson.obj", glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))});
-    actors.emplace_back(TrActor{"media/scenes/sphere.obj", glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))});
-    mScene.AddActors(actors);
+    actors.emplace_back(TrActor{"media/scenes/Medieval_building.obj", mScene});
+    actors.emplace_back(TrActor{"media/scenes/plane.obj", mScene});
+    actors.emplace_back(TrActor{"media/scenes/wuson.obj", mScene, glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))});
+    actors.emplace_back(TrActor{"media/scenes/sphere.obj", mScene, glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))});
+    mScene->AddActors(actors);
     LoadScene();
 
     // offscreen render

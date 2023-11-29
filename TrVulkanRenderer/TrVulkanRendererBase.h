@@ -28,7 +28,7 @@ public:
 
     virtual std::vector<const char*> GetRequiredExtensions();
 
-    virtual void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1));
+    virtual void LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform = glm::mat4(1));
 
     void LoadScene();
 
@@ -46,7 +46,7 @@ protected:
 
 #pragma region Scene
 
-    TrScene mScene;
+    TrScene* mScene;
 
 #pragma endregion 
 

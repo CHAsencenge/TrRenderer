@@ -35,15 +35,15 @@ std::vector<const char*> TrVulkanRendererBase::GetRequiredExtensions()
     return extensions;
 }
 
-void TrVulkanRendererBase::LoadModel(const std::string& filename, glm::mat4 transform)
+void TrVulkanRendererBase::LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform)
 {
 }
 
 void TrVulkanRendererBase::LoadScene()
 {
-    for(const TrActor& actor : mScene.mSceneActors)
+    for(const TrActor* actor : mScene->mSceneActors)
     {
-        LoadModel(nvh::findFile(actor.mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true));
+        LoadModel(nvh::findFile(actor->mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true), actor->mId);
     }
 }
 

@@ -8,6 +8,8 @@
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
+#include "obj_loader.h"
+#include "nvvk/commands_vk.hpp"
 
 #include "TrVulkanModel.h"
 #include "TrVulkanRendererBase.h"
@@ -50,6 +52,8 @@ public:
     void OnCleanup() override;
 
     void CreateInstance() override;
+
+    void LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform) override;
 
 private:
 
@@ -152,7 +156,7 @@ private:
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     // Buffers in Vulkan can save arbitrary data that can be read by graphics memory
-    void CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     
@@ -339,6 +343,15 @@ protected:
 
     std::vector<TrVulkanModelBase> mModels;
 
+    TrVulkanQueueFamilyIndices mFamilyIndices;
+
+#pragma region nv
+
+    // DMA means device memory allocator
+    nvvk::ResourceAllocatorDma mResourceAllocDma;
+
+#pragma endregion 
+
 #pragma region ImGui
 
     VkImage mFontImage;
@@ -368,6 +381,9 @@ protected:
     std::vector<VkDescriptorSet> mImGuiDescriptorSets;
 
     VkDeviceSize mBufferMemoryAlignment = 256;
+
+    // for models
+    std::unordered_map<std::string, std::pair<VkBuffer*, VkDeviceMemory*>> mDeviceMemoriesMap; // access pair value using .first and .second 
 
 #pragma endregion
 
