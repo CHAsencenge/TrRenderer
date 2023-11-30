@@ -76,6 +76,15 @@ struct TrObjDescRtBase
     uint64_t mMaterialIndexAddress;
 };
 
+struct TrObjDescRasterBase
+{
+    int mTexOffset;  // texture index offset in the array of textures
+    uint64_t mVertexAddress;
+    uint64_t mIndexAddress;
+    uint64_t mMaterialAddress;  // address of the material buffer
+    uint64_t mMaterialIndexAddress;
+};
+
 // Material
 // mIllum
 /* 0 Color on and Ambient off

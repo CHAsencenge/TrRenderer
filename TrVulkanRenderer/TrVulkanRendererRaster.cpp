@@ -7,7 +7,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "TrVulkanImGuiConfig.h"
+
 
 
 
@@ -192,6 +192,14 @@ void TrVulkanRendererRaster::OnCleanup()
 		vkFreeMemory(mDevice, *memMap.second.second, nullptr);
 	}
 
+	for(auto& texture : mTextures)
+	{
+		vkDestroySampler(mDevice, texture.mDescriptor.sampler, nullptr);
+		vkDestroyImageView(mDevice, texture.mDescriptor.imageView, nullptr);
+		vkDestroyImage(mDevice, texture.mImage, nullptr);
+		vkFreeMemory(mDevice, *texture.mDeviceMemoryPtr, nullptr);
+	}
+
 	vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
 	vkDestroyDescriptorPool(mDevice, mImGuiDescriptorPool, nullptr);
 
@@ -275,9 +283,9 @@ void TrVulkanRendererRaster::LoadModel(const std::string& filename, uint32_t act
 	// create buffers for model vertices, indices, material colors, material indices
 	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
 	
-	TrObjModelRasterBase model;
-	model.mNumIndices = static_cast<uint32_t>(objLoader.m_indices.size());
-	model.mNumVertices = static_cast<uint32_t>(objLoader.m_vertices.size());
+	TrObjModelRasterBase* model = mScene->mSceneActors[actorId]->mObjModelRasterData;
+	model->mNumIndices = static_cast<uint32_t>(objLoader.m_indices.size());
+	model->mNumVertices = static_cast<uint32_t>(objLoader.m_vertices.size());
 
 	// use vkGetBufferDeviceAddress can retrieve buffer, and can use that address to access buffer's memory from a shader
 	VkBufferUsageFlags flag   = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
@@ -287,21 +295,30 @@ void TrVulkanRendererRaster::LoadModel(const std::string& filename, uint32_t act
 	VkDeviceMemory* mem2;
 	VkDeviceMemory* mem3;
 	
-	mDeviceMemoriesMap[std::string{"VertexBuffer"} + std::to_string(actorId)] = std::make_pair(&model.mVertexBuffer, mem0);
-	CreateOrReCreateBuffer(objLoader.m_vertices.size() * sizeof(VertexObj), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, alignedBufferSize, model.mVertexBuffer, *mem0);
-
-	mDeviceMemoriesMap[std::string{"IntexBuffer"} + std::to_string(actorId)] = std::make_pair(&model.mVertexBuffer, mem0);
-	CreateOrReCreateBuffer(objLoader.m_indices.size() * sizeof(VertexObj), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, alignedBufferSize, model.mIndexBuffer, *mem1);
+	mDeviceMemoriesMap[std::string{"VertexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mVertexBuffer, mem0);
+	CreateBufferThroughStaging<VertexObj>(objLoader.m_vertices.size() * sizeof(VertexObj), objLoader.m_vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, alignedBufferSize, model->mVertexBuffer.mBuffer, *mem0);
 	
-	mDeviceMemoriesMap[std::string{"MatColorBuffer"} + std::to_string(actorId)] = std::make_pair(&model.mVertexBuffer, mem0);
-	CreateOrReCreateBuffer(objLoader.m_materials.size() * sizeof(VertexObj), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model.mMatColorBuffer, *mem2);
-
-	mDeviceMemoriesMap[std::string{"MatIndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model.mVertexBuffer, mem0);
-	CreateOrReCreateBuffer(objLoader.m_matIndx.size() * sizeof(VertexObj), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model.mMatIndexBuffer, *mem3);
+	mDeviceMemoriesMap[std::string{"IndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mIndexBuffer, mem1);
+	CreateBufferThroughStaging<uint32_t>(objLoader.m_indices.size() * sizeof(VertexObj), objLoader.m_indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, alignedBufferSize, model->mIndexBuffer.mBuffer, *mem1);
 	
+	mDeviceMemoriesMap[std::string{"MatColorBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatColorBuffer, mem2);
+	CreateBufferThroughStaging<MaterialObj>(objLoader.m_materials.size() * sizeof(VertexObj), objLoader.m_materials.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model->mMatColorBuffer.mBuffer, *mem2);
+
+	mDeviceMemoriesMap[std::string{"MatIndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatIndexBuffer, mem3);
+	CreateBufferThroughStaging<int32_t>(objLoader.m_matIndx.size() * sizeof(VertexObj), objLoader.m_matIndx.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model->mMatIndexBuffer.mBuffer, *mem3);
+
 	EndSingleTimeCommands(cmdBuffer);
 
+	auto texOffset = static_cast<uint32_t>(mTextures.size());
 	CreateTextureImages(cmdBuffer, objLoader.m_textures);
+
+	TrObjDescRasterBase* objDesc = mScene->mSceneActors[actorId]->mObjDescRasterData;
+	objDesc->mTexOffset = texOffset;
+	objDesc->mVertexAddress = nvvk::getBufferDeviceAddress(mDevice, model->mVertexBuffer.mBuffer);
+	objDesc->mIndexAddress = nvvk::getBufferDeviceAddress(mDevice, model->mIndexBuffer.mBuffer);
+	objDesc->mMaterialAddress = nvvk::getBufferDeviceAddress(mDevice, model->mMatColorBuffer.mBuffer);
+	objDesc->mMaterialIndexAddress = nvvk::getBufferDeviceAddress(mDevice, model->mMatIndexBuffer.mBuffer);
+	
 }
 
 void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures)
@@ -329,6 +346,9 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 		texture.mImage = image.mImage;
 		texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
 		texture.mDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &texture.mDescriptor.sampler);
+		
 		TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		mTextures.push_back(texture);
 	}
@@ -362,6 +382,9 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 			texture.mImage = image.mImage;
 			texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
 			texture.mDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &texture.mDescriptor.sampler);
+			
 			TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			mTextures.push_back(texture);
 			stbi_image_free(pixels);
@@ -1582,6 +1605,26 @@ void TrVulkanRendererRaster::CreateIndexBuffer()
 	// data from host-visible device memory to fast-read-write-access device memory
 	CopyBuffer(stagingBuffer, mIndexBuffer, alignedIndexBufferSize);
 
+	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+}
+
+template<typename T>
+void TrVulkanRendererRaster::CreateBufferThroughStaging(VkDeviceSize size, T* data, VkBufferUsageFlags usage, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkMemoryPropertyFlags propertyFlags)
+{
+	VkBuffer stagingBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	CreateOrReCreateBuffer(size, usageStaging,  alignedBufferSize, stagingBuffer, stagingBufferMemory, propertyFlags);
+
+	void* dst;
+	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, &dst);
+	memcpy(dst, data, (size_t) alignedBufferSize); 
+	vkUnmapMemory(mDevice, stagingBufferMemory);
+
+	CreateOrReCreateBuffer(size, usage,  alignedBufferSize, buffer, bufferMemory);
+	CopyBuffer(stagingBuffer, buffer, alignedBufferSize);
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 }
