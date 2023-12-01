@@ -29,6 +29,13 @@ void TrVulkanRendererRaster::Run()
 
 void TrVulkanRendererRaster::OnInitVulkan()
 {
+	// load models
+	mActors.emplace_back(std::make_shared<TrActor>("media/scenes/Medieval_building.obj", mScene));
+	mActors.emplace_back(std::make_shared<TrActor>("media/scenes/plane.obj", mScene));
+	mActors.emplace_back(std::make_shared<TrActor>("media/scenes/wuson.obj", mScene, glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))));
+	mActors.emplace_back(std::make_shared<TrActor>("media/scenes/sphere.obj", mScene, glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))));
+	mScene->AddActors(mActors);
+	
 	CheckExtensionSupport();
 	CreateInstance();
 	SetupDebugMessenger();
@@ -46,17 +53,20 @@ void TrVulkanRendererRaster::OnInitVulkan()
 	// before create frame buffers
 	CreateDepthResources();
 	CreateFrameBuffers();
-	LoadModels(std::vector<std::string>(1, "chalet"));
+	// LoadModels(std::vector<std::string>(1, "chalet"));
 	// LoadModels(std::vector<std::string>(1, "Tree"));
+	
+	LoadScene();
+	
 	// after create command pool
-	CreateTextureImage();
-	CreateTextureImageView();
-	CreateTextureSampler();
+	// CreateTextureImage();
+	// CreateTextureImageView();
+	// CreateTextureSampler();
 	OnSetupImGui();
 	
 	// before create command buffers
-	CreateVertexBuffer();
-	CreateIndexBuffer();
+	// CreateVertexBuffer();
+	// CreateIndexBuffer();
 	CreateUniformBuffers();
 	
 	CreateDescriptorPool();
@@ -182,14 +192,14 @@ void TrVulkanRendererRaster::OnCleanup()
 
 	for(size_t i = 0; i < mUniformBuffers.size(); i++)
 	{
-		vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
-		vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
+		vkDestroyBuffer(mDevice, mUniformBuffers[i].mBuffer, nullptr);
+		vkFreeMemory(mDevice, mUniformBuffers[i].mDeviceMemoryPtr, nullptr);
 	}
 
 	for(auto& memMap : mDeviceMemoriesMap)
 	{
 		vkDestroyBuffer(mDevice, *memMap.second.first, nullptr);
-		vkFreeMemory(mDevice, *memMap.second.second, nullptr);
+		vkFreeMemory(mDevice, memMap.second.second, nullptr);
 	}
 
 	for(auto& texture : mTextures)
@@ -197,7 +207,7 @@ void TrVulkanRendererRaster::OnCleanup()
 		vkDestroySampler(mDevice, texture.mDescriptor.sampler, nullptr);
 		vkDestroyImageView(mDevice, texture.mDescriptor.imageView, nullptr);
 		vkDestroyImage(mDevice, texture.mImage, nullptr);
-		vkFreeMemory(mDevice, *texture.mDeviceMemoryPtr, nullptr);
+		vkFreeMemory(mDevice, texture.mDeviceMemoryPtr, nullptr);
 	}
 
 	vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
@@ -283,36 +293,38 @@ void TrVulkanRendererRaster::LoadModel(const std::string& filename, uint32_t act
 	// create buffers for model vertices, indices, material colors, material indices
 	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
 	
-	TrObjModelRasterBase* model = mScene->mSceneActors[actorId]->mObjModelRasterData;
+	std::shared_ptr<TrObjModelRasterBase> model = std::make_shared<TrObjModelRasterBase>();
 	model->mNumIndices = static_cast<uint32_t>(objLoader.m_indices.size());
 	model->mNumVertices = static_cast<uint32_t>(objLoader.m_vertices.size());
+	mScene->mSceneActors[actorId]->mObjModelRasterData = model;
 
 	// use vkGetBufferDeviceAddress can retrieve buffer, and can use that address to access buffer's memory from a shader
 	VkBufferUsageFlags flag   = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 	VkDeviceSize alignedBufferSize = 0;
-	VkDeviceMemory* mem0;
-	VkDeviceMemory* mem1;
-	VkDeviceMemory* mem2;
-	VkDeviceMemory* mem3;
-	
-	mDeviceMemoriesMap[std::string{"VertexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mVertexBuffer, mem0);
-	CreateBufferThroughStaging<VertexObj>(objLoader.m_vertices.size() * sizeof(VertexObj), objLoader.m_vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, alignedBufferSize, model->mVertexBuffer.mBuffer, *mem0);
-	
-	mDeviceMemoriesMap[std::string{"IndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mIndexBuffer, mem1);
-	CreateBufferThroughStaging<uint32_t>(objLoader.m_indices.size() * sizeof(VertexObj), objLoader.m_indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, alignedBufferSize, model->mIndexBuffer.mBuffer, *mem1);
-	
-	mDeviceMemoriesMap[std::string{"MatColorBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatColorBuffer, mem2);
-	CreateBufferThroughStaging<MaterialObj>(objLoader.m_materials.size() * sizeof(VertexObj), objLoader.m_materials.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model->mMatColorBuffer.mBuffer, *mem2);
 
-	mDeviceMemoriesMap[std::string{"MatIndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatIndexBuffer, mem3);
-	CreateBufferThroughStaging<int32_t>(objLoader.m_matIndx.size() * sizeof(VertexObj), objLoader.m_matIndx.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag, alignedBufferSize, model->mMatIndexBuffer.mBuffer, *mem3);
+	VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	
+	mDeviceMemoriesMap[std::string{"VertexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mVertexBuffer.mBuffer, model->mVertexBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<VertexObj>(objLoader.m_vertices.size() * sizeof(VertexObj), objLoader.m_vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage, alignedBufferSize, model->mVertexBuffer.mBuffer, model->mVertexBuffer.mDeviceMemoryPtr);
+	
+	mDeviceMemoriesMap[std::string{"IndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mIndexBuffer.mBuffer, model->mIndexBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<uint32_t>(objLoader.m_indices.size() * sizeof(uint32_t), objLoader.m_indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage, alignedBufferSize, model->mIndexBuffer.mBuffer, model->mIndexBuffer.mDeviceMemoryPtr);
+	
+	mDeviceMemoriesMap[std::string{"MatColorBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatColorBuffer.mBuffer, model->mMatColorBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<MaterialObj>(objLoader.m_materials.size() * sizeof(MaterialObj), objLoader.m_materials.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag | usage, alignedBufferSize, model->mMatColorBuffer.mBuffer, model->mMatColorBuffer.mDeviceMemoryPtr);
+
+	mDeviceMemoriesMap[std::string{"MatIndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatIndexBuffer.mBuffer, model->mMatIndexBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<int32_t>(objLoader.m_matIndx.size() * sizeof(int32_t), objLoader.m_matIndx.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag | usage, alignedBufferSize, model->mMatIndexBuffer.mBuffer, model->mMatIndexBuffer.mDeviceMemoryPtr);
 
 	EndSingleTimeCommands(cmdBuffer);
 
+	VkCommandBuffer cmdBuf = BeginSingleTimeCommands();
 	auto texOffset = static_cast<uint32_t>(mTextures.size());
-	CreateTextureImages(cmdBuffer, objLoader.m_textures);
-
-	TrObjDescRasterBase* objDesc = mScene->mSceneActors[actorId]->mObjDescRasterData;
+	CreateTextureImages(cmdBuf, objLoader.m_textures);
+	EndSingleTimeCommands(cmdBuf);
+	
+	mScene->mSceneActors[actorId]->mObjDescRasterData = std::make_shared<TrObjDescRasterBase>();
+	auto objDesc = mScene->mSceneActors[actorId]->mObjDescRasterData;
 	objDesc->mTexOffset = texOffset;
 	objDesc->mVertexAddress = nvvk::getBufferDeviceAddress(mDevice, model->mVertexBuffer.mBuffer);
 	objDesc->mIndexAddress = nvvk::getBufferDeviceAddress(mDevice, model->mIndexBuffer.mBuffer);
@@ -341,7 +353,7 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 
 		VkImageCreateInfo imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format);
 		TrImage image;
-		CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, *image.mDeviceMemoryPtr);
+		CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, image.mDeviceMemoryPtr);
 		CreateImageView(image.mImage, format, texture.mDescriptor.imageView, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture.mImage = image.mImage;
 		texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
@@ -376,7 +388,7 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 			VkImageCreateInfo imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format, VK_IMAGE_USAGE_SAMPLED_BIT, true);
 
 			TrImage image;
-			CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, *image.mDeviceMemoryPtr);
+			CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, image.mDeviceMemoryPtr);
 			nvvk::cmdGenerateMipmaps(cmdBuffer, image.mImage, format, imgExtent, imgCreateInfo.mipLevels);
 			CreateImageView(image.mImage, format, texture.mDescriptor.imageView, VK_IMAGE_ASPECT_COLOR_BIT);
 			texture.mImage = image.mImage;
@@ -951,9 +963,11 @@ void TrVulkanRendererRaster::CreateRenderPass()
 
 void TrVulkanRendererRaster::CreateGraphicsPipeline()
 {
-	std::string shaderFilePrefix = std::string(TrVulkanGlobal::SHADER_FILE_STRING[TrVulkanGlobal::SHADER_FILE_ENUM::depth]);
+	std::string shaderFilePrefix = std::string(TrVulkanGlobal::SHADER_FILE_STRING[TrVulkanGlobal::SHADER_FILE_ENUM::nrm]);
 	auto vertShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::vertSuffix);
+	
 	auto fragShaderCompiledCode = TrVulkanUtil::ReadFile(shaderFilePrefix + TrVulkanGlobal::fragSuffix);
+	
 
 	// is only a wrap of shader byte code
 	// only used in this field, so should destroy before leaving this field
@@ -991,8 +1005,8 @@ void TrVulkanRendererRaster::CreateGraphicsPipeline()
 	// auto bindingDescription = TrVulkanVertex2DTex::GetBindingDescription();
 	// auto attributeDescriptions = TrVulkanVertex2DTex::GetAttributeDescriptions();
 
-	auto bindingDescription = TrVulkanVertex3DTex::GetBindingDescription();
-	auto attributeDescriptions = TrVulkanVertex3DTex::GetAttributeDescriptions();
+	auto bindingDescription = TrVulkanVertexRaster::GetBindingDescription();
+	auto attributeDescriptions = TrVulkanVertexRaster::GetAttributeDescriptions();
 
 
 	// binding: offset between vertices, per-vertex or per-instance
@@ -1268,6 +1282,7 @@ void TrVulkanRendererRaster::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
 	{
 		// bind graphics pipeline to the command buffer
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 		// Cmds
 		VkViewport viewport = {};
@@ -1284,22 +1299,16 @@ void TrVulkanRendererRaster::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
 		scissor.offset = {0, 0};
 		scissor.extent = mSwapChainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		// bind vertex buffers
-		VkBuffer vertexBuffers[] = {mVertexBuffer};
-		VkDeviceSize offsets[] = {0};
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 		
-		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
-
-		// vkCmdDraw(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Vertices.size()), 1, 0, 0);
-		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::Indices.size()), 1, 0, 0, 0);
-		// vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(TrVulkanGlobal::TexIndices3D.size()), 1, 0, 0, 0);
+		VkDeviceSize offsets[] = {0};
+		for(auto& actor : mScene->mSceneActors)
+		{
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &actor.second->mObjModelRasterData->mVertexBuffer.mBuffer, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, actor.second->mObjModelRasterData->mIndexBuffer.mBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, actor.second->mObjModelRasterData->mNumIndices, 1, 0, 0, 0);
+		}
 
 		// the assembled primitives execute the bound graphics pipeline
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mModels[0].mIndices.size()), 1, 0, 0, 0);
 
 		
 		// to transition to the next sub pass in the render pass instance after recording the commands for a sub pass
@@ -1615,15 +1624,15 @@ void TrVulkanRendererRaster::CreateBufferThroughStaging(VkDeviceSize size, T* da
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	VkBufferUsageFlags usageStaging = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	CreateOrReCreateBuffer(size, usageStaging,  alignedBufferSize, stagingBuffer, stagingBufferMemory, propertyFlags);
+	VkBufferUsageFlags stagingPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	CreateOrReCreateBuffer(size, usageStaging,  alignedBufferSize, stagingBuffer, stagingBufferMemory, stagingPropertyFlags);
 
 	void* dst;
 	vkMapMemory(mDevice, stagingBufferMemory, 0, alignedBufferSize, 0, &dst);
 	memcpy(dst, data, (size_t) alignedBufferSize); 
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
-	CreateOrReCreateBuffer(size, usage,  alignedBufferSize, buffer, bufferMemory);
+	CreateOrReCreateBuffer(size, usage,  alignedBufferSize, buffer, bufferMemory, stagingPropertyFlags);
 	CopyBuffer(stagingBuffer, buffer, alignedBufferSize);
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -1631,23 +1640,22 @@ void TrVulkanRendererRaster::CreateBufferThroughStaging(VkDeviceSize size, T* da
 
 void TrVulkanRendererRaster::CreateUniformBuffers()
 {
-	VkDeviceSize bufferSize = sizeof(TrVulkanTransformUBO);
+	VkDeviceSize bufferSize = sizeof(TrGlobalUniforms);
 
 	mUniformBuffers.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
-	mUniformBuffersMemory.resize(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
 
 	for(auto i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		mUniformBuffers[i] = VK_NULL_HANDLE;
-		mUniformBuffersMemory[i] = VK_NULL_HANDLE;
+		mUniformBuffers[i].mBuffer = VK_NULL_HANDLE;
+		mUniformBuffers[i].mDeviceMemoryPtr = VK_NULL_HANDLE;
 	}
 
 	for(size_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		VkDeviceSize alignedBufferSize = 0;
-		CreateOrReCreateBuffer(bufferSize, usageFlags,  alignedBufferSize, mUniformBuffers[i], mUniformBuffersMemory[i], propertyFlags);
+		CreateOrReCreateBuffer(bufferSize, usageFlags,  alignedBufferSize, mUniformBuffers[i].mBuffer, mUniformBuffers[i].mDeviceMemoryPtr, propertyFlags);
 	}
 }
 
@@ -1927,10 +1935,15 @@ void TrVulkanRendererRaster::UpdateUniformBuffer(uint32_t currentImage)
 	// glm ( for opengl ) clip coord y axis is opposite to vulkan ???
 	// ubo.mProj[1][1] *= -1;
 
+	TrGlobalUniforms hostUbo = {};
+	hostUbo.mViewProj = ubo.mProj * ubo.mView;
+	hostUbo.mViewInverse = glm::inverse(ubo.mView);
+	hostUbo.mProjInverse = glm::inverse(ubo.mProj);
+
 	void* dst;
-	vkMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &dst);
-	memcpy(dst, &ubo, sizeof(ubo));
-	vkUnmapMemory(mDevice, mUniformBuffersMemory[currentImage]);
+	vkMapMemory(mDevice, mUniformBuffers[currentImage].mDeviceMemoryPtr, 0, sizeof(hostUbo), 0, &dst);
+	memcpy(dst, &hostUbo, sizeof(ubo));
+	vkUnmapMemory(mDevice, mUniformBuffers[currentImage].mDeviceMemoryPtr);
 }
 
 // semaphore: syne between queues or between buffers in a queue
@@ -1984,7 +1997,7 @@ void TrVulkanRendererRaster::CreateDescriptorSetLayout()
 
 	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
 	samplerDescriptorSetLayoutBinding.binding = 1;
-	samplerDescriptorSetLayoutBinding.descriptorCount = 1; // accessed in a shader as an array
+	samplerDescriptorSetLayoutBinding.descriptorCount = static_cast<uint32_t>(mActors.size()); // accessed in a shader as an array
 	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
@@ -2011,7 +2024,7 @@ void TrVulkanRendererRaster::CreateDescriptorPool()
 
 	VkDescriptorPoolSize samplerPoolSize = {};
 	samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerPoolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT);
+	samplerPoolSize.descriptorCount = static_cast<uint32_t>(TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT) * mActors.size();
 
 	std::vector<VkDescriptorPoolSize> poolSizes = {uboPoolSize, samplerPoolSize};
 
@@ -2049,35 +2062,38 @@ void TrVulkanRendererRaster::CreateDescriptorSets()
 	for(uint32_t i = 0; i < TrVulkanGlobal::MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = mUniformBuffers[i];
+		bufferInfo.buffer = mUniformBuffers[i].mBuffer;
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(TrVulkanTransformUBO);
+		bufferInfo.range = sizeof(TrGlobalUniforms);
 
 		// update config need VkWriteDescriptorSet
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstSet = mDescriptorSets[i];
-		descriptorWrites[0].dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
+		std::vector<VkWriteDescriptorSet> descriptorWrites = {};
+		VkWriteDescriptorSet descriptorWrite = {};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.dstBinding = ETrRasterSceneBindings::RasterGlobals;
+		descriptorWrite.dstSet = mDescriptorSets[i];
+		descriptorWrite.dstArrayElement = 0; // if use an array as descriptor, specify first element index of the array 
+		descriptorWrite.pBufferInfo = &bufferInfo;
+		descriptorWrites.push_back(descriptorWrite);
 
-		VkDescriptorImageInfo texImageInfo = {};
-		texImageInfo.sampler = mTextureSampler;
-		texImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		texImageInfo.imageView = mTextureImageView;
+		std::vector<VkDescriptorImageInfo> descImageInfos;
+		for(auto& texture : mTextures)
+		{
+			descImageInfos.emplace_back(texture.mDescriptor);
+		}
 
-		std::array<VkDescriptorImageInfo, 1> imageInfos = {texImageInfo};
-
-		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].descriptorCount = 1;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrites[1].dstBinding = 1;
-		descriptorWrites[1].dstSet = mDescriptorSets[i];
-		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].pImageInfo = imageInfos.data();
-
+		VkWriteDescriptorSet descriptorWrite1 = {};
+		descriptorWrite1.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite1.descriptorCount = mTextures.size();
+		descriptorWrite1.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrite1.dstBinding = ETrRasterSceneBindings::RasterTextures;
+		descriptorWrite1.dstSet = mDescriptorSets[i];
+		descriptorWrite1.dstArrayElement = 0;
+		descriptorWrite1.pImageInfo = descImageInfos.data();
+		descriptorWrites.push_back(descriptorWrite1);
+		
 		vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 }

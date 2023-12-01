@@ -11,7 +11,7 @@ class TrScene;
 class TrActor
 {
 public:
-    TrActor(std::string modelReferencePath, TrScene* ownerScene, glm::mat4 transform = glm::mat4(1.0f));
+    TrActor(std::string modelReferencePath, std::shared_ptr<TrScene> ownerScene, glm::mat4 transform = glm::mat4(1.0f));
 
     glm::vec3 GetActorPosition();
     glm::vec3 GetActorRotation();
@@ -23,17 +23,17 @@ public:
 
     uint32_t mId;
 
-    TrScene* mOwnerScene;
+    std::shared_ptr<TrScene> mOwnerScene;
 
 #pragma region Render
     
-    TrObjModelRtBase* mObjModelRtData;
+    std::shared_ptr<TrObjModelRtBase> mObjModelRtData;
 
-    TrObjDescRtBase* mObjDescRtData;
+    std::shared_ptr<TrObjDescRtBase> mObjDescRtData;
 
-    TrObjModelRasterBase* mObjModelRasterData;
+    std::shared_ptr<TrObjModelRasterBase> mObjModelRasterData;
 
-    TrObjDescRasterBase* mObjDescRasterData;
+    std::shared_ptr<TrObjDescRasterBase> mObjDescRasterData;
 
 #pragma endregion 
 };

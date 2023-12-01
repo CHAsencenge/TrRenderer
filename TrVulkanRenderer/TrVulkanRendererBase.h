@@ -48,7 +48,8 @@ protected:
 
 #pragma region Scene
 
-    TrScene* mScene;
+    std::vector<std::shared_ptr<TrActor>> mActors;
+    std::shared_ptr<TrScene> mScene;
 
 #pragma endregion 
 

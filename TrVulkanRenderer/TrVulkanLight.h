@@ -5,7 +5,7 @@
 class TrLightBase : public TrActor
 {
 public:
-    TrLightBase(std::string modelReferencePath, glm::mat4 transform = glm::mat4(1.0f), glm::vec3 color = {1.0f, 1.0f, 1.0f});
+    TrLightBase(std::string modelReferencePath, std::shared_ptr<TrScene>, glm::mat4 transform = glm::mat4(1.0f), glm::vec3 color = {1.0f, 1.0f, 1.0f});
 
 protected:
     glm::vec3 mColor;
@@ -15,7 +15,7 @@ protected:
 class TrLantern : public TrLightBase
 {
 public:
-    TrLantern(std::string modelReferencePath, glm::mat4 transform = glm::mat4(1.0f), glm::vec3 color = {1.0f, 1.0f, 1.0f});
+    TrLantern(std::string modelReferencePath, std::shared_ptr<TrScene>, glm::mat4 transform = glm::mat4(1.0f), glm::vec3 color = {1.0f, 1.0f, 1.0f});
 
 protected:
     float mRadius; // illuminates distance

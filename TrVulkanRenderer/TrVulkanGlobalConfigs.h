@@ -170,6 +170,7 @@ public:
         ubo,
         textures,
         depth,
+        nrm,
 
         imGuiBase,
     };
@@ -181,6 +182,9 @@ public:
         {SHADER_FILE_ENUM::ubo, SHADER_DIR "VkRaster/shader_ubo"},
         {SHADER_FILE_ENUM::textures, SHADER_DIR "VkRaster/shader_textures"},
         {SHADER_FILE_ENUM::depth, SHADER_DIR "VkRaster/shader_depth"},
+        {SHADER_FILE_ENUM::nrm, SHADER_DIR "VkRaster/shader_nrm"},
+
+
         
         {SHADER_FILE_ENUM::imGuiBase, SHADER_DIR "VkRaster/shader_imgui"},
     };

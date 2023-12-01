@@ -21,7 +21,6 @@
 class TrVulkanRendererRaster : public TrVulkanRendererBase
 {
 public:
-
     TrVulkanRendererRaster();
     TrVulkanRendererRaster(uint32_t width, uint32_t height, const char* title);
 
@@ -327,9 +326,7 @@ protected:
     VkDeviceMemory mIndexBufferMemory;
 
     // for parallel render
-    std::vector<VkBuffer> mUniformBuffers;
-
-    std::vector<VkDeviceMemory> mUniformBuffersMemory;
+    std::vector<TrBuffer> mUniformBuffers;
 
     std::vector<void*> mUniformBuffersMapped;
 
@@ -393,7 +390,7 @@ protected:
     VkDeviceSize mBufferMemoryAlignment = 256;
 
     // for models
-    std::unordered_map<std::string, std::pair<VkBuffer*, VkDeviceMemory*>> mDeviceMemoriesMap; // access pair value using .first and .second 
+    std::unordered_map<std::string, std::pair<VkBuffer*, VkDeviceMemory>> mDeviceMemoriesMap; // access pair value using .first and .second 
 
 #pragma endregion
 
@@ -415,8 +412,19 @@ protected:
     
     float mMvpProjZFar = TrVulkanGlobal::projZFar;
 
-
 #pragma endregion
+
+#pragma region Shader
+
+    TrPushConstantRaster mPushConstantRaster{
+      {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},   // Identity matrix
+      {10.f, 15.f, 8.f},  // light position
+      0,                  // instance Id
+      100.f,              // light intensity
+      0                   // light type
+    };
+
+#pragma endregion 
 
 };
 
