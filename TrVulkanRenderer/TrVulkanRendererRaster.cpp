@@ -46,22 +46,22 @@ void TrVulkanRendererRaster::OnInitVulkan()
 	CreateSwapChainImageViews();
 	// CreateTestRenderPassImGuiOnly();
 	CreateRenderPass();
+
+	CreateCommandPool();
+	LoadScene();
+	
 	// before pipeline
 	CreateDescriptorSetLayout();
 	CreateGraphicsPipeline();
-	CreateCommandPool();
+
 	// before create frame buffers
 	CreateDepthResources();
 	CreateFrameBuffers();
-	// LoadModels(std::vector<std::string>(1, "chalet"));
-	// LoadModels(std::vector<std::string>(1, "Tree"));
-	
-	LoadScene();
 	
 	// after create command pool
 	// CreateTextureImage();
 	// CreateTextureImageView();
-	// CreateTextureSampler();
+	CreateTextureSampler();
 	OnSetupImGui();
 	
 	// before create command buffers
@@ -1939,7 +1939,7 @@ void TrVulkanRendererRaster::UpdateUniformBuffer(uint32_t currentImage)
 
 	TrVulkanTransformUBO ubo = {};
 	// mat, angle, axis
-	ubo.mModel = glm::rotate(glm::scale(glm::mat4(1.0f), glm::vec3(mModels[0].mScale)), glm::radians(mMvpModelRadiansAngle), mMvpModelAngleAxis);
+	ubo.mModel = glm::rotate(glm::scale(glm::mat4(1.0f), glm::vec3(TrVulkanGlobal::modelScaleRate)), glm::radians(mMvpModelRadiansAngle), mMvpModelAngleAxis);
 	// ubo.mModel = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// source, target, up 
@@ -2012,7 +2012,7 @@ void TrVulkanRendererRaster::CreateDescriptorSetLayout()
 
 	VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
 	samplerDescriptorSetLayoutBinding.binding = 1;
-	samplerDescriptorSetLayoutBinding.descriptorCount = static_cast<uint32_t>(mActors.size()); // accessed in a shader as an array
+	samplerDescriptorSetLayoutBinding.descriptorCount = static_cast<uint32_t>(mTextures.size()); // accessed in a shader as an array
 	samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	samplerDescriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerDescriptorSetLayoutBinding.pImmutableSamplers = nullptr;
@@ -2262,10 +2262,10 @@ void TrVulkanRendererRaster::CreateTextureSampler()
 	samplerCreateInfo.minLod = 0.0f;
 	samplerCreateInfo.maxLod = 0.0f;
 
-	if(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mTextureSampler) != VK_SUCCESS)
+	/*if(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mTextureSampler) != VK_SUCCESS)
 	{
 		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_SAMPLER_FAILED]);
-	}
+	}*/
 
 	if(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mFontSampler) != VK_SUCCESS)
 	{
@@ -2689,7 +2689,7 @@ void TrVulkanRendererRaster::UpdateGlobalConfigs()
 {
 	// MVP Params
 	// Model
-	mModels[0].mScale = TrVulkanGlobal::modelScaleRate;
+	// mModels[0].mScale = TrVulkanGlobal::modelScaleRate;
 	
 	mMvpModelAngleAxis = TrVulkanGlobal::modelAngleAxis;
 	mMvpModelRadiansAngle = TrVulkanGlobal::modelRadiansAngle;
