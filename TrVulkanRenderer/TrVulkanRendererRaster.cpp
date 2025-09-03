@@ -305,10 +305,10 @@ void TrVulkanRendererRaster::LoadModel(const std::string& filename, uint32_t act
 	VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	
 	mDeviceMemoriesMap[std::string{"VertexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mVertexBuffer.mBuffer, model->mVertexBuffer.mDeviceMemoryPtr);
-	CreateBufferThroughStaging<VertexObj>(objLoader.m_vertices.size() * sizeof(VertexObj), objLoader.m_vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | flag | usage, alignedBufferSize, model->mVertexBuffer.mBuffer, model->mVertexBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<VertexObj>(objLoader.m_vertices.size() * sizeof(VertexObj), objLoader.m_vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage, alignedBufferSize, model->mVertexBuffer.mBuffer, model->mVertexBuffer.mDeviceMemoryPtr);
 	
 	mDeviceMemoriesMap[std::string{"IndexBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mIndexBuffer.mBuffer, model->mIndexBuffer.mDeviceMemoryPtr);
-	CreateBufferThroughStaging<uint32_t>(objLoader.m_indices.size() * sizeof(uint32_t), objLoader.m_indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | flag | usage, alignedBufferSize, model->mIndexBuffer.mBuffer, model->mIndexBuffer.mDeviceMemoryPtr);
+	CreateBufferThroughStaging<uint32_t>(objLoader.m_indices.size() * sizeof(uint32_t), objLoader.m_indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage, alignedBufferSize, model->mIndexBuffer.mBuffer, model->mIndexBuffer.mDeviceMemoryPtr);
 	
 	mDeviceMemoriesMap[std::string{"MatColorBuffer"} + std::to_string(actorId)] = std::make_pair(&model->mMatColorBuffer.mBuffer, model->mMatColorBuffer.mDeviceMemoryPtr);
 	CreateBufferThroughStaging<MaterialObj>(objLoader.m_materials.size() * sizeof(MaterialObj), objLoader.m_materials.data(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag | usage, alignedBufferSize, model->mMatColorBuffer.mBuffer, model->mMatColorBuffer.mDeviceMemoryPtr);
@@ -388,7 +388,7 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 			VkImageCreateInfo imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format, VK_IMAGE_USAGE_SAMPLED_BIT, true);
 
 			TrImage image;
-			CreateImage(imgCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, image.mDeviceMemoryPtr);
+			CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, image.mDeviceMemoryPtr);
 			nvvk::cmdGenerateMipmaps(cmdBuffer, image.mImage, format, imgExtent, imgCreateInfo.mipLevels);
 			CreateImageView(image.mImage, format, texture.mDescriptor.imageView, VK_IMAGE_ASPECT_COLOR_BIT);
 			texture.mImage = image.mImage;
@@ -397,7 +397,7 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 
 			vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &texture.mDescriptor.sampler);
 			
-			TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, imgCreateInfo.mipLevels);
+			TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			mTextures.push_back(texture);
 			stbi_image_free(pixels);
 		}
@@ -548,11 +548,8 @@ uint32_t TrVulkanRendererRaster::CalcDeviceSuitabilityScore(VkPhysicalDevice dev
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
-	VkPhysicalDeviceFeatures2 deviceFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
-	VkPhysicalDeviceBufferDeviceAddressFeaturesKHR bdaFeature = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_KHR};
-	bdaFeature.bufferDeviceAddress = VK_TRUE;
-	deviceFeatures.pNext = &bdaFeature;
-	vkGetPhysicalDeviceFeatures2(device, &deviceFeatures);
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 	
 	uint32_t score = 0;
 
@@ -594,11 +591,8 @@ void TrVulkanRendererRaster::CreateLogicalDevice()
 	}
 	
 	// specify features to use
-	VkPhysicalDeviceFeatures2 deviceFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
-	deviceFeatures.features.samplerAnisotropy = VK_TRUE; // anisotropy feature
-	VkPhysicalDeviceBufferDeviceAddressFeatures bdaFeature = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_KHR};
-	bdaFeature.bufferDeviceAddress = 1;
-	deviceFeatures.pNext = &bdaFeature;
+	VkPhysicalDeviceFeatures deviceFeatures = {};
+	deviceFeatures.samplerAnisotropy = VK_TRUE; // anisotropy feature
 	
 	// create logical device, like create instance
 	// device level create info, compared to instance level create info
@@ -607,7 +601,7 @@ void TrVulkanRendererRaster::CreateLogicalDevice()
 	// create queue along with the logical device, destroyed automatically when destroy the logical device
 	logicalDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 	logicalDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-	logicalDeviceCreateInfo.pNext = &deviceFeatures;
+	logicalDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 	// if not enable swapchain extension, mSwapChain will be null after creation, but return VK_SUCCESS! 
 	logicalDeviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(TrVulkanGlobal::deviceExtensions.size());
 	logicalDeviceCreateInfo.ppEnabledExtensionNames = TrVulkanGlobal::deviceExtensions.data();
@@ -1476,7 +1470,7 @@ void TrVulkanRendererRaster::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
 }
 
 void TrVulkanRendererRaster::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-	VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkMemoryPropertyFlags propertyFlags, bool needBda)
+	VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkMemoryPropertyFlags propertyFlags)
 {
 	if(buffer != VK_NULL_HANDLE)
 	{
@@ -1494,7 +1488,6 @@ void TrVulkanRendererRaster::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferU
 	bufferCreateInfo.size = alignedBufferSize;
 	bufferCreateInfo.usage = usage;
 	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // because only use one queue, do not need to share between queue families
-	
 
 	if(vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
 	{
@@ -1511,14 +1504,6 @@ void TrVulkanRendererRaster::CreateOrReCreateBuffer(VkDeviceSize size, VkBufferU
 	memoryAllocateInfo.allocationSize = memoryRequirements.size;
 	// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: write data from cpu
 	memoryAllocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
-
-	// if need buffer device address
-	VkMemoryAllocateFlagsInfo MemoryAllocateFlagsInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO };
-	MemoryAllocateFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
-	if(needBda)
-	{
-		memoryAllocateInfo.pNext = &MemoryAllocateFlagsInfo;
-	}
 
 	// manually allocate memory to buffer
 	// TODO: implement memory allocator, because physical device have memory allocation limit - maxMemoryAllocationCount
@@ -1647,7 +1632,7 @@ void TrVulkanRendererRaster::CreateBufferThroughStaging(VkDeviceSize size, T* da
 	memcpy(dst, data, (size_t) alignedBufferSize); 
 	vkUnmapMemory(mDevice, stagingBufferMemory);
 
-	CreateOrReCreateBuffer(size, usage,  alignedBufferSize, buffer, bufferMemory, propertyFlags, true);
+	CreateOrReCreateBuffer(size, usage,  alignedBufferSize, buffer, bufferMemory, stagingPropertyFlags);
 	CopyBuffer(stagingBuffer, buffer, alignedBufferSize);
 	vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 	vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -1736,7 +1721,7 @@ void TrVulkanRendererRaster::EndSingleTimeCommands(VkCommandBuffer commandBuffer
 }
 
 // before and after vkCmdCopyBufferToImage, need to change image layout
-void TrVulkanRendererRaster::TransitionImageLayout(VkCommandBuffer cmdBuf, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipmapLevels)
+void TrVulkanRendererRaster::TransitionImageLayout(VkCommandBuffer cmdBuf, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 	if (cmdBuf == VK_NULL_HANDLE)
@@ -1753,7 +1738,7 @@ void TrVulkanRendererRaster::TransitionImageLayout(VkCommandBuffer cmdBuf, VkIma
 	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // if do not transmit queue family ownership
 	imageMemoryBarrier.image = image;
 	imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	imageMemoryBarrier.subresourceRange.levelCount = mipmapLevels;
+	imageMemoryBarrier.subresourceRange.levelCount = 1;
 	imageMemoryBarrier.subresourceRange.layerCount = 1;
 	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
@@ -2183,33 +2168,6 @@ void TrVulkanRendererRaster::CreateImage(uint32_t width, uint32_t height, VkForm
 	imageCreateInfo.mipLevels = 1;
 	imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	// create image
-	if(vkCreateImage(mDevice, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
-	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::CREATE_IMAGE_FAILED]);
-	}
-
-	// memory requirement
-	VkMemoryRequirements memoryRequirements;
-	vkGetImageMemoryRequirements(mDevice, image, &memoryRequirements);
-
-	// allocate memory
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = memoryRequirements.size;
-	allocateInfo.memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits, properties);
-	if(vkAllocateMemory(mDevice, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
-	{
-		throw std::runtime_error(TrVulkanGlobal::RUNTIME_ERROR_STRING[TrVulkanGlobal::RUNTIME_ERROR_ENUM::ALLOCATE_IMAGE_MEMORY_FAILED]);
-	}
-
-	// bind
-	vkBindImageMemory(mDevice, image, imageMemory, 0);
-}
-
-void TrVulkanRendererRaster::CreateImage(VkImageCreateInfo imageCreateInfo, VkMemoryPropertyFlags properties,
-	VkImage& image, VkDeviceMemory& imageMemory)
-{
 	// create image
 	if(vkCreateImage(mDevice, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
 	{
@@ -2716,7 +2674,6 @@ std::vector<const char*> TrVulkanRendererRaster::GetRequiredExtensions()
 	if(mbEnableValidationLayers)
 	{
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  // VK_EXT_debug_utils
-		
 	}
 	
 	return extensions;
