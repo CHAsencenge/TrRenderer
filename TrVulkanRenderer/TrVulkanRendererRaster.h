@@ -9,9 +9,7 @@
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
 #include "obj_loader.h"
-#include "TrVulkanMaterial.h"
 #include "nvvk/commands_vk.hpp"
-#include "nvvk/images_vk.hpp"
 
 #include "TrVulkanModel.h"
 #include "TrVulkanRendererBase.h"
@@ -56,8 +54,6 @@ public:
     void CreateInstance() override;
 
     void LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform) override;
-
-    void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures) override;
 
 private:
 
@@ -127,7 +123,7 @@ private:
 
     void CreateSwapChain(); // auto create image
 
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageView& imageView, VkImageAspectFlags aspectFlags);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     void CreateSwapChainImageViews();
 
@@ -176,7 +172,7 @@ private:
 
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    void TransitionImageLayout(VkCommandBuffer cmdBuf, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
     void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
@@ -251,10 +247,6 @@ private:
 #pragma endregion
 
     void UpdateGlobalConfigs();
-
-#pragma region Utils
-
-#pragma endregion 
 
 protected:
 
@@ -336,20 +328,22 @@ protected:
     std::vector<VkDescriptorSet> mDescriptorSets;
 
     VkImage mTextureImage;
+
     VkDeviceMemory mTextureImageMemory;
+
     VkImageView mTextureImageView;
 
     VkSampler mTextureSampler;
 
     VkImage mDepthImage;
+
     VkImageView mDepthImageView;
+
     VkDeviceMemory mDepthImageMemory;
 
     std::vector<TrVulkanModelBase> mModels;
 
     TrVulkanQueueFamilyIndices mFamilyIndices;
-
-    std::vector<TrTexture> mTextures;
 
 #pragma region nv
 

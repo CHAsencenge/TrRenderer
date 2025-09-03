@@ -32,8 +32,6 @@ public:
 
     void LoadScene();
 
-    virtual void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures) = 0;
-
 
     
 

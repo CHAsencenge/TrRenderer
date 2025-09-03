@@ -81,9 +81,9 @@ public:
 
 #pragma region TrVulkanRendererRayTracingBase
 
-    void LoadModel(const std::string& filename, uint32_t actorId, glm::mat4 transform = glm::mat4(1)) override;
+    void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1)) override;
 
-    void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures) override;
+    void CreateTextureImages(const VkCommandBuffer cmdBuffer, const std::vector<std::string> textures);
 
     void CreateOffscreenRender();
 
