@@ -4,6 +4,6 @@ void TrScene::AddActors(std::vector<TrActor> actors)
 {
     for(auto& actor : actors)
     {
-        mSceneActors.insert({actor.mId, &actor});
+        mSceneActors.push_back(actor);
     }
 }

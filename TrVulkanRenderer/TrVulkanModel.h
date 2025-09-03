@@ -1,8 +1,6 @@
 #pragma once
 #include "TrVulkanVertex.h"
 #include <tiny_obj_loader.h>
-
-#include "TrVulkanMaterial.h"
 #include "nvvk/resourceallocator_vk.hpp"
 
 
@@ -57,10 +55,10 @@ struct TrObjModelRasterBase
 {
     uint32_t mNumIndices{0};
     uint32_t mNumVertices{0};
-    TrBuffer mVertexBuffer;
-    TrBuffer mIndexBuffer;
-    TrBuffer mMatColorBuffer;
-    TrBuffer mMatIndexBuffer;
+    VkBuffer mVertexBuffer = VK_NULL_HANDLE;
+    VkBuffer mIndexBuffer = VK_NULL_HANDLE;
+    VkBuffer mMatColorBuffer = VK_NULL_HANDLE;
+    VkBuffer mMatIndexBuffer = VK_NULL_HANDLE;
 };
 
 

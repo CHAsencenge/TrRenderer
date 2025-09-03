@@ -41,9 +41,9 @@ void TrVulkanRendererBase::LoadModel(const std::string& filename, uint32_t actor
 
 void TrVulkanRendererBase::LoadScene()
 {
-    for(const std::pair<uint32_t, TrActor*> actor : mScene->mSceneActors)
+    for(const TrActor* actor : mScene->mSceneActors)
     {
-        LoadModel(nvh::findFile(actor.second->mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true), actor.first);
+        LoadModel(nvh::findFile(actor->mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true), actor->mId);
     }
 }
 

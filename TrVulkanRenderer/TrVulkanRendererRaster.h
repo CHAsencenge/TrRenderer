@@ -12,8 +12,7 @@
 #include "TrVulkanMaterial.h"
 #include "nvvk/commands_vk.hpp"
 #include "nvvk/images_vk.hpp"
-#include "nvvk/buffers_vk.hpp"
-#include "TrVulkanImGuiConfig.h"
+
 #include "TrVulkanModel.h"
 #include "TrVulkanRendererBase.h"
 
@@ -168,9 +167,6 @@ private:
     void CreateVertexBuffer();
 
     void CreateIndexBuffer();
-
-    template<typename T>
-    void CreateBufferThroughStaging(VkDeviceSize size, T* data, VkBufferUsageFlags usage, VkDeviceSize& alignedBufferSize, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     void CreateUniformBuffers();
 

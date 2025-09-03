@@ -2,9 +2,6 @@
 #include <string>
 #include <glm/glm.hpp>
 
-#include "TrVulkanModel.h"
-#include "TrVulkanShader.h"
-
 class TrScene;
 
 // can be added to a scene
@@ -24,16 +21,4 @@ public:
     uint32_t mId;
 
     TrScene* mOwnerScene;
-
-#pragma region Render
-    
-    TrObjModelRtBase* mObjModelRtData;
-
-    TrObjDescRtBase* mObjDescRtData;
-
-    TrObjModelRasterBase* mObjModelRasterData;
-
-    TrObjDescRasterBase* mObjDescRasterData;
-
-#pragma endregion 
 };

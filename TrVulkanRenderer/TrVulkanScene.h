@@ -9,7 +9,7 @@ public:
 
     uint32_t AllocActorId() { return mActorsIdAllocator++; }
 public:
-    std::map<uint32_t, TrActor*> mSceneActors;
+    std::vector<TrActor*> mSceneActors;
 
     uint32_t mActorsIdAllocator {0};
 };
