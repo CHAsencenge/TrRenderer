@@ -6,10 +6,6 @@ class TrScene
 {
 public:
     void AddActors(std::vector<TrActor> actors);
-
-    uint32_t AllocActorId() { return mActorsIdAllocator++; }
 public:
-    std::vector<TrActor*> mSceneActors;
-
-    uint32_t mActorsIdAllocator {0};
+    std::vector<TrActor> mSceneActors;
 };

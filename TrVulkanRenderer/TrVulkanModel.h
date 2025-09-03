@@ -51,15 +51,4 @@ struct TrObjInstanceRtBase
     uint32_t mObjIndex{0};
 };
 
-struct TrObjModelRasterBase
-{
-    uint32_t mNumIndices{0};
-    uint32_t mNumVertices{0};
-    VkBuffer mVertexBuffer = VK_NULL_HANDLE;
-    VkBuffer mIndexBuffer = VK_NULL_HANDLE;
-    VkBuffer mMatColorBuffer = VK_NULL_HANDLE;
-    VkBuffer mMatIndexBuffer = VK_NULL_HANDLE;
-};
-
-
 
