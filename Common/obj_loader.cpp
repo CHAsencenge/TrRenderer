@@ -21,7 +21,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "obj_loader.h"
 #include "nvh/nvprint.hpp"
-#include "tiny_obj_loader.h"
+#include "third_party/tinyobjloader/tiny_obj_loader.h"
 
 void ObjLoader::loadModel(const std::string& filename)
 {
@@ -29,7 +29,7 @@ void ObjLoader::loadModel(const std::string& filename)
   reader.ParseFromFile(filename);
   if(!reader.Valid())
   {
-    LOGE("Cannot load %s: %s", filename.c_str(), reader.Error().c_str());
+    std::printf("Cannot load %s: %s", filename.c_str(), reader.Error().c_str());
     assert(reader.Valid());
   }
 
