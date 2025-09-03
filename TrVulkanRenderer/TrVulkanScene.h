@@ -5,11 +5,11 @@
 class TrScene
 {
 public:
-    void AddActors(std::vector<std::shared_ptr<TrActor>>& actors);
+    void AddActors(std::vector<TrActor> actors);
 
     uint32_t AllocActorId() { return mActorsIdAllocator++; }
 public:
     std::map<uint32_t, TrActor*> mSceneActors;
 
-    uint32_t mActorsIdAllocator = 0;
+    uint32_t mActorsIdAllocator {0};
 };

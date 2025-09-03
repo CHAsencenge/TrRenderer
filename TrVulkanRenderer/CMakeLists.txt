@@ -29,7 +29,7 @@ include_directories(${TR_RENDERER_DIR}/Common)
 add_definitions(-DIS_TR_VULKAN_RENDERER)
 add_definitions(-DUNICODE)
 add_definitions(-DSLN_ROOT_DIR="${TR_RENDERER_DIR}/")
-add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/spv/")
+add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/shaders/")
 
 #--------------------------------------------------------------------------------------------------
 # GLSL to SPIR-V custom build

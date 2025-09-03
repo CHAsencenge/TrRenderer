@@ -117,9 +117,3 @@ struct TrVulkanWaveFrontMaterial  // See ObjLoader, copy of MaterialObj, could b
     int   mIllum;     // illumination model (see http://www.fileformat.info/format/material/)
     int   mTextureId;
 };
-
-
-START_BINDING (ETrRasterSceneBindings)
-    RasterGlobals = 0,
-    RasterTextures = 1
-END_BINDING();

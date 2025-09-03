@@ -15,17 +15,17 @@ struct TrTexture
 {
     VkImage mImage = VK_NULL_HANDLE;
     VkDescriptorImageInfo mDescriptor{};
-    VkDeviceMemory mDeviceMemoryPtr = nullptr;
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
 };
 
 struct TrImage
 {
     VkImage mImage = VK_NULL_HANDLE;
-    VkDeviceMemory mDeviceMemoryPtr = nullptr;
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
 };
 
 struct TrBuffer
 {
     VkBuffer mBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory mDeviceMemoryPtr = nullptr;
+    VkDeviceMemory* mDeviceMemoryPtr = nullptr;
 };

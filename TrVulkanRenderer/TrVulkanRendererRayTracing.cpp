@@ -56,11 +56,12 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     initGUI(0);
 
     // load models
-    mActors.emplace_back(std::make_shared<TrActor>("media/scenes/Medieval_building.obj", mScene));
-    mActors.emplace_back(std::make_shared<TrActor>("media/scenes/plane.obj", mScene));
-    mActors.emplace_back(std::make_shared<TrActor>("media/scenes/wuson.obj", mScene, glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))));
-    mActors.emplace_back(std::make_shared<TrActor>("media/scenes/sphere.obj", mScene, glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))));
-    mScene->AddActors(mActors);
+    std::vector<TrActor> actors;
+    actors.emplace_back(TrActor{"media/scenes/Medieval_building.obj", mScene});
+    actors.emplace_back(TrActor{"media/scenes/plane.obj", mScene});
+    actors.emplace_back(TrActor{"media/scenes/wuson.obj", mScene, glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))});
+    actors.emplace_back(TrActor{"media/scenes/sphere.obj", mScene, glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))});
+    mScene->AddActors(actors);
     LoadScene();
 
     // offscreen render

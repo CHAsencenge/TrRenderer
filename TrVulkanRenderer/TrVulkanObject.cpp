@@ -2,7 +2,7 @@
 #include "TrVulkanScene.h"
 #include <glm/gtc/quaternion.hpp>
 
-TrActor::TrActor(std::string modelReferencePath, std::shared_ptr<TrScene> ownerScene, glm::mat4 transform)
+TrActor::TrActor(std::string modelReferencePath, TrScene* ownerScene, glm::mat4 transform)
 {
     mModelReferencePath = modelReferencePath;
     mTransform = transform;

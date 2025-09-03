@@ -9,7 +9,6 @@ mWidth(width),
 mHeight(height),
 mTitle(title)
 {
-    mScene = std::make_shared<TrScene>();
 }
 
 void TrVulkanRendererBase::Run()
@@ -42,7 +41,7 @@ void TrVulkanRendererBase::LoadModel(const std::string& filename, uint32_t actor
 
 void TrVulkanRendererBase::LoadScene()
 {
-    for(const std::pair<uint32_t, TrActor*>& actor : mScene->mSceneActors)
+    for(const std::pair<uint32_t, TrActor*> actor : mScene->mSceneActors)
     {
         LoadModel(nvh::findFile(actor.second->mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true), actor.first);
     }

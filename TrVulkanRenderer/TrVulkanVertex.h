@@ -3,7 +3,6 @@
 #include "glm/glm.hpp"
 #include <glm/gtx/hash.hpp>
 #include <array>
-#include "obj_loader.h"
 
 
 #ifdef __cplusplus
@@ -70,19 +69,5 @@ public:
     static VkVertexInputBindingDescription GetBindingDescription();
 
     static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
-};
-
-class TrVulkanVertexRaster : public TrVulkanVertex3DTex
-{
-public:
-    vec3 mNrm;
-
-public:
-    bool operator==(const TrVulkanVertexRaster& other) const;
-    
-    static VkVertexInputBindingDescription GetBindingDescription();
-
-    static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions();
-    
 };
 
