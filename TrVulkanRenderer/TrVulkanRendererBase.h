@@ -1,7 +1,6 @@
 #pragma once
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "TrVulkanScene.h"
 #include "TrVulkanUtil.h"
 #define GLFW_INCLUDE_NONE
 
@@ -26,12 +25,6 @@ public:
     virtual void CreateInstance() = 0;
 
     virtual std::vector<const char*> GetRequiredExtensions();
-
-    virtual void LoadModel(const std::string& filename, glm::mat4 transform = glm::mat4(1));
-
-    void LoadScene(TrScene scene);
-
-    
 
 protected:
     GLFWwindow* mWindow;
