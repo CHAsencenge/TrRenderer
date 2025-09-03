@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <vector>
 #include <glm/glm.hpp>
+#include <string>
 
 #include "TrVulkanVertex.h"
 
