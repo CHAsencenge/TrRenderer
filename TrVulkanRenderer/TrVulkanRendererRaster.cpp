@@ -330,42 +330,10 @@ void TrVulkanRendererRaster::CreateTextureImages(const VkCommandBuffer cmdBuffer
 		texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
 		texture.mDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		mTextures.push_back(texture);
 	}
 	else
 	{
-		for(const auto& tex : textures)
-		{
-			TrTexture texture;
-			std::string path = "media/textures/" + tex;
-			int texWidth, texHeight, texChannels;
-			std::string texFile = nvh::findFile(path, TrVulkanGlobalRT::defaultSearchPaths, true);
-
-			std::array<stbi_uc, 4> color{255u, 0u, 255u, 255u};
-			stbi_uc* pixels = stbi_load(texFile.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-			if(!pixels)
-			{
-				texWidth = texHeight = 1;
-				texChannels = 4;
-				pixels = color.data();
-			}
-
-			VkDeviceSize bufSize = static_cast<uint64_t>(texWidth) * texHeight * sizeof(uint8_t) * 4;
-			auto imgExtent = VkExtent2D{(uint32_t)texWidth, (uint32_t)texHeight};
-			VkImageCreateInfo imgCreateInfo = nvvk::makeImage2DCreateInfo(imgExtent, format, VK_IMAGE_USAGE_SAMPLED_BIT, true);
-
-			TrImage image;
-			CreateImage(imgExtent.width, imgExtent.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.mImage, *image.mDeviceMemoryPtr);
-			nvvk::cmdGenerateMipmaps(cmdBuffer, image.mImage, format, imgExtent, imgCreateInfo.mipLevels);
-			CreateImageView(image.mImage, format, texture.mDescriptor.imageView, VK_IMAGE_ASPECT_COLOR_BIT);
-			texture.mImage = image.mImage;
-			texture.mDeviceMemoryPtr = image.mDeviceMemoryPtr;
-			texture.mDescriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			TransitionImageLayout(VK_NULL_HANDLE, texture.mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			mTextures.push_back(texture);
-			stbi_image_free(pixels);
-		}
+		
 	}
 }
 
