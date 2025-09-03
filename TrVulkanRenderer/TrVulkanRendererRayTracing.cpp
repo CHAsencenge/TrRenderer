@@ -55,14 +55,12 @@ void TrVulkanRendererRayTracingBase::OnInitVulkan()
     // imgui using sub pass 0
     initGUI(0);
 
-    // load models
-    std::vector<TrActor> actors;
-    actors.emplace_back(TrActor{"media/scenes/Medieval_building.obj"});
-    actors.emplace_back(TrActor{"media/scenes/plane.obj"});
-    actors.emplace_back(TrActor{"media/scenes/wuson.obj", glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f))});
-    actors.emplace_back(TrActor{"media/scenes/sphere.obj", glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f))});
-    mScene.AddActors(actors);
-    LoadScene();
+    // load model
+    // LoadModel(nvh::findFile("media/scenes/cube_multi.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/Medieval_building.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/plane.obj", TrVulkanGlobalRT::defaultSearchPaths, true));
+    LoadModel(nvh::findFile("media/scenes/wuson.obj", TrVulkanGlobalRT::defaultSearchPaths, true), glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 12.0f)));
+    LoadModel(nvh::findFile("media/scenes/sphere.obj", TrVulkanGlobalRT::defaultSearchPaths, true), glm::scale(glm::mat4(1.f),glm::vec3(1.5f)) * glm::translate(glm::mat4(1),glm::vec3(0.0f, 0.0f, 10.0f)));
 
     // offscreen render
     CreateOffscreenRender();

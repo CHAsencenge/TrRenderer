@@ -2,10 +2,9 @@
 
 #include <glm/gtc/quaternion.hpp>
 
-TrActor::TrActor(std::string modelReferencePath, glm::mat4 transform)
+TrActor::TrActor()
 {
-    mModelReferencePath = modelReferencePath;
-    mTransform = transform;
+    mTransform = glm::mat4(1.0f);
 }
 
 glm::vec3 TrActor::GetActorPosition()

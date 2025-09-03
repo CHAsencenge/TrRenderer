@@ -6,7 +6,7 @@
 class TrActor
 {
 public:
-    TrActor(std::string modelReferencePath, glm::mat4 transform = glm::mat4(1.0f));
+    TrActor();
 
     glm::vec3 GetActorPosition();
     glm::vec3 GetActorRotation();

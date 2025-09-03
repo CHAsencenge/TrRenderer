@@ -39,11 +39,11 @@ void TrVulkanRendererBase::LoadModel(const std::string& filename, glm::mat4 tran
 {
 }
 
-void TrVulkanRendererBase::LoadScene()
+void TrVulkanRendererBase::LoadScene(TrScene scene)
 {
-    for(const TrActor& actor : mScene.mSceneActors)
+    for(const TrActor& actor : scene.mSceneActors)
     {
-        LoadModel(nvh::findFile(actor.mModelReferencePath, TrVulkanGlobalRT::defaultSearchPaths, true));
+        LoadModel(actor.mModelReferencePath);
     }
 }
 
