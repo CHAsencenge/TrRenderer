@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     
     // 遍历读取输入的obj，创建model和shader
     // obj\\boggie\\body.obj
-    Model model(SLN_ROOT_DIR "Models/obj/boggie/body.obj");
+    Model model(SLN_ROOT_DIR "Models/objs/boggie/body.obj");
     float ld[] = { 1, 1, 1 };
     Vec3 lightDir(ld);
     DefaultShader shader(model, lightDir, zbuf, zbuf1);
