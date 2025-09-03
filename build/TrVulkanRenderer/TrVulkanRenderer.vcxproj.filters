@@ -1,193 +1,125 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanMaterial.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanShader.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\Common\TrRenderer.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanDescriptor.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanGlobalConfigs.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanImGuiConfig.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanMaterial.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanModel.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanQueueFamily.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererBase.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRaster.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanRendererRayTracing.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanShader.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanSwapChain.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanUtil.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\TrVulkanVertex.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.h">
+    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\1.4.321.1\Include\vulkan\vulkan_core.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\host_device.h">
-      <Filter>Shader Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glm\glm\glm.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\tiny_gltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\tiny_gltf.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\json.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader\tiny_obj_loader.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include\vk_mem_alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\vma\include\vk_mem_alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include\nvtx3\nvToolsExt.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include\nvtx3\nvToolsExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\frag_shader.frag">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\passthrough.vert">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\post.frag">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raytrace.rahit">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raytrace.rchit">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raytrace.rgen">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raytrace.rmiss">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raytraceShadow.rmiss">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\vert_shader.vert">
-      <Filter>Shader Sources</Filter>
-    </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\TrVulkanRenderer\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\random.glsl">
-      <Filter>Shader Headers</Filter>
-    </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\raycommon.glsl">
-      <Filter>Shader Headers</Filter>
-    </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\TrVulkanRenderer\shaders\VkRayTracing\wavefront.glsl">
-      <Filter>Shader Headers</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
+    <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
       <Filter>Common</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
-      <UniqueIdentifier>{D60E5301-FB6E-366B-B0C9-5822BBF750C3}</UniqueIdentifier>
+      <UniqueIdentifier>{71EC380F-C5DE-3EF3-8653-8B1B727AD87F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{EC9B1350-DA6D-309C-BD2D-7760C19E0E48}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader Headers">
-      <UniqueIdentifier>{5BC59621-1545-39D8-A581-17F193D914F7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader Sources">
-      <UniqueIdentifier>{39E24474-8862-32B5-8203-010654D1111B}</UniqueIdentifier>
+      <UniqueIdentifier>{E2C0901A-78BB-3ECF-B02E-81760383028F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources">
-      <UniqueIdentifier>{1B18974C-166D-3484-A15D-6C9A0EBD838D}</UniqueIdentifier>
+      <UniqueIdentifier>{2BD25017-036E-3942-B886-07546C5A9B9F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

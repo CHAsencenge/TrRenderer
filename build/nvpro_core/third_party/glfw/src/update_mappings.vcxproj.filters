@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\build\CMakeFiles\9fdaa7d6270a1cbbdf138d05c26ec0ed\update_mappings.rule">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\build\CMakeFiles\4dcc0ef3c49cf77aafa1a30cde348d19\update_mappings.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h.in">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h.in">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\CMake\GenerateMappings.cmake" />
-    <None Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\update_mappings" />
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\CMake\GenerateMappings.cmake" />
+    <None Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\update_mappings" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{4CF6FB1C-F000-3A3C-98A6-12BCC3B48280}</UniqueIdentifier>
+      <UniqueIdentifier>{6BF02D10-3D73-39E0-8E40-E1D4F0D665A7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{EC9B1350-DA6D-309C-BD2D-7760C19E0E48}</UniqueIdentifier>
+      <UniqueIdentifier>{E2C0901A-78BB-3ECF-B02E-81760383028F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

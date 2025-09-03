@@ -1,101 +1,95 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\Common\TrRenderer.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\d3dx12.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\d3dx12.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.h">
+    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\1.4.321.1\Include\vulkan\vulkan_core.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
       <Filter>Shader Sources</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl">
       <Filter>Shader Sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
+    <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
       <Filter>Common</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
-      <UniqueIdentifier>{D60E5301-FB6E-366B-B0C9-5822BBF750C3}</UniqueIdentifier>
+      <UniqueIdentifier>{71EC380F-C5DE-3EF3-8653-8B1B727AD87F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader Sources">
-      <UniqueIdentifier>{39E24474-8862-32B5-8203-010654D1111B}</UniqueIdentifier>
+      <UniqueIdentifier>{1C5D7269-146A-3693-AA82-8C2B38334EA3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources">
-      <UniqueIdentifier>{1B18974C-166D-3484-A15D-6C9A0EBD838D}</UniqueIdentifier>
+      <UniqueIdentifier>{2BD25017-036E-3942-B886-07546C5A9B9F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

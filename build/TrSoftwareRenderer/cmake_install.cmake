@@ -1,8 +1,8 @@
-# Install script for directory: H:/Personal/GitProjs/TrRenderer/TrSoftwareRenderer
+# Install script for directory: E:/GitProjs/TrRenderer/TrSoftwareRenderer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/TrRenderer")
+  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,31 +34,13 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "H:/Personal/GitProjs/TrRenderer/bin_x64/Release/TrSoftwareRenderer.exe")
-  endif()
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    include("H:/Personal/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/TrSoftwareRenderer.dir/install-cxx-module-bmi-Release.cmake" OPTIONAL)
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Release/TrSoftwareRenderer.exe")
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "H:/Personal/GitProjs/TrRenderer/bin_x64/Debug/TrSoftwareRenderer.exe")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Debug/TrSoftwareRenderer.exe")
   endif()
 endif()
 
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    include("H:/Personal/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/TrSoftwareRenderer.dir/install-cxx-module-bmi-Debug.cmake" OPTIONAL)
-  endif()
-endif()
-
-string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
-       "${CMAKE_INSTALL_MANIFEST_FILES}")
-if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "H:/Personal/GitProjs/TrRenderer/build/TrSoftwareRenderer/install_local_manifest.txt"
-     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
-endif()

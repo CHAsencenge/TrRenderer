@@ -1,93 +1,93 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\context.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\init.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\input.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\monitor.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\monitor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\vulkan.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\vulkan.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\window.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_init.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_monitor.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_monitor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_time.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_time.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_thread.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_window.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.c">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\internal.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\glfw_config.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\glfw_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3native.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_platform.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{EC9B1350-DA6D-309C-BD2D-7760C19E0E48}</UniqueIdentifier>
+      <UniqueIdentifier>{E2C0901A-78BB-3ECF-B02E-81760383028F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{6267DDCB-7F7B-3053-ABD7-AE0B71CBC4D7}</UniqueIdentifier>
+      <UniqueIdentifier>{A0C5AEAE-F954-3E10-B02B-8D945CB6F864}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -22,9 +22,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DED3CD3C-A307-36A1-ACA1-9813CB670FEA}</ProjectGuid>
+    <ProjectGuid>{985FEBE3-7C29-3105-8132-F7339351137B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
     <Platform>x64</Platform>
     <ProjectName>glfw</ProjectName>
     <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
@@ -33,22 +33,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -59,26 +59,26 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">glfw.dir\Debug\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">glfw3</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\Release\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">glfw.dir\Release\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">glfw3</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\MinSizeRel\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\MinSizeRel\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">glfw.dir\MinSizeRel\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">glfw3</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\RelWithDebInfo\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\RelWithDebInfo\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">glfw.dir\RelWithDebInfo\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">glfw3</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -86,24 +86,21 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -116,33 +113,29 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>
       </ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -155,33 +148,29 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>
       </ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MinSpace</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -194,32 +183,28 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>
       </ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_GLFW_USE_CONFIG_H;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -231,11 +216,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\CMakeLists.txt">
       <UseUtf8Encoding>Always</UseUtf8Encoding>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,11 +229,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -257,11 +242,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -270,11 +255,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -283,41 +268,40 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\context.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\init.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\input.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\monitor.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\vulkan.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\window.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_init.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_monitor.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_time.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_thread.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_window.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.c" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.c" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\internal.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\glfw_config.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3native.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_platform.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\context.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\init.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\input.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\monitor.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\vulkan.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\window.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_init.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_monitor.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_time.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_thread.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_window.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.c" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.c" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\internal.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\mappings.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\third_party\glfw\src\glfw_config.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\include\GLFW\glfw3native.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_platform.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\win32_joystick.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\wgl_context.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\egl_context.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\glfw\src\osmesa_context.h" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="H:\Personal\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
-      <Project>{845FBBF1-3D8A-3270-9E96-B141FE5B96B0}</Project>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
+      <Project>{6DF67971-23E2-3AC6-B28A-64EABFC4C0E6}</Project>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

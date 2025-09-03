@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -22,9 +22,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FF631FD3-197F-3DBE-8662-0626D8DAD351}</ProjectGuid>
+    <ProjectGuid>{6A9A9ECB-7853-338C-8501-0DD9EC66C4ED}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
     <Platform>x64</Platform>
     <ProjectName>TrD3D12Renderer</ProjectName>
     <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
@@ -33,22 +33,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -59,25 +59,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">H:\Personal\GitProjs\TrRenderer\bin_x64\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\bin_x64\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TrD3D12Renderer.dir\Debug\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TrD3D12Renderer</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">H:\Personal\GitProjs\TrRenderer\bin_x64\Release\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\bin_x64\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TrD3D12Renderer.dir\Release\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TrD3D12Renderer</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">H:\Personal\GitProjs\TrRenderer\bin_x64\MinSizeRel\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\bin_x64\MinSizeRel\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">TrD3D12Renderer.dir\MinSizeRel\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">TrD3D12Renderer</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">H:\Personal\GitProjs\TrRenderer\bin_x64\RelWithDebInfo\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\bin_x64\RelWithDebInfo\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">TrD3D12Renderer.dir\RelWithDebInfo\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">TrD3D12Renderer</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -94,25 +94,22 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="H:/Personal/GitProjs/TrRenderer/";SHADER_DIR="H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"H:/Personal/GitProjs/TrRenderer/\";SHADER_DIR=\"H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -120,13 +117,13 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ImportLibrary>H:/Personal/GitProjs/TrRenderer/bin_x64/Debug/TrD3D12Renderer.lib</ImportLibrary>
-      <ProgramDataBaseFile>H:/Personal/GitProjs/TrRenderer/bin_x64/Debug/TrD3D12Renderer.pdb</ProgramDataBaseFile>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/Debug/TrD3D12Renderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/Debug/TrD3D12Renderer.pdb</ProgramDataBaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ProjectReference>
@@ -135,34 +132,30 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="H:/Personal/GitProjs/TrRenderer/";SHADER_DIR="H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"H:/Personal/GitProjs/TrRenderer/\";SHADER_DIR=\"H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -170,13 +163,13 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ImportLibrary>H:/Personal/GitProjs/TrRenderer/bin_x64/Release/TrD3D12Renderer.lib</ImportLibrary>
-      <ProgramDataBaseFile>H:/Personal/GitProjs/TrRenderer/bin_x64/Release/TrD3D12Renderer.pdb</ProgramDataBaseFile>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/Release/TrD3D12Renderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/Release/TrD3D12Renderer.pdb</ProgramDataBaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ProjectReference>
@@ -185,34 +178,30 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MinSpace</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="H:/Personal/GitProjs/TrRenderer/";SHADER_DIR="H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"H:/Personal/GitProjs/TrRenderer/\";SHADER_DIR=\"H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -220,13 +209,13 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ImportLibrary>H:/Personal/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrD3D12Renderer.lib</ImportLibrary>
-      <ProgramDataBaseFile>H:/Personal/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrD3D12Renderer.pdb</ProgramDataBaseFile>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrD3D12Renderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/MinSizeRel/TrD3D12Renderer.pdb</ProgramDataBaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ProjectReference>
@@ -235,33 +224,29 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <MinimalRebuild></MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <SupportJustMyCode></SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="H:/Personal/GitProjs/TrRenderer/";SHADER_DIR="H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY="E:/GitProjs/TrRenderer/nvpro_core/resources/";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME="TrD3D12Renderer";PROJECT_RELDIRECTORY="../../TrD3D12Renderer/";PROJECT_DOWNLOAD_RELDIRECTORY="../../downloaded_resources/";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR="E:/GitProjs/TrRenderer/";SHADER_DIR="E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/";CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"H:/Personal/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"H:/Personal/GitProjs/TrRenderer/\";SHADER_DIR=\"H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;RESOURCE_DIRECTORY=\"E:/GitProjs/TrRenderer/nvpro_core/resources/\";NOMINMAX;NVP_SUPPORTS_VULKANSDK;VK_ENABLE_BETA_EXTENSIONS;VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1;VK_USE_PLATFORM_WIN32_KHR;PROJECT_NAME=\"TrD3D12Renderer\";PROJECT_RELDIRECTORY=\"../../TrD3D12Renderer/\";PROJECT_DOWNLOAD_RELDIRECTORY=\"../../downloaded_resources/\";IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/GitProjs/TrRenderer/\";SHADER_DIR=\"E:/GitProjs/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer;H:\Personal\GitProjs\TrRenderer\nvpro_core;H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.4.321.1\Include;H:\Personal\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrD3D12Renderer;E:\GitProjs\TrRenderer\TrD3D12Renderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -269,13 +254,13 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.4.321.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;C:\VulkanSDK\1.3.261.1\Lib\vulkan-1.lib;d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ImportLibrary>H:/Personal/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrD3D12Renderer.lib</ImportLibrary>
-      <ProgramDataBaseFile>H:/Personal/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrD3D12Renderer.pdb</ProgramDataBaseFile>
+      <ImportLibrary>E:/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrD3D12Renderer.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/GitProjs/TrRenderer/bin_x64/RelWithDebInfo/TrD3D12Renderer.pdb</ProgramDataBaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ProjectReference>
@@ -283,11 +268,11 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\CMakeLists.txt">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\CMakeLists.txt">
       <UseUtf8Encoding>Always</UseUtf8Encoding>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -296,11 +281,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -309,11 +294,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -322,11 +307,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule H:/Personal/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrD3D12Renderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-E:\cmake-3.31.8-windows-x86_64\cmake-3.31.8-windows-x86_64\bin\cmake.exe -SH:/Personal/GitProjs/TrRenderer -BH:/Personal/GitProjs/TrRenderer/build --check-stamp-file H:/Personal/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrD3D12Renderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -335,42 +320,39 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">H:\Personal\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\build\TrD3D12Renderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\d3dx12.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.h" />
-    <ResourceCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.h" />
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.cpp" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.h" />
-    <ClInclude Include="C:\VulkanSDK\1.4.321.1\Include\vulkan\vulkan_core.h" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl" />
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\GameTimer.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrD3D12Util.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\TrWindowApp.h" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\VertexBase.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\d3dx12.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.h" />
+    <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp" />
+    <ClCompile Include="E:\GitProjs\TrRenderer\Common\TrRenderer.cpp" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\Common\TrRenderer.h" />
+    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl" />
+    <ClInclude Include="E:\GitProjs\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="H:\Personal\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
-      <Project>{845FBBF1-3D8A-3270-9E96-B141FE5B96B0}</Project>
+    <ProjectReference Include="E:\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
+      <Project>{6DF67971-23E2-3AC6-B28A-64EABFC4C0E6}</Project>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

@@ -1,51 +1,51 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_demo.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_draw.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_draw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_tables.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_widgets.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imconfig.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_internal.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imgui_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_rectpack.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_rectpack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_textedit.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_textedit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_truetype.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\imstb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{EC9B1350-DA6D-309C-BD2D-7760C19E0E48}</UniqueIdentifier>
+      <UniqueIdentifier>{E2C0901A-78BB-3ECF-B02E-81760383028F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{6267DDCB-7F7B-3053-ABD7-AE0B71CBC4D7}</UniqueIdentifier>
+      <UniqueIdentifier>{A0C5AEAE-F954-3E10-B02B-8D945CB6F864}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,8 +1,8 @@
-# Install script for directory: H:/Personal/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src
+# Install script for directory: E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/TrRenderer")
+  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -32,9 +32,3 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
-       "${CMAKE_INSTALL_MANIFEST_FILES}")
-if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "H:/Personal/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/install_local_manifest.txt"
-     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
-endif()

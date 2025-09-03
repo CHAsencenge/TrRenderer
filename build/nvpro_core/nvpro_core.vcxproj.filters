@@ -1,683 +1,677 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\cmake_pch.cxx">
+    <ClCompile Include="E:\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\cmake_pch.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\appwindowprofiler.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\appwindowprofiler.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\bitarray.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\bitarray.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\cameramanipulator.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\cameramanipulator.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\filemapping.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\filemapping.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\gltfscene.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\gltfscene.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\nvprint.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\nvprint.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\parametertools.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\parametertools.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\primitives.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\primitives.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\profiler.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\profiler.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\shaderfilemanager.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\shaderfilemanager.cpp">
       <Filter>nvh</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_axis.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_axis.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_camera_widget.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_camera_widget.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_helper.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_helper.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_icon.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_orient.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_orient.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_glfw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_glfw.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_vk_extra.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_vk_extra.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_impl_vulkan.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_vulkan.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\nv_dds.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\nv_dds.cpp">
       <Filter>fileformats</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\tiny_converter.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\tiny_converter.cpp">
       <Filter>fileformats</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpwindow.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpwindow.cpp">
       <Filter>nvp</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem.cpp">
       <Filter>nvp</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpfilesystem.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpfilesystem.cpp">
       <Filter>nvp</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem_win32.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem_win32.cpp">
       <Filter>nvp</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\appwindowprofiler_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\appwindowprofiler_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\buffersuballocator_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\buffersuballocator_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\commands_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\commands_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\context_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\context_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\debug_util_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\debug_util_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\descriptorsets_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\descriptorsets_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\dynamicrendering_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\dynamicrendering_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\error_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\error_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\extensions_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\extensions_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\gizmos_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\gizmos_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\images_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\images_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dedicated_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dedicated_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vkgl.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vkgl.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\pipeline_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\pipeline_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\profiler_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\profiler_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceKHR_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceKHR_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceNV_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceNV_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\renderpasses_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\renderpasses_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\resourceallocator_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\resourceallocator_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\samplers_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\samplers_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\sbtwrapper_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\sbtwrapper_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\shadermodulemanager_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\shadermodulemanager_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\sparse_image_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\sparse_image_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\stagingmemorymanager_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\stagingmemorymanager_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\swapchain_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\swapchain_vk.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport_vkgl.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport_vkgl.cpp">
       <Filter>nvvk</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vk.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vkpp.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vkpp.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\application.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\application.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gbuffer.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gbuffer.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_rtx.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_rtx.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_vk.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_vk.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env_dome.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env_dome.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\sky.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\sky.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
-    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\tonemap_postprocess.cpp">
+    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\tonemap_postprocess.cpp">
       <Filter>nvvkhl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\alignment.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\alignment.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\appwindowcamerainertia.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\appwindowcamerainertia.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\appwindowprofiler.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\appwindowprofiler.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\bitarray.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\bitarray.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\boundingbox.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\boundingbox.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\cameracontrol.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\cameracontrol.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\camerainertia.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\camerainertia.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\cameramanipulator.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\cameramanipulator.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\commandlineparser.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\commandlineparser.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\container_utils.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\container_utils.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\filemapping.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\filemapping.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\fileoperations.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\fileoperations.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\geometry.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\geometry.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\gltfscene.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\gltfscene.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\inputparser.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\inputparser.h">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\misc.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\misc.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\nsightevents.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\nsightevents.h">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\nvprint.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\nvprint.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\parallel_work.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\parallel_work.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\parametertools.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\parametertools.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\primitives.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\primitives.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\profiler.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\profiler.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\radixsort.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\radixsort.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\shaderfilemanager.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\shaderfilemanager.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\threading.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\threading.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\timesampler.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\timesampler.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvh\trangeallocator.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvh\trangeallocator.hpp">
       <Filter>nvh</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath.h">
       <Filter>nvmath</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath.inl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath.inl">
       <Filter>nvmath</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_glsltypes.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_glsltypes.h">
       <Filter>nvmath</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_hlsltypes.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_hlsltypes.h">
       <Filter>nvmath</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_types.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvmath\nvmath_types.h">
       <Filter>nvmath</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_axis.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_axis.hpp">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_camera_widget.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_camera_widget.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_helper.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_helper.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_icon.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\imgui_orient.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\imgui_orient.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_glfw.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_glfw.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_vk_extra.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_vk_extra.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\imgui\backends\imgui_impl_vulkan.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\imgui\backends\imgui_impl_vulkan.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\bmp.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\bmp.hpp">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\cadscenefile.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\cadscenefile.h">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\cadscenefile.inl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\cadscenefile.inl">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\khr_df.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\khr_df.h">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\nv_dds.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\nv_dds.h">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\nv_ktx.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\nv_ktx.h">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\nv_ktx.inl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\nv_ktx.inl">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\fileformats\tiny_converter.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\tiny_converter.hpp">
       <Filter>fileformats</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpwindow.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\fileformats\tiny_gltf_freeimage.h">
+      <Filter>fileformats</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpwindow.hpp">
       <Filter>nvp</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpsystem.hpp">
       <Filter>nvp</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\nvpfilesystem.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\nvpfilesystem.hpp">
       <Filter>nvp</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.hpp">
       <Filter>nvp</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\appwindowprofiler_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\appwindowprofiler_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\buffers_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\buffers_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\buffersuballocator_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\buffersuballocator_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\commands_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\commands_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\compute_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\compute_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\context_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\context_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\debug_util_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\debug_util_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\descriptorsets_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\descriptorsets_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\dynamicrendering_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\dynamicrendering_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\error_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\error_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\extensions_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\extensions_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\gizmos_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\gizmos_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\images_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\images_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dedicated_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dedicated_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dma_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_dma_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vma_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vma_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vma_vk.inl">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memallocator_vma_vk.inl">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vkgl.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\memorymanagement_vkgl.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\pipeline_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\pipeline_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\profiler_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\profiler_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\raypicker_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\raypicker_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceKHR_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceKHR_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceNV_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\raytraceNV_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\renderpasses_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\renderpasses_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\resourceallocator_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\resourceallocator_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\samplers_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\samplers_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\sbtwrapper_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\sbtwrapper_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\shadermodulemanager_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\shadermodulemanager_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\shaders_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\shaders_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\sparse_image_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\sparse_image_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\specialization.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\specialization.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\stagingmemorymanager_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\stagingmemorymanager_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\structs_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\structs_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\swapchain_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\swapchain_vk.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport_vkgl.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\vulkanhppsupport_vkgl.hpp">
       <Filter>nvvk</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\alloc_vma.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\alloc_vma.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vk.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vkpp.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\appbase_vkpp.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\application.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\application.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_camera.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_camera.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_dbgprintf.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_dbgprintf.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_gui.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_gui.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_logger.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_logger.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_testing.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\element_testing.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gbuffer.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gbuffer.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\glsl_compiler.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\glsl_compiler.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_rtx.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_rtx.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_vk.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\gltf_scene_vk.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env_dome.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\hdr_env_dome.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\pipeline_container.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\pipeline_container.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\scene_camera.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\scene_camera.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\sky.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\sky.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\tonemap_postprocess.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\tonemap_postprocess.hpp">
       <Filter>nvvkhl</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\bsdf_functions.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\bsdf_functions.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\bsdf_structs.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\bsdf_structs.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_comp.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_comp.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_hdr.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_hdr.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_lighting.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_lighting.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_scn_desc.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_scn_desc.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_sky.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_sky.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_tonemap.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\dh_tonemap.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\pbr_mat_struct.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\pbr_mat_struct.h">
       <Filter>nvvkhl\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\1.4.321.1\Include\vulkan\vulkan_core.h">
+    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\Debug\cmake_pch.hxx">
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\Debug\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\Release\cmake_pch.hxx">
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\Release\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\MinSizeRel\cmake_pch.hxx">
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\MinSizeRel\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\RelWithDebInfo\cmake_pch.hxx">
+    <ClInclude Include="E:\GitProjs\TrRenderer\build\nvpro_core\CMakeFiles\nvpro_core.dir\RelWithDebInfo\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\glm\glm\glm.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\tiny_gltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\tiny_gltf.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinygltf\json.hpp">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\tinyobjloader\tiny_obj_loader.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\vma\include\vk_mem_alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\vma\include\vk_mem_alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include\nvtx3\nvToolsExt.h">
+    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\third_party\NVTX\c\include\nvtx3\nvToolsExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_dome.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_dome.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_integrate_brdf.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_integrate_brdf.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_prefilter_diffuse.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_prefilter_diffuse.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_prefilter_glossy.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_prefilter_glossy.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\passthrough.vert">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\passthrough.vert">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\sky.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\sky.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\tonemapper.comp">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\tonemapper.comp">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\tonemapper.frag">
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\tonemapper.frag">
       <Filter>nvvkhl\shaders</Filter>
     </CustomBuild>
-    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\CMakeLists.txt" />
+    <CustomBuild Include="E:\GitProjs\TrRenderer\nvpro_core\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\constants.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\constants.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\func.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\func.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\ggx.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\ggx.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_env_sampling.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\hdr_env_sampling.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\light_contrib.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\light_contrib.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\pbr_mat_eval.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\pbr_mat_eval.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\random.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\random.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
-    <None Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\ray_util.glsl">
+    <None Include="E:\GitProjs\TrRenderer\nvpro_core\nvvkhl\shaders\ray_util.glsl">
       <Filter>nvvkhl\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{EC9B1350-DA6D-309C-BD2D-7760C19E0E48}</UniqueIdentifier>
+      <UniqueIdentifier>{E2C0901A-78BB-3ECF-B02E-81760383028F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Precompile Header File">
-      <UniqueIdentifier>{85DAE84D-74E6-385D-8F0A-06DD1DC34B4A}</UniqueIdentifier>
+      <UniqueIdentifier>{410F95A6-6B10-359C-81BF-7BE6899BECF7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{6267DDCB-7F7B-3053-ABD7-AE0B71CBC4D7}</UniqueIdentifier>
+      <UniqueIdentifier>{A0C5AEAE-F954-3E10-B02B-8D945CB6F864}</UniqueIdentifier>
     </Filter>
     <Filter Include="fileformats">
-      <UniqueIdentifier>{FF574FA4-8C19-3202-A215-13C0EDBC2C8F}</UniqueIdentifier>
+      <UniqueIdentifier>{DE1FFAA3-217A-3BCA-847A-7AA60A724102}</UniqueIdentifier>
     </Filter>
     <Filter Include="imgui">
-      <UniqueIdentifier>{7ED70B0B-C5B9-3381-9285-64A4A16C53A7}</UniqueIdentifier>
+      <UniqueIdentifier>{F666AFC0-83FC-35C1-A7FB-D0EB85638953}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvh">
-      <UniqueIdentifier>{79C1A8B1-D8AE-3BEB-88B8-0199F5B342C4}</UniqueIdentifier>
+      <UniqueIdentifier>{DD1BDC1E-F36B-3B5B-8254-F3E844D81120}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvmath">
-      <UniqueIdentifier>{3EF5DB6A-2056-3EA7-8391-EC1F63EFBD12}</UniqueIdentifier>
+      <UniqueIdentifier>{1339EB33-CF4D-3F56-883E-B92E0E6B8F5C}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvp">
-      <UniqueIdentifier>{97CB7E60-B710-3A4B-99E5-C07E67944F27}</UniqueIdentifier>
+      <UniqueIdentifier>{117A8358-1083-3A7D-A07A-AE17296D5F75}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvvk">
-      <UniqueIdentifier>{2E60951E-FCA4-3A56-BD6B-CCCD3E6E8FFA}</UniqueIdentifier>
+      <UniqueIdentifier>{AA70B210-0DDB-3AEF-81CF-5B81AD236799}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvvkhl">
-      <UniqueIdentifier>{770C091F-72B9-382F-B8DA-6AA8F26E07BA}</UniqueIdentifier>
+      <UniqueIdentifier>{AC11EAA2-91CF-3A94-A543-06932B248A07}</UniqueIdentifier>
     </Filter>
     <Filter Include="nvvkhl\shaders">
-      <UniqueIdentifier>{0B5CECFD-E180-385E-8DC7-E2224EF11CD3}</UniqueIdentifier>
+      <UniqueIdentifier>{D2F58471-83DB-3A58-B5EF-EE90BAEF1989}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
