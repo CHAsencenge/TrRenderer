@@ -1,95 +1,101 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Camera.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Camera.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Maths.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Maths.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Model.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Model.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Shader.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Shader.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\TGA.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\TGA.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Transform.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Transform.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Window.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Window.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\perproject_globals.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvvk\nsight_aftermath_vk.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="E:\GitProjs\TrRenderer\Common\TrRenderer.cpp">
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Camera.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Camera.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\ClassUtils.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\ClassUtils.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\GlobalUtils.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\GlobalUtils.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Macro.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Macro.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Model.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Model.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Shader.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Shader.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\TGA.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\TGA.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Transform.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Transform.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\Window.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\Window.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\framework.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\framework.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\maths.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\maths.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="E:\GitProjs\TrRenderer\Common\TrRenderer.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\1.3.261.1\Include\vulkan\vulkan_core.h">
+    <ClInclude Include="H:\Personal\GitProjs\TrRenderer\Common\obj_loader.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\1.4.321.1\Include\vulkan\vulkan_core.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\CMakeLists.txt" />
+    <CustomBuild Include="H:\Personal\GitProjs\TrRenderer\TrSoftwareRenderer\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="E:\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
+    <ResourceCompile Include="H:\Personal\GitProjs\TrRenderer\nvpro_core\nvp\resources.rc">
       <Filter>Common</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
-      <UniqueIdentifier>{71EC380F-C5DE-3EF3-8653-8B1B727AD87F}</UniqueIdentifier>
+      <UniqueIdentifier>{D60E5301-FB6E-366B-B0C9-5822BBF750C3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources">
-      <UniqueIdentifier>{2BD25017-036E-3942-B886-07546C5A9B9F}</UniqueIdentifier>
+      <UniqueIdentifier>{1B18974C-166D-3484-A15D-6C9A0EBD838D}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

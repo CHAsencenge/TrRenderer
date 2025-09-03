@@ -1,8 +1,8 @@
-# Install script for directory: E:/GitProjs/TrRenderer/TrVulkanRenderer
+# Install script for directory: H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/TrRenderer")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,13 +34,63 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Release/TrVulkanRenderer.exe")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "H:/Personal/GitProjs/TrRenderer/bin_x64/Release/TrVulkanRenderer.exe")
+  endif()
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
+    include("H:/Personal/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/TrVulkanRenderer.dir/install-cxx-module-bmi-Release.cmake" OPTIONAL)
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Debug/TrVulkanRenderer.exe")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "H:/Personal/GitProjs/TrRenderer/bin_x64/Debug/TrVulkanRenderer.exe")
   endif()
 endif()
 
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
+    include("H:/Personal/GitProjs/TrRenderer/build/TrVulkanRenderer/CMakeFiles/TrVulkanRenderer.dir/install-cxx-module-bmi-Debug.cmake" OPTIONAL)
+  endif()
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64/TrVulkanRenderer/spv" TYPE FILE FILES
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/frag_shader.frag.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/passthrough.vert.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/post.frag.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rahit.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rchit.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rgen.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rmiss.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytraceShadow.rmiss.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/vert_shader.vert.spv"
+      )
+  endif()
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug/TrVulkanRenderer/spv" TYPE FILE FILES
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/frag_shader.frag.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/passthrough.vert.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/post.frag.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rahit.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rchit.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rgen.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytrace.rmiss.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/raytraceShadow.rmiss.spv"
+      "H:/Personal/GitProjs/TrRenderer/TrVulkanRenderer/spv/VkRayTracing/vert_shader.vert.spv"
+      )
+  endif()
+endif()
+
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "H:/Personal/GitProjs/TrRenderer/build/TrVulkanRenderer/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()
