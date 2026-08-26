@@ -12,7 +12,9 @@ message(STATUS "Processing Project ${PROJNAME}:")
 # C++ target and defines
 set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJNAME})
-_add_project_definitions(${PROJNAME})
+if(COMMAND _add_project_definitions)
+  _add_project_definitions(${PROJNAME})
+endif()
 
 
 #--------------------------------------------------------------------------------------------------
@@ -21,6 +23,9 @@ _add_project_definitions(${PROJNAME})
 file(GLOB SOURCE_FILES *.cpp *.hpp *.inl *.h *.c)
 file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
 list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
+if(NOT TR_HAS_NVPRO_CORE)
+  list(FILTER COMMON_SOURCE_FILES EXCLUDE REGEX "[/\\\\]obj_loader\\.(cpp|h)$")
+endif()
 include_directories(${TR_RENDERER_DIR}/common)
 
 # ------------------------------------------------------------------------------------------------
@@ -60,4 +65,6 @@ endforeach(RELEASELIB)
 #--------------------------------------------------------------------------------------------------
 # copies binaries that need to be put next to the exe files (ZLib, etc.)
 #
-_finalize_target( ${PROJNAME} )
+if(COMMAND _finalize_target)
+  _finalize_target(${PROJNAME})
+endif()

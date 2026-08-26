@@ -8,25 +8,25 @@
 #include "TrRenderer.h"
 
 #ifdef IS_TR_SOFTWARE_RENDERER
-#include "../../TrSoftwareRenderer/framework.h"
-#include "../../TrSoftwareRenderer/Window.h"
-#include "../../TrSoftwareRenderer/Maths.h"
-#include "../../TrSoftwareRenderer/Transform.h"
-#include "../../TrSoftwareRenderer/Camera.h"
-#include "../../TrSoftwareRenderer/TGA.h"
-#include "../../TrSoftwareRenderer/Model.h"
-#include "../../TrSoftwareRenderer/Shader.h"
-#include "../../TrSoftwareRenderer/ClassUtils.h"
+#include "../TrSoftwareRenderer/framework.h"
+#include "../TrSoftwareRenderer/Window.h"
+#include "../TrSoftwareRenderer/Maths.h"
+#include "../TrSoftwareRenderer/Transform.h"
+#include "../TrSoftwareRenderer/Camera.h"
+#include "../TrSoftwareRenderer/TGA.h"
+#include "../TrSoftwareRenderer/Model.h"
+#include "../TrSoftwareRenderer/Shader.h"
+#include "../TrSoftwareRenderer/ClassUtils.h"
 #endif
 
 #ifdef IS_TR_D3D_RENDERER
-#include "../../TrD3D12Renderer/TrWindowApp.h"
-#include "../../TrD3D12Renderer/TrD3D12RendererRaster.h"
+#include "../TrD3D12Renderer/TrWindowApp.h"
+#include "../TrD3D12Renderer/TrD3D12RendererRaster.h"
 #endif
 
 #ifdef IS_TR_VULKAN_RENDERER
-#include "../../TrVulkanRenderer/TrVulkanRendererRaster.h"
-#include "../../TrVulkanRenderer/TrVulkanRendererRayTracing.h"
+#include "../TrVulkanRenderer/TrVulkanRendererRaster.h"
+#include "../TrVulkanRenderer/TrVulkanRendererRayTracing.h"
 #endif
 
 

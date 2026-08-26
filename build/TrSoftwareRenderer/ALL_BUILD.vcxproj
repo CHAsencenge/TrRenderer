@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -25,9 +25,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{88CBB275-6B70-3662-9A4E-87FA06440C27}</ProjectGuid>
+    <ProjectGuid>{2E1D5C41-2407-3944-AC8A-F5DC30F82D39}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
     <Platform>x64</Platform>
     <ProjectName>ALL_BUILD</ProjectName>
     <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
@@ -36,22 +36,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -69,7 +69,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
-      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrSoftwareRenderer;E:\GitProjs\TrRenderer\TrSoftwareRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
-      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrSoftwareRenderer;E:\GitProjs\TrRenderer\TrSoftwareRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -89,7 +89,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <Midl>
-      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrSoftwareRenderer;E:\GitProjs\TrRenderer\TrSoftwareRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -99,7 +99,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <Midl>
-      <AdditionalIncludeDirectories>E:\GitProjs\TrRenderer\build\TrSoftwareRenderer;E:\GitProjs\TrRenderer\TrSoftwareRenderer;E:\GitProjs\TrRenderer\nvpro_core;E:\GitProjs\TrRenderer\nvpro_core\nvp;C:\VulkanSDK\1.3.261.1\Include;E:\GitProjs\TrRenderer\nvpro_core\imgui;E:\GitProjs\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -108,11 +108,11 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="E:\GitProjs\TrRenderer\TrSoftwareRenderer\CMakeLists.txt">
+    <CustomBuild Include="E:\UGit\TrRenderer\TrSoftwareRenderer\CMakeLists.txt">
       <UseUtf8Encoding>Always</UseUtf8Encoding>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/UGit/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
+C:\Strawberry\c\bin\cmake.exe -SE:/UGit/TrRenderer -BE:/UGit/TrRenderer/build --check-stamp-file E:/UGit/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,11 +121,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\UGit\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/UGit/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
+C:\Strawberry\c\bin\cmake.exe -SE:/UGit/TrRenderer -BE:/UGit/TrRenderer/build --check-stamp-file E:/UGit/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,11 +134,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\UGit\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule E:/UGit/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
+C:\Strawberry\c\bin\cmake.exe -SE:/UGit/TrRenderer -BE:/UGit/TrRenderer/build --check-stamp-file E:/UGit/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,11 +147,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\UGit\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule E:/GitProjs/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule E:/UGit/TrRenderer/TrSoftwareRenderer/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SE:/GitProjs/TrRenderer -BE:/GitProjs/TrRenderer/build --check-stamp-file E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
+C:\Strawberry\c\bin\cmake.exe -SE:/UGit/TrRenderer -BE:/UGit/TrRenderer/build --check-stamp-file E:/UGit/TrRenderer/build/TrSoftwareRenderer/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -160,21 +160,21 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\UGit\TrRenderer\build\TrSoftwareRenderer\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="E:\GitProjs\TrRenderer\build\ZERO_CHECK.vcxproj">
-      <Project>{6DF67971-23E2-3AC6-B28A-64EABFC4C0E6}</Project>
+    <ProjectReference Include="E:\UGit\TrRenderer\build\ZERO_CHECK.vcxproj">
+      <Project>{8443DD4A-AF8B-3A44-AEB3-AF71C2EC48EA}</Project>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="E:\GitProjs\TrRenderer\build\TrSoftwareRenderer\TrSoftwareRenderer.vcxproj">
-      <Project>{4A17C5A5-002D-322B-A20E-40F4E8DEBE10}</Project>
+    <ProjectReference Include="E:\UGit\TrRenderer\build\TrSoftwareRenderer\TrSoftwareRenderer.vcxproj">
+      <Project>{27074DC6-9E4E-3988-97F0-3D065C314C50}</Project>
       <Name>TrSoftwareRenderer</Name>
     </ProjectReference>
   </ItemGroup>

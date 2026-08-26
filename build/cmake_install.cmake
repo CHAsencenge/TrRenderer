@@ -1,8 +1,8 @@
-# Install script for directory: E:/GitProjs/TrRenderer
+# Install script for directory: E:/UGit/TrRenderer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files/TrRenderer")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,22 +34,20 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE DIRECTORY FILES "E:/GitProjs/TrRenderer/media")
-  endif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE DIRECTORY FILES "E:/UGit/TrRenderer/media")
+  endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE DIRECTORY FILES "E:/GitProjs/TrRenderer/media")
-  endif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE DIRECTORY FILES "E:/UGit/TrRenderer/media")
+  endif()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("E:/GitProjs/TrRenderer/build/nvpro_core/cmake_install.cmake")
-  include("E:/GitProjs/TrRenderer/build/TrSoftwareRenderer/cmake_install.cmake")
-  include("E:/GitProjs/TrRenderer/build/TrD3D12Renderer/cmake_install.cmake")
-  include("E:/GitProjs/TrRenderer/build/TrVulkanRenderer/cmake_install.cmake")
+  include("E:/UGit/TrRenderer/build/TrSoftwareRenderer/cmake_install.cmake")
+  include("E:/UGit/TrRenderer/build/TrD3D12Renderer/cmake_install.cmake")
 
 endif()
 
@@ -61,5 +59,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "E:/GitProjs/TrRenderer/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "E:/UGit/TrRenderer/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

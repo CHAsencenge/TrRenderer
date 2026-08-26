@@ -1,8 +1,8 @@
-# Install script for directory: E:/GitProjs/TrRenderer/TrVulkanRenderer
+# Install script for directory: E:/UGit/TrRenderer/TrVulkanRenderer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
+  set(CMAKE_INSTALL_PREFIX "E:/UGit/TrRenderer/_install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,13 +34,13 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Release/TrVulkanRenderer.exe")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64" TYPE EXECUTABLE FILES "E:/UGit/TrRenderer/bin_x64/Release/TrVulkanRenderer.exe")
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "E:/GitProjs/TrRenderer/bin_x64/Debug/TrVulkanRenderer.exe")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin_x64_debug" TYPE EXECUTABLE FILES "E:/UGit/TrRenderer/bin_x64/Debug/TrVulkanRenderer.exe")
   endif()
 endif()
 

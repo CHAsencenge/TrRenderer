@@ -1,17 +1,17 @@
 # CMake generation dependency list for this directory.
-C:/Program Files/CMake/share/cmake-3.24/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
-C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeDependentOption.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/CMakePackageConfigHelpers.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/CheckCSourceCompiles.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/CheckIncludeFile.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/CheckLibraryExists.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/FindPackageHandleStandardArgs.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/FindPackageMessage.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/FindThreads.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/GNUInstallDirs.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/Internal/CheckSourceCompiles.cmake
-C:/Program Files/CMake/share/cmake-3.24/Modules/WriteBasicConfigVersionFile.cmake
-E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/CMakeLists.txt
-E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/glfw3.pc.in
-E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/glfw3Config.cmake.in
-E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw/src/glfw_config.h.in
+C:/Strawberry/c/share/cmake-3.29/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
+C:/Strawberry/c/share/cmake-3.29/Modules/CMakeDependentOption.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/CMakePackageConfigHelpers.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/CheckIncludeFile.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/CheckLibraryExists.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/FindPackageHandleStandardArgs.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/FindPackageMessage.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/FindThreads.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/GNUInstallDirs.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake
+C:/Strawberry/c/share/cmake-3.29/Modules/WriteBasicConfigVersionFile.cmake
+E:/UGit/TrRenderer/nvpro_core/third_party/glfw/CMakeLists.txt
+E:/UGit/TrRenderer/nvpro_core/third_party/glfw/src/glfw3.pc.in
+E:/UGit/TrRenderer/nvpro_core/third_party/glfw/src/glfw3Config.cmake.in
+E:/UGit/TrRenderer/nvpro_core/third_party/glfw/src/glfw_config.h.in

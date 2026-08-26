@@ -1,7 +1,7 @@
-prefix=E:/GitProjs/TrRenderer/_install
+prefix=E:/UGit/TrRenderer/_install
 exec_prefix=${prefix}
-includedir=E:/GitProjs/TrRenderer/_install/include
-libdir=E:/GitProjs/TrRenderer/_install/lib
+includedir=E:/UGit/TrRenderer/_install/include
+libdir=E:/UGit/TrRenderer/_install/lib
 
 Name: GLFW
 Description: A multi-platform library for OpenGL, window and input

@@ -1,8 +1,8 @@
-# Install script for directory: E:/GitProjs/TrRenderer/nvpro_core/third_party/glfw
+# Install script for directory: E:/UGit/TrRenderer/nvpro_core/third_party/glfw
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "E:/GitProjs/TrRenderer/_install")
+  set(CMAKE_INSTALL_PREFIX "E:/UGit/TrRenderer/_install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,6 +34,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("E:/GitProjs/TrRenderer/build/nvpro_core/third_party/glfw/src/cmake_install.cmake")
+  include("E:/UGit/TrRenderer/build/nvpro_core/third_party/glfw/src/cmake_install.cmake")
 endif()
 
