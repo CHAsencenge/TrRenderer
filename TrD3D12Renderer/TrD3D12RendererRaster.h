@@ -40,7 +40,13 @@ private:
     // populate: add datas to...
     virtual void PopulateCommandList();
 
-    virtual void WaitForPreviousFrame();
+    // Mark the submitted frame, switch to the next back buffer, and wait only
+    // when that frame's resources are still in use by the GPU.
+    void MoveToNextFrame();
+
+    // Wait for all work currently submitted to the direct queue. This is only
+    // used for one-time uploads and shutdown, not at the end of every frame.
+    void FlushCommandQueue();
 
     // device is singleton to adapter
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter);
@@ -57,12 +63,18 @@ private:
     static const UINT TextureHeight = 256;
     static const UINT TexturePixelSize = 4; 
 
+    struct FrameContext
+    {
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
+        UINT64 FenceValue = 0;
+    };
+
     // pipeline objects
     CD3DX12_VIEWPORT mViewport;
     CD3DX12_RECT mScissorRect;
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    FrameContext mFrameContexts[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mBundleAllocator;  // additionally need a bundle allocator
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
@@ -83,14 +95,13 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
 
     // synchronization objects
-    UINT64 mFenceValue;
+    UINT64 mNextFenceValue = 1;
     Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
-    HANDLE mFenceEvent;  // handle to object fence
+    HANDLE mFenceEvent = nullptr;  // handle to object fence
 
     UINT mFrameIndex;
 
 
     
 };
-
 

@@ -31,13 +31,17 @@ void TrD3D12RendererRaster::OnRender()
     mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     ThrowIfFailed(mSwapChain->Present(1, 0));
 
-    WaitForPreviousFrame();
+    MoveToNextFrame();
 }
 
 void TrD3D12RendererRaster::OnDestroy()
 {
-    WaitForPreviousFrame();
-    CloseHandle(mFenceEvent);
+    FlushCommandQueue();
+    if(mFenceEvent != nullptr)
+    {
+        CloseHandle(mFenceEvent);
+        mFenceEvent = nullptr;
+    }
 }
 
 void TrD3D12RendererRaster::OnKeyDown(UINT8 wParam)
@@ -133,7 +137,12 @@ void TrD3D12RendererRaster::LoadPipeline()
         rtvHandle.Offset(1, mRtvDescriptorSize); // Offset is declared in d3dx12.h
     }
 
-    ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
+    for(FrameContext& frame : mFrameContexts)
+    {
+        ThrowIfFailed(mDevice->CreateCommandAllocator(
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            IID_PPV_ARGS(&frame.CommandAllocator)));
+    }
     ThrowIfFailed(mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_BUNDLE, IID_PPV_ARGS(&mBundleAllocator)));
 }
 
@@ -205,7 +214,7 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
     ThrowIfFailed(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState)));
     
     // create the command list
-    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
+    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mFrameContexts[mFrameIndex].CommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
     ThrowIfFailed(mCommandList->Close());
     
     // create vertex buffer
@@ -242,14 +251,14 @@ void TrD3D12RendererRaster::LoadAssets(const std::wstring filename)
 
     
     ThrowIfFailed(mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
-    mFenceValue = 1;
-    mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if(mFenceEvent != nullptr)
+    mNextFenceValue = 1;
+    mFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    if(mFenceEvent == nullptr)
     {
         ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 
-    WaitForPreviousFrame();
+    FlushCommandQueue();
 }
 
 void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
@@ -336,7 +345,7 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     ThrowIfFailed(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState)));
     
     // create the command list
-    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
+    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mFrameContexts[mFrameIndex].CommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
     // ThrowIfFailed(mCommandList->Close());
     
     // create vertex buffer
@@ -436,14 +445,14 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
 
     
     ThrowIfFailed(mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
-    mFenceValue = 1;
-    mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if(mFenceEvent != nullptr)
+    mNextFenceValue = 1;
+    mFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    if(mFenceEvent == nullptr)
     {
         ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 
-    WaitForPreviousFrame();
+    FlushCommandQueue();
 }
 
 /* note:
@@ -454,10 +463,11 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
 void TrD3D12RendererRaster::PopulateCommandList()
 {
     // can only be reset when the associated command lists have finished execution on the GPU
-    ThrowIfFailed(mCommandAllocator->Reset());
+    FrameContext& frame = mFrameContexts[mFrameIndex];
+    ThrowIfFailed(frame.CommandAllocator->Reset());
 
     // after ExecuteCommandList, before re-recording
-    ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
+    ThrowIfFailed(mCommandList->Reset(frame.CommandAllocator.Get(), mPipelineState.Get()));
 
     mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 
@@ -494,18 +504,33 @@ void TrD3D12RendererRaster::PopulateCommandList()
     ThrowIfFailed(mCommandList->Close());
 }
 
-void TrD3D12RendererRaster::WaitForPreviousFrame()
+void TrD3D12RendererRaster::MoveToNextFrame()
 {
-    const UINT64 waitFenceValue = mFenceValue;
-    ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), waitFenceValue));
-    mFenceValue++;
+    FrameContext& submittedFrame = mFrameContexts[mFrameIndex];
+    const UINT64 submittedFenceValue = mNextFenceValue++;
+    ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), submittedFenceValue));
+    submittedFrame.FenceValue = submittedFenceValue;
 
-    if(mFence->GetCompletedValue() < waitFenceValue)
+    mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
+    const FrameContext& nextFrame = mFrameContexts[mFrameIndex];
+
+    if(nextFrame.FenceValue != 0 && mFence->GetCompletedValue() < nextFrame.FenceValue)
     {
-        ThrowIfFailed(mFence->SetEventOnCompletion(waitFenceValue, mFenceEvent));
+        ThrowIfFailed(mFence->SetEventOnCompletion(nextFrame.FenceValue, mFenceEvent));
         WaitForSingleObject(mFenceEvent, INFINITE);
     }
-    mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
+}
+
+void TrD3D12RendererRaster::FlushCommandQueue()
+{
+    const UINT64 fenceValue = mNextFenceValue++;
+    ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), fenceValue));
+
+    if(mFence->GetCompletedValue() < fenceValue)
+    {
+        ThrowIfFailed(mFence->SetEventOnCompletion(fenceValue, mFenceEvent));
+        WaitForSingleObject(mFenceEvent, INFINITE);
+    }
 }
 
 void TrD3D12RendererRaster::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)

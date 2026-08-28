@@ -54,6 +54,11 @@ int TrWindowApp::Run(TrD3D12RendererBase* pRenderer, HINSTANCE hInstance, int nC
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		else
+		{
+			pRenderer->OnUpdate();
+			pRenderer->OnRender();
+		}
 	}
 
 	pRenderer->OnDestroy();
@@ -100,11 +105,9 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 		case WM_PAINT:
 		{
-			if (pRenderer)
-			{
-				pRenderer->OnUpdate();
-				pRenderer->OnRender();
-			}
+			PAINTSTRUCT paintStruct = {};
+			BeginPaint(hWnd, &paintStruct);
+			EndPaint(hWnd, &paintStruct);
 			return 0;
 		}
 		case WM_DESTROY:
