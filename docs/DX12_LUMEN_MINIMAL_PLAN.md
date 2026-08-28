@@ -1,6 +1,6 @@
 # DX12 最小 Lumen 实现基础建设规划
 
-更新日期：2026-08-26
+更新日期：2026-08-28
 
 ## 1. 目标与边界
 
@@ -35,15 +35,17 @@
 - 默认堆纹理和 Upload Heap 上传；
 - Command List、Bundle；
 - Resource Barrier；
-- Fence/Event 同步；
-- 一个带程序化棋盘纹理的三角形。
+- 双缓冲 FrameContext 和按帧 Fence/Event 同步；
+- 持续 Update/Render 主循环；
+- D32_FLOAT Depth Buffer 和 DSV；
+- Default Heap 静态 Vertex/Index Buffer；
+- 每帧独立、256 字节对齐的 Camera Constant Buffer；
+- 使用索引绘制的两层程序化棋盘纹理四边形。
 
 当前主要不足：
 
-- 渲染由 `WM_PAINT` 驱动，不是持续帧循环；
-- 每帧立即等待 Fence，CPU/GPU 串行；
-- 没有 Resize、Depth Buffer、Index Buffer 和 Constant Buffer；
-- 没有相机、场景、材质和 GBuffer；
+- 没有 Resize；
+- 只有固定 View/Projection，尚无可交互相机、场景、材质和 GBuffer；
 - 没有 Compute Shader 基础；
 - 仍使用 `D3DCompileFromFile` 和 Shader Model 5.0；
 - 没有 DXR 加速结构和 RayQuery；
@@ -127,7 +129,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 
 验收：
 
-- Indexed Triangle 使用 Default Heap 正常绘制；
+- Indexed Geometry 使用 Default Heap 正常绘制；
 - Compute Shader 可以读 SRV、写 UAV；
 - RenderDoc/PIX 中资源名称和状态清晰可辨。
 
@@ -270,10 +272,10 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [ ] 添加 `WM_SIZE` 处理；
 - [x] 修正 Fence Event 错误判断；
 - [x] 增加双缓冲 `FrameContext`；
-- [ ] 增加 DSV 和 Depth Buffer；
-- [ ] 增加 Index Buffer；
-- [ ] 将静态几何从 Upload Heap 移入 Default Heap；
-- [ ] 增加每帧 Camera Constant Buffer；
+- [x] 增加 DSV 和 Depth Buffer；
+- [x] 增加 Index Buffer；
+- [x] 将静态几何从 Upload Heap 移入 Default Heap；
+- [x] 增加每帧 Camera Constant Buffer；
 - [ ] 用 DXC 替换 `D3DCompileFromFile`；
 - [ ] 增加最小 Compute Shader Dispatch；
 - [ ] 加入 DRED 和对象调试名称；

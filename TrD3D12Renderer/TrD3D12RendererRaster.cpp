@@ -22,6 +22,22 @@ void TrD3D12RendererRaster::OnInitialize()
 
 void TrD3D12RendererRaster::OnUpdate()
 {
+    using namespace DirectX;
+
+    const XMMATRIX model = XMMatrixIdentity();
+    const XMMATRIX view = XMMatrixLookAtLH(
+        XMVectorSet(0.0f, 0.0f, -2.5f, 1.0f),
+        XMVectorSet(0.0f, 0.0f, 0.25f, 1.0f),
+        XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+    const XMMATRIX projection = XMMatrixPerspectiveFovLH(
+        XM_PIDIV4,
+        mAspectRatio,
+        0.1f,
+        100.0f);
+
+    SceneConstants constants = {};
+    XMStoreFloat4x4(&constants.ModelViewProjection, XMMatrixTranspose(model * view * projection));
+    memcpy(mFrameContexts[mFrameIndex].ConstantBufferData, &constants, sizeof(constants));
 }
 
 void TrD3D12RendererRaster::OnRender()
@@ -37,6 +53,15 @@ void TrD3D12RendererRaster::OnRender()
 void TrD3D12RendererRaster::OnDestroy()
 {
     FlushCommandQueue();
+    for(FrameContext& frame : mFrameContexts)
+    {
+        if(frame.ConstantBuffer != nullptr && frame.ConstantBufferData != nullptr)
+        {
+            frame.ConstantBuffer->Unmap(0, nullptr);
+            frame.ConstantBufferData = nullptr;
+        }
+    }
+
     if(mFenceEvent != nullptr)
     {
         CloseHandle(mFenceEvent);
@@ -124,6 +149,12 @@ void TrD3D12RendererRaster::LoadPipeline()
     srvHeapDesc.NumDescriptors = 1;
     srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     ThrowIfFailed(mDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvHeap)));
+
+    D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+    dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    dsvHeapDesc.NumDescriptors = 1;
+    dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    ThrowIfFailed(mDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&mDsvHeap)));
     
 
     // create frame resources
@@ -136,6 +167,38 @@ void TrD3D12RendererRaster::LoadPipeline()
         mDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
         rtvHandle.Offset(1, mRtvDescriptorSize); // Offset is declared in d3dx12.h
     }
+
+    D3D12_CLEAR_VALUE depthClearValue = {};
+    depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+    depthClearValue.DepthStencil.Depth = 1.0f;
+    depthClearValue.DepthStencil.Stencil = 0;
+
+    CD3DX12_HEAP_PROPERTIES depthHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_RESOURCE_DESC depthResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+        DXGI_FORMAT_D32_FLOAT,
+        mWidth,
+        mHeight,
+        1,
+        1,
+        1,
+        0,
+        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+    ThrowIfFailed(mDevice->CreateCommittedResource(
+        &depthHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &depthResourceDesc,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        &depthClearValue,
+        IID_PPV_ARGS(&mDepthStencil)));
+
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+    mDevice->CreateDepthStencilView(
+        mDepthStencil.Get(),
+        &dsvDesc,
+        mDsvHeap->GetCPUDescriptorHandleForHeapStart());
 
     for(FrameContext& frame : mFrameContexts)
     {
@@ -276,14 +339,19 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     
-    CD3DX12_ROOT_PARAMETER1   rootParameters[1];
-    rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+    CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+    rootParameters[0].InitAsConstantBufferView(
+        0,
+        0,
+        D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE,
+        D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[1].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-    sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-    sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-    sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
     sampler.MipLODBias = 0;
     sampler.MaxAnisotropy = 0;
     sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
@@ -336,11 +404,11 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.DepthStencilState.DepthEnable = FALSE;
-    psoDesc.DepthStencilState.StencilEnable = FALSE;
+    psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     psoDesc.SampleDesc.Count = 1;
     ThrowIfFailed(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState)));
     
@@ -348,33 +416,98 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mFrameContexts[mFrameIndex].CommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)))
     // ThrowIfFailed(mCommandList->Close());
     
-    // create vertex buffer
-    // todo: find a more flexible way to populate vertex
-    TextureVertexBase triangleVertices[] = 
-        {
-        { { 0.0f, 0.25f * mAspectRatio, 0.0f }, { 0.5f, 0.0f } },
-        { { 0.55f, -0.25f * mAspectRatio, 0.0f }, { 1.0f, 1.0f } },
-        { { -0.25f, -0.25f * mAspectRatio, 0.0f }, { 0.0f, 1.0f } }
-        };
-    
-    
-    UINT vertexBufferSize = sizeof(triangleVertices);
+    // The small front quad is submitted before the larger back quad. The
+    // depth buffer must reject the back quad in their overlapping region.
+    const TextureVertexBase vertices[] =
+    {
+        { {-0.45f,  0.45f, 0.0f}, {0.0f, 0.0f} },
+        { { 0.45f,  0.45f, 0.0f}, {1.0f, 0.0f} },
+        { { 0.45f, -0.45f, 0.0f}, {1.0f, 1.0f} },
+        { {-0.45f, -0.45f, 0.0f}, {0.0f, 1.0f} },
+        { {-0.80f,  0.80f, 0.5f}, {0.0f, 0.0f} },
+        { { 0.80f,  0.80f, 0.5f}, {4.0f, 0.0f} },
+        { { 0.80f, -0.80f, 0.5f}, {4.0f, 4.0f} },
+        { {-0.80f, -0.80f, 0.5f}, {0.0f, 4.0f} }
+    };
+    const UINT16 indices[] =
+    {
+        0, 1, 2, 0, 2, 3,
+        4, 5, 6, 4, 6, 7
+    };
 
-    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-    CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    ThrowIfFailed(mDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mVertexBuffer)));
+    const UINT vertexBufferSize = sizeof(vertices);
+    const UINT indexBufferSize = sizeof(indices);
+    mIndexCount = _countof(indices);
 
-    UINT8* pVertexDataBegin;
-    CD3DX12_RANGE readRange (0, 0);
-    ThrowIfFailed(mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-    memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-    mVertexBuffer->Unmap(0, nullptr);
+    CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_HEAP_PROPERTIES bufferUploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+    CD3DX12_RESOURCE_DESC indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
+
+    ThrowIfFailed(mDevice->CreateCommittedResource(
+        &defaultHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &vertexBufferDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&mVertexBuffer)));
+    ThrowIfFailed(mDevice->CreateCommittedResource(
+        &defaultHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &indexBufferDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&mIndexBuffer)));
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> vertexUploadHeap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> indexUploadHeap;
+    ThrowIfFailed(mDevice->CreateCommittedResource(
+        &bufferUploadHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &vertexBufferDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&vertexUploadHeap)));
+    ThrowIfFailed(mDevice->CreateCommittedResource(
+        &bufferUploadHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &indexBufferDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&indexUploadHeap)));
+
+    D3D12_SUBRESOURCE_DATA vertexData = {};
+    vertexData.pData = vertices;
+    vertexData.RowPitch = vertexBufferSize;
+    vertexData.SlicePitch = vertexBufferSize;
+    UpdateSubresources(mCommandList.Get(), mVertexBuffer.Get(), vertexUploadHeap.Get(), 0, 0, 1, &vertexData);
+
+    D3D12_SUBRESOURCE_DATA indexData = {};
+    indexData.pData = indices;
+    indexData.RowPitch = indexBufferSize;
+    indexData.SlicePitch = indexBufferSize;
+    UpdateSubresources(mCommandList.Get(), mIndexBuffer.Get(), indexUploadHeap.Get(), 0, 0, 1, &indexData);
+
+    CD3DX12_RESOURCE_BARRIER bufferBarriers[] =
+    {
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            mVertexBuffer.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            mIndexBuffer.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_INDEX_BUFFER)
+    };
+    mCommandList->ResourceBarrier(_countof(bufferBarriers), bufferBarriers);
 
     mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
     mVertexBufferView.SizeInBytes = vertexBufferSize;
     mVertexBufferView.StrideInBytes = sizeof(TextureVertexBase);
 
-    
+    mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
+    mIndexBufferView.SizeInBytes = indexBufferSize;
+    mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
     D3D12_RESOURCE_DESC textureDesc = {}; 
     textureDesc.MipLevels = 1;  // number of levels
@@ -430,19 +563,36 @@ void TrD3D12RendererRaster::LoadAssetsTexture(const std::wstring filename)
     srvDesc.Texture2D.MipLevels = 1;  // union
     mDevice->CreateShaderResourceView(mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
 
+    // Each swap-chain frame owns its upload-buffer slice so the CPU never
+    // overwrites constants that are still being consumed by the GPU.
+    CD3DX12_HEAP_PROPERTIES constantBufferHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(ConstantBufferSize);
+    const CD3DX12_RANGE noCpuReads(0, 0);
+    SceneConstants initialConstants = {};
+    DirectX::XMStoreFloat4x4(
+        &initialConstants.ModelViewProjection,
+        DirectX::XMMatrixIdentity());
+
+    for(FrameContext& frame : mFrameContexts)
+    {
+        ThrowIfFailed(mDevice->CreateCommittedResource(
+            &constantBufferHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &constantBufferDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&frame.ConstantBuffer)));
+        ThrowIfFailed(frame.ConstantBuffer->Map(
+            0,
+            &noCpuReads,
+            reinterpret_cast<void**>(&frame.ConstantBufferData)));
+        memcpy(frame.ConstantBufferData, &initialConstants, sizeof(initialConstants));
+    }
+
     ThrowIfFailed(mCommandList->Close());
     ID3D12CommandList* ppCommandLists[] = {mCommandList.Get()};
     mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     
-    
-    // Create and record bundle (pre-set)
-    ThrowIfFailed(mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_BUNDLE, mBundleAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mBundle)));
-    mBundle->SetGraphicsRootSignature(mRootSignature.Get());
-    mBundle->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    mBundle->IASetVertexBuffers(0, 1, &mVertexBufferView);
-    mBundle->DrawInstanced(3, 1, 0, 0);
-    ThrowIfFailed(mBundle->Close());
-
     
     ThrowIfFailed(mDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
     mNextFenceValue = 1;
@@ -474,7 +624,12 @@ void TrD3D12RendererRaster::PopulateCommandList()
     /// srv descriptor heaps
     ID3D12DescriptorHeap* ppHeaps[] = {mSrvHeap.Get()};
     mCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-    mCommandList->SetGraphicsRootDescriptorTable(0, mSrvHeap->GetGPUDescriptorHandleForHeapStart());
+    mCommandList->SetGraphicsRootConstantBufferView(
+        0,
+        frame.ConstantBuffer->GetGPUVirtualAddress());
+    mCommandList->SetGraphicsRootDescriptorTable(
+        1,
+        mSrvHeap->GetGPUDescriptorHandleForHeapStart());
 
     // need to set viewports and scissor rects each frame
     mCommandList->RSSetViewports(1, &mViewport);
@@ -483,20 +638,24 @@ void TrD3D12RendererRaster::PopulateCommandList()
     CD3DX12_RESOURCE_BARRIER present2RtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     mCommandList->ResourceBarrier(1, &present2RtBarrier);
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRtvDescriptorSize);
-    mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDsvHeap->GetCPUDescriptorHandleForHeapStart());
+    mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
     // record commands
     const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
     mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    
-    /// if no bundle
-    /*mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
-    mCommandList->DrawInstanced(3, 1, 0, 0);*/
+    mCommandList->ClearDepthStencilView(
+        dsvHandle,
+        D3D12_CLEAR_FLAG_DEPTH,
+        1.0f,
+        0,
+        0,
+        nullptr);
 
-    /// with bundle
-    mCommandList->ExecuteBundle(mBundle.Get());
-    
+    mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
+    mCommandList->IASetIndexBuffer(&mIndexBufferView);
+    mCommandList->DrawIndexedInstanced(mIndexCount, 1, 0, 0, 0);
     
     CD3DX12_RESOURCE_BARRIER rt2PresentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     mCommandList->ResourceBarrier(1, &rt2PresentBarrier);

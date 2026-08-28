@@ -63,9 +63,20 @@ private:
     static const UINT TextureHeight = 256;
     static const UINT TexturePixelSize = 4; 
 
+    struct SceneConstants
+    {
+        DirectX::XMFLOAT4X4 ModelViewProjection;
+    };
+
+    static constexpr UINT ConstantBufferSize =
+        (sizeof(SceneConstants) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
+        ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+
     struct FrameContext
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
+        Microsoft::WRL::ComPtr<ID3D12Resource> ConstantBuffer;
+        UINT8* ConstantBufferData = nullptr;
         UINT64 FenceValue = 0;
     };
 
@@ -85,12 +96,17 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     UINT mRtvDescriptorSize;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencil;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
     // UINT mSrvDescriptorSize;
 
     // app resources
     Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mIndexBuffer;
+    D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+    UINT mIndexCount = 0;
     
     Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
 
@@ -104,4 +120,3 @@ private:
 
     
 };
-

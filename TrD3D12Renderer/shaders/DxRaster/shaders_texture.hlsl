@@ -18,11 +18,16 @@ struct PSInput
 Texture2D g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
-PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
+cbuffer SceneConstants : register(b0)
+{
+    float4x4 g_modelViewProjection;
+};
+
+PSInput VSMain(float3 position : POSITION, float2 uv : TEXCOORD)
 {
     PSInput result;
 
-    result.position = position;
+    result.position = mul(float4(position, 1.0f), g_modelViewProjection);
     result.uv = uv;
 
     return result;
