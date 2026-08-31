@@ -18,6 +18,15 @@ public:
         D3D12_RESOURCE_STATES finalState,
         Microsoft::WRL::ComPtr<ID3D12Resource>& destination,
         D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void UploadTexture2D(
+        const void* sourceData,
+        UINT64 rowPitch,
+        UINT64 slicePitch,
+        UINT width,
+        UINT height,
+        DXGI_FORMAT format,
+        D3D12_RESOURCE_STATES finalState,
+        Microsoft::WRL::ComPtr<ID3D12Resource>& destination);
     void ExecuteAndWait(ID3D12CommandQueue* commandQueue);
 
 private:

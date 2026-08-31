@@ -39,6 +39,7 @@ cbuffer DeferredLightingPassConstants : register(b2)
 Texture2D<float4> g_baseColorRoughness : register(t0);
 Texture2D<float4> g_normalMetallic : register(t1);
 Texture2D<float> g_depth : register(t2);
+Texture2D<float4> g_emissiveOcclusion : register(t3);
 
 FullscreenVertex VSMain(uint vertexId : SV_VertexID)
 {
@@ -67,9 +68,13 @@ float4 PSMain(FullscreenVertex input) : SV_Target
 
     const float3 baseColor = g_baseColorRoughness.Load(int3(pixel, 0)).rgb;
     const float3 worldNormal = normalize(g_normalMetallic.Load(int3(pixel, 0)).xyz);
+    const float4 emissiveOcclusion = g_emissiveOcclusion.Load(int3(pixel, 0));
     const float diffuse = saturate(dot(worldNormal, normalize(g_lightDirection)));
-    const float lighting = g_ambientStrength * g_ambientLightingScale +
+    const float lighting = g_ambientStrength * g_ambientLightingScale *
+        emissiveOcclusion.a +
         (1.0f - g_ambientStrength) * g_lightIntensity *
         g_directLightingScale * diffuse;
-    return float4(baseColor * g_lightColor * lighting, 1.0f);
+    return float4(
+        baseColor * g_lightColor * lighting + emissiveOcclusion.rgb,
+        1.0f);
 }

@@ -1,4 +1,5 @@
 #include "TrComputePipeline.h"
+#include "TrLog.h"
 #include "TrShaderCompiler.h"
 
 #include <stdexcept>
@@ -22,8 +23,16 @@ void TrComputePipeline::Initialize(
         &rootSignatureErrors);
     if(rootSignatureErrors != nullptr)
     {
-        OutputDebugStringA(
-            static_cast<const char*>(rootSignatureErrors->GetBufferPointer()));
+        const char* message = static_cast<const char*>(
+            rootSignatureErrors->GetBufferPointer());
+        if(FAILED(serializeResult))
+        {
+            TrLog::Error(message);
+        }
+        else
+        {
+            TrLog::Warn(message);
+        }
     }
     ThrowIfFailed(serializeResult);
 

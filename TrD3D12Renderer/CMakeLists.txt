@@ -116,7 +116,7 @@ source_group("ThirdParty\\Dear ImGui" FILES ${IMGUI_SOURCE_FILES})
 # Linkage
 #
 target_link_libraries(${PROJNAME} ${PLATFORM_LIBRARIES})
-target_link_libraries(${PROJNAME} ${TR_DXCOMPILER_LIBRARY} d3d12 dxgi)
+target_link_libraries(${PROJNAME} TrSceneCore ${TR_DXCOMPILER_LIBRARY} d3d12 dxgi windowscodecs)
 
 add_custom_command(TARGET ${PROJNAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different

@@ -71,5 +71,19 @@ void TrMesh::Bind(ID3D12GraphicsCommandList* commandList) const
 
 void TrMesh::Draw(ID3D12GraphicsCommandList* commandList, UINT instanceCount) const
 {
-    commandList->DrawIndexedInstanced(mIndexCount, instanceCount, 0, 0, 0);
+    DrawRange(commandList, mIndexCount, 0, instanceCount);
+}
+
+void TrMesh::DrawRange(
+    ID3D12GraphicsCommandList* commandList,
+    UINT indexCount,
+    UINT firstIndex,
+    UINT instanceCount) const
+{
+    if(commandList == nullptr || indexCount == 0 ||
+       static_cast<UINT64>(firstIndex) + indexCount > mIndexCount)
+    {
+        throw std::out_of_range("Mesh draw range is invalid.");
+    }
+    commandList->DrawIndexedInstanced(indexCount, instanceCount, firstIndex, 0, 0);
 }

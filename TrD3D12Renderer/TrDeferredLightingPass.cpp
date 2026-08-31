@@ -21,7 +21,7 @@ void TrDeferredLightingPass::Initialize(
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_DESCRIPTOR_RANGE gBufferRange;
-    gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+    gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);
     rootParameters[3].InitAsDescriptorTable(
         1,
         &gBufferRange,

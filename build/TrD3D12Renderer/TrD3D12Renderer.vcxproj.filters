@@ -46,6 +46,12 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -72,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Common\TrLog.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp">
       <Filter>Common</Filter>
@@ -141,6 +150,12 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.h">
       <Filter>Sources</Filter>
     </ClInclude>
@@ -173,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h">
       <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\Common\TrLog.h">
+      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>

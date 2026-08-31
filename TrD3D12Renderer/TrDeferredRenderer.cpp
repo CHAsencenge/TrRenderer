@@ -1,8 +1,16 @@
 
 #include "TrDeferredRenderer.h"
 #include "TrCornellBoxScene.h"
+#include "TrGlbImporter.h"
+#include "TrLog.h"
 #include "TrUploadContext.h"
 #include "TrWindowApp.h"
+
+#include <algorithm>
+#include <cwctype>
+#include <filesystem>
+#include <limits>
+#include <stdexcept>
 
 
 TrDeferredRenderer::TrDeferredRenderer(UINT width, UINT height, std::wstring title) :
@@ -18,9 +26,12 @@ TrDeferredRenderer::TrDeferredRenderer(UINT width, UINT height, std::wstring tit
 
 void TrDeferredRenderer::OnInitialize()
 {
+    TrLog::Info(
+        "DX12 renderer initialization started (" +
+        std::to_string(mWidth) + "x" + std::to_string(mHeight) + ").");
     LoadPipeline();
     RegisterGpuDebugViews();
-    LoadAssetsCornellBox();
+    LoadAssets();
     mGpuDebugPanel.Initialize(
         TrWindowApp::GetHwnd(),
         mDevice.Get(),
@@ -31,6 +42,7 @@ void TrDeferredRenderer::OnInitialize()
         mDepthVisualizationRange);
     mInitialized = true;
     UpdateWindowTitle();
+    TrLog::Info("DX12 renderer initialization completed.");
 }
 
 void TrDeferredRenderer::OnUpdate()
@@ -46,16 +58,34 @@ void TrDeferredRenderer::OnUpdate()
     }
 
     const XMMATRIX model = XMMatrixIdentity();
-    const XMVECTOR cameraPosition = XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
+    const float cameraDistance = mUsingImportedScene
+        ? std::max(mSceneBoundsRadius * 3.2f, 0.1f)
+        : 0.0f;
+    const XMVECTOR cameraPosition = mUsingImportedScene
+        ? XMVectorSet(
+            mSceneBoundsCenter.x,
+            mSceneBoundsCenter.y + mSceneBoundsRadius * 0.15f,
+            mSceneBoundsCenter.z - cameraDistance,
+            1.0f)
+        : XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
+    const XMVECTOR cameraTarget = mUsingImportedScene
+        ? XMLoadFloat3(&mSceneBoundsCenter)
+        : XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f);
     const XMMATRIX view = XMMatrixLookAtLH(
         cameraPosition,
-        XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f),
+        cameraTarget,
         XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+    const float nearPlane = mUsingImportedScene
+        ? std::max(mSceneBoundsRadius * 0.001f, 0.001f)
+        : 0.1f;
+    const float farPlane = mUsingImportedScene
+        ? std::max(mSceneBoundsRadius * 10.0f, 100.0f)
+        : 100.0f;
     const XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,
         mAspectRatio,
-        0.1f,
-        100.0f);
+        nearPlane,
+        farPlane);
     const XMMATRIX viewProjection = view * projection;
     const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
     const XMMATRIX worldInverseTranspose = XMMatrixTranspose(
@@ -80,6 +110,8 @@ void TrDeferredRenderer::OnUpdate()
         &viewConstants.PreviousViewProjection,
         XMMatrixTranspose(previousViewProjection));
     XMStoreFloat3(&viewConstants.CameraPosition, cameraPosition);
+    viewConstants.NearPlane = nearPlane;
+    viewConstants.FarPlane = farPlane;
     viewConstants.RenderSize = XMFLOAT2(
         static_cast<float>(mWidth),
         static_cast<float>(mHeight));
@@ -96,10 +128,9 @@ void TrDeferredRenderer::OnUpdate()
     XMStoreFloat4x4(
         &primitiveConstants.WorldInverseTranspose,
         XMMatrixTranspose(worldInverseTranspose));
-    primitiveConstants.BoundsCenter = XMFLOAT3(0.0f, 1.0f, 1.0f);
-    primitiveConstants.BoundsRadius = 2.5f;
+    primitiveConstants.BoundsCenter = mSceneBoundsCenter;
+    primitiveConstants.BoundsRadius = mSceneBoundsRadius;
 
-    const TrMaterialConstants materialConstants = {};
     const TrDeferredLightingPassConstants lightingPassConstants = {};
     TrCompositePassConstants compositePassConstants = {};
     compositePassConstants.Exposure = mExposure;
@@ -114,7 +145,6 @@ void TrDeferredRenderer::OnUpdate()
     frame.ViewConstantBuffer.Update(viewConstants);
     frame.GBufferPassConstantBuffer.Update(gBufferPassConstants);
     frame.PrimitiveConstantBuffer.Update(primitiveConstants);
-    frame.MaterialConstantBuffer.Update(materialConstants);
     frame.LightingPassConstantBuffer.Update(lightingPassConstants);
     frame.CompositePassConstantBuffer.Update(compositePassConstants);
 
@@ -158,6 +188,10 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
         return;
     }
 
+    TrLog::Info(
+        "Resizing render targets to " + std::to_string(width) + "x" +
+        std::to_string(height) + ".");
+
     FlushCommandQueue();
     for(TrTexture& renderTarget : mRenderTargets)
     {
@@ -190,6 +224,7 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
 
 void TrDeferredRenderer::OnDestroy()
 {
+    TrLog::Info("DX12 renderer shutdown started.");
     FlushCommandQueue();
     mGpuDebugPanel.Shutdown();
     mInitialized = false;
@@ -199,6 +234,7 @@ void TrDeferredRenderer::OnDestroy()
         mFenceEvent = nullptr;
     }
     ValidateDebugLayer();
+    TrLog::Info("DX12 renderer shutdown completed.");
 }
 
 void TrDeferredRenderer::OnKeyDown(UINT8 wParam)
@@ -216,6 +252,7 @@ void TrDeferredRenderer::LoadPipeline()
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugger))))
     {
         debugger->EnableDebugLayer();
+        TrLog::Info("D3D12 debug layer enabled.");
     }
 
     // create device
@@ -231,11 +268,17 @@ void TrDeferredRenderer::LoadPipeline()
                 D3D_FEATURE_LEVEL_11_0,
                 IID_PPV_ARGS(&mDevice)
             ));
+        TrLog::Info("Using the WARP software adapter.");
     }
     else
     {
         Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
         GetHardwareAdapter(factory.Get(), IID_PPV_ARGS(&adapter));
+
+        DXGI_ADAPTER_DESC1 adapterDescription = {};
+        ThrowIfFailed(adapter->GetDesc1(&adapterDescription));
+        TrLog::Info(
+            std::wstring(L"Using hardware adapter: ") + adapterDescription.Description);
 
         ThrowIfFailed(D3D12CreateDevice(
                 adapter.Get(),
@@ -244,6 +287,7 @@ void TrDeferredRenderer::LoadPipeline()
             ));
     }
     ValidateShaderModelSupport();
+    TrLog::Info("Shader Model 6.5 support validated.");
 
     // describe and create command queue
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};  // aggregate initialization
@@ -287,6 +331,12 @@ void TrDeferredRenderer::LoadPipeline()
         ResourceDescriptorCount,
         true,
         L"Shader Resource Heap");
+    mSamplerHeap.Initialize(
+        mDevice.Get(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+        SamplerDescriptorCount,
+        true,
+        L"Material Sampler Heap");
 
     // Reserve stable RTV slots. Resize rewrites these descriptors in place.
     for(UINT n = 0; n < SwapFrameCount; n++)
@@ -324,6 +374,7 @@ void TrDeferredRenderer::LoadPipeline()
     {
         ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
+    TrLog::Info("DX12 pipeline resources created.");
 }
 
 void TrDeferredRenderer::CreateBackBufferResources()
@@ -372,6 +423,14 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         mDeferredRenderTargets.GetNormalSrv().GpuHandle,
         TrDebugVisualization::ScalarAlpha);
     mGpuDebug.RegisterView(
+        L"Emissive",
+        mDeferredRenderTargets.GetEmissiveSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
+    mGpuDebug.RegisterView(
+        L"Ambient Occlusion",
+        mDeferredRenderTargets.GetEmissiveSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
+    mGpuDebug.RegisterView(
         L"Linear Depth",
         mDeferredRenderTargets.GetDepthSrv().GpuHandle,
         TrDebugVisualization::DeviceDepth);
@@ -391,7 +450,7 @@ void TrDeferredRenderer::UpdateWindowTitle() const
  * default heap: read-only or rarely updated by the cpu, is optimized for gpu read
  * (static vertex buffers, index buffers)
  */
-void TrDeferredRenderer::LoadAssetsCornellBox()
+void TrDeferredRenderer::LoadAssets()
 {
     mGBufferPass.Initialize(
         mDevice.Get(),
@@ -403,17 +462,92 @@ void TrDeferredRenderer::LoadAssetsCornellBox()
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"DxRaster/composite.hlsl"));
 
-    const TrCornellBoxMeshData meshData = CreateCornellBoxSphereScene();
     TrUploadContext uploadContext;
     uploadContext.Initialize(mDevice.Get());
-    mSceneMesh.Initialize(
+
+    if(GetScenePath().empty())
+    {
+        const TrCornellBoxMeshData meshData = CreateCornellBoxSphereScene();
+        mSceneMesh.Initialize(
+            uploadContext,
+            meshData.Vertices.data(),
+            static_cast<UINT>(meshData.Vertices.size()),
+            sizeof(TrCornellBoxVertex),
+            meshData.Indices.data(),
+            static_cast<UINT>(meshData.Indices.size()),
+            DXGI_FORMAT_R16_UINT);
+        mSceneDraws =
+        {
+            {
+                0,
+                static_cast<std::uint32_t>(meshData.Indices.size()),
+                TrInvalidSceneIndex
+            }
+        };
+        TrLog::Info(
+            "Loaded procedural Cornell scene: " +
+            std::to_string(meshData.Vertices.size()) + " vertices, " +
+            std::to_string(meshData.Indices.size()) + " indices.");
+    }
+    else
+    {
+        const std::filesystem::path scenePath(GetScenePath());
+        TrLog::Info(std::wstring(L"Loading scene: ") + scenePath.wstring());
+        std::wstring extension = scenePath.extension().wstring();
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::towlower);
+        if(extension == L".glb")
+        {
+            TrGlbImportResult imported = TrGlbImporter::Import(scenePath);
+            for(const std::string& warning : imported.Warnings)
+            {
+                TrLog::Warn("GLB import: " + warning);
+            }
+            mLoadedScene = std::move(imported.Scene);
+        }
+        else if(extension == L".trscene")
+        {
+            mLoadedScene = TrScene::Load(scenePath);
+        }
+        else
+        {
+            throw std::invalid_argument("-scene accepts only .glb or .trscene files.");
+        }
+
+        const TrSceneRenderMesh meshData = mLoadedScene.BuildStaticRenderMesh();
+        if(meshData.Vertices.size() > std::numeric_limits<UINT>::max() ||
+           meshData.Indices.size() > std::numeric_limits<UINT>::max())
+        {
+            throw std::overflow_error("Imported Scene exceeds the DX12 mesh count limit.");
+        }
+        mSceneMesh.Initialize(
+            uploadContext,
+            meshData.Vertices.data(),
+            static_cast<UINT>(meshData.Vertices.size()),
+            sizeof(TrSceneRenderVertex),
+            meshData.Indices.data(),
+            static_cast<UINT>(meshData.Indices.size()),
+            DXGI_FORMAT_R32_UINT);
+        mSceneDraws = meshData.Draws;
+        mSceneBoundsCenter = DirectX::XMFLOAT3(
+            meshData.BoundsCenter[0],
+            meshData.BoundsCenter[1],
+            meshData.BoundsCenter[2]);
+        mSceneBoundsRadius = meshData.BoundsRadius;
+        mUsingImportedScene = true;
+        mTitle = L"Tr Scene - " + scenePath.filename().wstring();
+        TrLog::Info(
+            "Loaded TrScene '" + mLoadedScene.Name + "': " +
+            std::to_string(mLoadedScene.Meshes.size()) + " meshes, " +
+            std::to_string(mLoadedScene.Nodes.size()) + " nodes, " +
+            std::to_string(meshData.Vertices.size()) + " render vertices, " +
+            std::to_string(meshData.Indices.size()) + " render indices.");
+    }
+    mMaterialResources.Initialize(
+        mDevice.Get(),
         uploadContext,
-        meshData.Vertices.data(),
-        static_cast<UINT>(meshData.Vertices.size()),
-        sizeof(TrCornellBoxVertex),
-        meshData.Indices.data(),
-        static_cast<UINT>(meshData.Indices.size()),
-        DXGI_FORMAT_R16_UINT);
+        mResourceHeap,
+        mSamplerHeap,
+        mUsingImportedScene ? &mLoadedScene : nullptr);
     uploadContext.ExecuteAndWait(mCommandQueue.Get());
 
     for(TrFrameContext& frame : mFrameContexts)
@@ -430,9 +564,6 @@ void TrDeferredRenderer::LoadAssetsCornellBox()
         frame.PrimitiveConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrPrimitiveConstants)));
-        frame.MaterialConstantBuffer.Initialize(
-            mDevice.Get(),
-            static_cast<UINT>(sizeof(TrMaterialConstants)));
         frame.LightingPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrDeferredLightingPassConstants)));
@@ -471,18 +602,36 @@ void TrDeferredRenderer::PopulateCommandList()
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
-    const TrDrawConstants sceneDrawConstants = {};
     mGBufferPass.Begin(
         mCommandList.Get(),
         mDeferredRenderTargets,
+        mResourceHeap,
+        mSamplerHeap,
         frame.ViewConstantBuffer.GetGpuVirtualAddress(),
         frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
-        frame.PrimitiveConstantBuffer.GetGpuVirtualAddress(),
-        frame.MaterialConstantBuffer.GetGpuVirtualAddress(),
-        sceneDrawConstants);
+        frame.PrimitiveConstantBuffer.GetGpuVirtualAddress());
 
     mSceneMesh.Bind(mCommandList.Get());
-    mSceneMesh.Draw(mCommandList.Get());
+    for(std::size_t drawIndex = 0; drawIndex < mSceneDraws.size(); ++drawIndex)
+    {
+        const TrSceneRenderDraw& draw = mSceneDraws[drawIndex];
+        const TrMaterialGpuBinding& material = mMaterialResources.Get(draw.MaterialIndex);
+        TrDrawConstants drawConstants = {};
+        drawConstants.PrimitiveIndex = static_cast<std::uint32_t>(drawIndex);
+        drawConstants.MaterialIndex = draw.MaterialIndex == TrInvalidSceneIndex
+            ? 0
+            : draw.MaterialIndex;
+        mGBufferPass.SetMaterialAndDrawConstants(
+            mCommandList.Get(),
+            material.Constants,
+            material.TextureTable,
+            material.SamplerTable,
+            drawConstants);
+        mSceneMesh.DrawRange(
+            mCommandList.Get(),
+            draw.IndexCount,
+            draw.FirstIndex);
+    }
     mGBufferPass.End(mCommandList.Get(), mDeferredRenderTargets);
 
     mDeferredLightingPass.Render(
@@ -581,8 +730,7 @@ void TrDeferredRenderer::ValidateDebugLayer()
         if(message->Severity == D3D12_MESSAGE_SEVERITY_CORRUPTION ||
            message->Severity == D3D12_MESSAGE_SEVERITY_ERROR)
         {
-            OutputDebugStringA(message->pDescription);
-            OutputDebugStringA("\n");
+            TrLog::Error(message->pDescription);
             hasErrors = true;
         }
     }

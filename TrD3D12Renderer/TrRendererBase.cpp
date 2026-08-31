@@ -1,6 +1,8 @@
 #include "TrUtil.h"
 #include "TrRendererBase.h"
 
+#include <stdexcept>
+
 
 TrRendererBase::TrRendererBase(UINT width, UINT height, std::wstring title)
 {
@@ -25,18 +27,34 @@ std::wstring TrRendererBase::GetAssetFullPath(LPCWSTR assetName)
 	return assetName;
 }
 
-// todo: cmd line parse
 _Use_decl_annotations_
 void TrRendererBase::ParseCommandLineArgs(WCHAR* argv[], int argc)
 {
 	for (int i = 1; i < argc; ++i)
 	{
-		if (_wcsnicmp(argv[i], L"-warp", wcslen(argv[i])) == 0 || 
-			_wcsnicmp(argv[i], L"/warp", wcslen(argv[i])) == 0)
+		if (_wcsicmp(argv[i], L"-warp") == 0 ||
+			_wcsicmp(argv[i], L"/warp") == 0)
 		{
 			mbUseWarpDevice = true;
 			mTitle = mTitle + L" (WARP)";
 		}
+		else if(_wcsicmp(argv[i], L"-scene") == 0 ||
+			_wcsicmp(argv[i], L"/scene") == 0)
+		{
+			if(i + 1 >= argc)
+			{
+				throw std::invalid_argument("-scene requires a .glb or .trscene path.");
+			}
+			mScenePath = argv[++i];
+		}
+		else if(_wcsnicmp(argv[i], L"-scene=", 7) == 0 ||
+			_wcsnicmp(argv[i], L"/scene=", 7) == 0)
+		{
+			if(argv[i][7] == L'\0')
+			{
+				throw std::invalid_argument("-scene requires a .glb or .trscene path.");
+			}
+			mScenePath = argv[i] + 7;
+		}
 	}
 }
-

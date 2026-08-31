@@ -61,6 +61,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/media DESTINATION ${OUTPUT_PATH})
 #--------------------------------------------------------------------------------------------------
 # Sub examples
 add_subdirectory(TrSoftwareRenderer)
+add_subdirectory(TrSceneImporter)
 add_subdirectory(TrD3D12Renderer)
 if(TR_HAS_NVPRO_CORE)
   add_subdirectory(TrVulkanRenderer)

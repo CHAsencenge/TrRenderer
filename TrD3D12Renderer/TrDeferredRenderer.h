@@ -15,8 +15,10 @@
 #include "TrGpuDebug.h"
 #include "TrGpuDebugPanel.h"
 #include "TrHistoryTexture.h"
+#include "TrMaterialResources.h"
 #include "TrMesh.h"
 #include "TrRenderConstants.h"
+#include "TrScene.h"
 
 class TrWindowApp;
 
@@ -35,7 +37,7 @@ public:
 
 private:
     void LoadPipeline();
-    void LoadAssetsCornellBox();
+    void LoadAssets();
     void CreateBackBufferResources();
     void RegisterGpuDebugViews();
     void UpdateWindowTitle() const;
@@ -62,7 +64,8 @@ private:
      * constexpr variable's value is evaluated at compile time. It must be initialized with a constant expression and a value.
      */
     static constexpr UINT SwapFrameCount = 2;
-    static constexpr UINT ResourceDescriptorCount = 64;
+    static constexpr UINT ResourceDescriptorCount = 8192;
+    static constexpr UINT SamplerDescriptorCount = 2048;
 
     struct TrFrameContext
     {
@@ -71,7 +74,6 @@ private:
         TrConstantBuffer ViewConstantBuffer;
         TrConstantBuffer GBufferPassConstantBuffer;
         TrConstantBuffer PrimitiveConstantBuffer;
-        TrConstantBuffer MaterialConstantBuffer;
         TrConstantBuffer LightingPassConstantBuffer;
         TrConstantBuffer CompositePassConstantBuffer;
         UINT64 FenceValue = 0;
@@ -94,6 +96,7 @@ private:
     TrDescriptorHeap mRtvHeap;
     TrDescriptorHeap mDsvHeap;
     TrDescriptorHeap mResourceHeap;
+    TrDescriptorHeap mSamplerHeap;
     TrDeferredRenderTargets mDeferredRenderTargets;
     TrHistoryTexture mLightingHistory;
     TrGpuDebug mGpuDebug;
@@ -101,6 +104,12 @@ private:
 
     // app resources
     TrMesh mSceneMesh;
+    TrScene mLoadedScene;
+    TrMaterialResources mMaterialResources;
+    std::vector<TrSceneRenderDraw> mSceneDraws;
+    DirectX::XMFLOAT3 mSceneBoundsCenter = {0.0f, 1.0f, 1.0f};
+    float mSceneBoundsRadius = 2.5f;
+    bool mUsingImportedScene = false;
 
     // synchronization objects
     UINT64 mNextFenceValue = 1;

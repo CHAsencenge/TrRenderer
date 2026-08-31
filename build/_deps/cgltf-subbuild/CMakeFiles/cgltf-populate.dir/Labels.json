@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/cgltf-populate"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/e3bcb97a35c7717e8b673f99c0b3707f/cgltf-populate.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/c719332665a3ec814d12df0623c64c23/cgltf-populate-complete.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-build.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-configure.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-download.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-install.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-mkdir.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-patch.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-test.rule"
+		},
+		{
+			"file" : "E:/UGit/TrRenderer/build/_deps/cgltf-subbuild/CMakeFiles/8a9d76512e35d6a0e987a7b9821eb849/cgltf-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"cgltf-populate"
+		],
+		"name" : "cgltf-populate"
+	}
+}

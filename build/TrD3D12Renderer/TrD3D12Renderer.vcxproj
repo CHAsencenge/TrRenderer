@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -106,10 +106,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -131,7 +131,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\TrSceneImporter\Debug\TrSceneCore.lib;D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;windowscodecs.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -146,7 +146,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -166,10 +166,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -191,7 +191,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\TrSceneImporter\Release\TrSceneCore.lib;D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;windowscodecs.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -206,7 +206,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -226,10 +226,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -251,7 +251,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\TrSceneImporter\MinSizeRel\TrSceneCore.lib;D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;windowscodecs.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -266,7 +266,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
@@ -285,10 +285,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -310,7 +310,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\TrSceneImporter\RelWithDebInfo\TrSceneCore.lib;D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;windowscodecs.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -411,6 +411,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRenderConstants.h" />
@@ -431,6 +435,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\Common\TrLog.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\Common\TrLog.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui.cpp" />
@@ -452,6 +458,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="E:\UGit\TrRenderer\build\TrSceneImporter\TrSceneCore.vcxproj">
+      <Project>{1C16398E-991F-3629-9024-4C40AF167944}</Project>
+      <Name>TrSceneCore</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

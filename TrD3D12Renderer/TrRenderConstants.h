@@ -63,11 +63,29 @@ struct alignas(16) TrPrimitiveConstants
 
 struct alignas(16) TrMaterialConstants
 {
-    DirectX::XMFLOAT3 BaseColorFactor = {1.0f, 1.0f, 1.0f};
+    DirectX::XMFLOAT4 BaseColorFactor = {1.0f, 1.0f, 1.0f, 1.0f};
+    DirectX::XMFLOAT3 EmissiveFactor = {0.0f, 0.0f, 0.0f};
+    float EmissiveStrength = 1.0f;
     float Roughness = 0.65f;
     float Metallic = 0.0f;
-    float EmissiveStrength = 0.0f;
-    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    float AlphaCutoff = 0.5f;
+    std::uint32_t Flags = 0;
+
+    struct alignas(16) TextureTransform
+    {
+        DirectX::XMFLOAT2 Offset = {0.0f, 0.0f};
+        DirectX::XMFLOAT2 Scale = {1.0f, 1.0f};
+        float Rotation = 0.0f;
+        std::uint32_t TexCoord = 0;
+        float Strength = 1.0f;
+        float Padding = 0.0f;
+    };
+
+    TextureTransform BaseColorTexture;
+    TextureTransform MetallicRoughnessTexture;
+    TextureTransform NormalTexture;
+    TextureTransform OcclusionTexture;
+    TextureTransform EmissiveTexture;
 };
 
 struct alignas(16) TrDeferredLightingPassConstants
@@ -100,7 +118,8 @@ static_assert(sizeof(TrSceneConstants) == 32);
 static_assert(sizeof(TrViewConstants) == 384);
 static_assert(sizeof(TrGBufferPassConstants) == 16);
 static_assert(sizeof(TrPrimitiveConstants) == 224);
-static_assert(sizeof(TrMaterialConstants) == 32);
+static_assert(sizeof(TrMaterialConstants::TextureTransform) == 32);
+static_assert(sizeof(TrMaterialConstants) == 208);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 16);
 static_assert(sizeof(TrCompositePassConstants) == 32);
 static_assert(sizeof(TrDrawConstants) == 16);

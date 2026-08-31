@@ -343,6 +343,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrSoftwareRenderer\Window.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrSoftwareRenderer\framework.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrSoftwareRenderer\maths.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\Common\TrLog.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\Common\TrLog.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h" />
   </ItemGroup>

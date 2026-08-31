@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\8a9d76512e35d6a0e987a7b9821eb849\cgltf-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\c719332665a3ec814d12df0623c64c23\cgltf-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\e3bcb97a35c7717e8b673f99c0b3707f\cgltf-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="E:\UGit\TrRenderer\build\_deps\cgltf-subbuild\CMakeFiles\cgltf-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{8CCC14E5-DA31-37DB-813E-212DFB1C8F3E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -30,6 +30,7 @@ public:
 	UINT GetWidth() { return mWidth; }
 	UINT GetHeight() { return mHeight; }
 	const WCHAR* GetTitle() const  { return mTitle.c_str(); }
+	const std::wstring& GetScenePath() const { return mScenePath; }
 
 	UINT mWidth;
 	UINT mHeight;
@@ -47,6 +48,7 @@ private:
 	 * a pointer to a null-ternimated ('\0') array of wide characters (const wchar_t*)
 	*/
 	std::wstring mAssetsPath;
+	std::wstring mScenePath;
 
 	
 };

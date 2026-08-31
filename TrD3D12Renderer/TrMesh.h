@@ -18,6 +18,11 @@ public:
 
     void Bind(ID3D12GraphicsCommandList* commandList) const;
     void Draw(ID3D12GraphicsCommandList* commandList, UINT instanceCount = 1) const;
+    void DrawRange(
+        ID3D12GraphicsCommandList* commandList,
+        UINT indexCount,
+        UINT firstIndex,
+        UINT instanceCount = 1) const;
 
     UINT GetIndexCount() const { return mIndexCount; }
 

@@ -47,6 +47,7 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("E:/UGit/TrRenderer/build/TrSoftwareRenderer/cmake_install.cmake")
+  include("E:/UGit/TrRenderer/build/TrSceneImporter/cmake_install.cmake")
   include("E:/UGit/TrRenderer/build/TrD3D12Renderer/cmake_install.cmake")
 
 endif()

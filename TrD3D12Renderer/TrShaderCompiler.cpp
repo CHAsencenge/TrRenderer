@@ -1,4 +1,5 @@
 #include "TrShaderCompiler.h"
+#include "TrLog.h"
 
 #include <filesystem>
 #include <stdexcept>
@@ -14,6 +15,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
     {
         throw std::invalid_argument("DXC shader description is incomplete.");
     }
+    TrLog::Debug(
+        std::wstring(L"Compiling shader: ") + filename + L" [" +
+        entryPoint + L", " + targetProfile + L"]");
 
     Microsoft::WRL::ComPtr<IDxcUtils> utils;
     Microsoft::WRL::ComPtr<IDxcCompiler3> compiler;
@@ -61,6 +65,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
         includeHandler.Get(),
         IID_PPV_ARGS(&result)));
 
+    HRESULT compilationStatus = E_FAIL;
+    ThrowIfFailed(result->GetStatus(&compilationStatus));
+
     Microsoft::WRL::ComPtr<IDxcBlobUtf8> diagnostics;
     if(SUCCEEDED(result->GetOutput(
            DXC_OUT_ERRORS,
@@ -68,11 +75,16 @@ Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
            nullptr)) &&
        diagnostics != nullptr && diagnostics->GetStringLength() > 0)
     {
-        OutputDebugStringA(diagnostics->GetStringPointer());
+        if(FAILED(compilationStatus))
+        {
+            TrLog::Error(diagnostics->GetStringPointer());
+        }
+        else
+        {
+            TrLog::Warn(diagnostics->GetStringPointer());
+        }
     }
 
-    HRESULT compilationStatus = E_FAIL;
-    ThrowIfFailed(result->GetStatus(&compilationStatus));
     if(FAILED(compilationStatus))
     {
         throw TrGraphicsException(
@@ -91,5 +103,6 @@ Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
     {
         throw std::runtime_error("DXC produced no shader object.");
     }
+    TrLog::Debug("Shader compilation completed.");
     return shader;
 }
