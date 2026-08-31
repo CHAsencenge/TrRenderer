@@ -52,6 +52,8 @@
 - 两目标 MRT GBuffer：BaseColor/Roughness 与 WorldNormal/Metallic；
 - 读取 GBuffer/Depth 的全屏 Deferred Lighting Pass；
 - `RGBA16_FLOAT` HDR Lighting Target 和显示颜色转换 Composite Pass；
+- 可注册任意 SRV 的 `TrGpuDebug` 中间结果查看器，支持 Final、BaseColor、Normal、Roughness、Metallic 和线性 Depth；
+- 独立接入 Dear ImGui（不依赖 nvpro_core），GPU 调试面板通过按钮选择视图，并提供 Exposure、Depth Range 文本输入；
 - Debug 退出时检查 D3D12 InfoQueue 的 ERROR/CORRUPTION 消息。
 
 当前资源创建已经拆成单向依赖的轻量流程：场景模块只生成 CPU 数据，Mesh 只持有 GPU 几何资源，Upload Context 只负责上传与上传期同步，Graphics Pipeline 只负责 Root Signature、Shader 和 PSO，Renderer 只编排这些步骤。旧的纹理示例加载分支已从 Renderer 移除。
@@ -99,7 +101,9 @@ TrD3D12Renderer/
   TrDeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
   TrGBufferPass.*      MRT GBuffer 管线与 Pass 边界
   TrDeferredLightingPass.* GBuffer 读取和方向光照
-  TrCompositePass.*    HDR 读取、Gamma 转换和 SwapChain 输出
+  TrGpuDebug.*         中间 SRV 注册、GPU 解码模式和运行时选择
+  TrGpuDebugPanel.*    无第三方依赖的按钮、文本输入和参数校验
+  TrCompositePass.*    调试源读取、可视化转换和 SwapChain 输出
   TrCornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
   TrDeferredRenderer.*   初始化与逐帧编排
 ```
@@ -231,7 +235,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
   - `RGBA16_FLOAT`：HDR Lighting；
 - 一个方向光和最简单的直接光照 Pass；
 - 全屏三角形 Composite Pass；
-- GBuffer 各通道调试视图。
+- GBuffer 各通道调试视图（已完成）。
 
 验收：
 
@@ -363,6 +367,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [ ] 在首个实际 Compute Pass 中验证 SRV 读取、UAV 写入和 Dispatch；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
+- [x] 建立可扩展的 GPU 中间结果调试视图。
 
 ## 9. 参考资料
 

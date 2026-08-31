@@ -54,7 +54,7 @@ void TrDeferredRenderTargets::CreateResources(
 
     D3D12_CLEAR_VALUE baseColorClear = {};
     baseColorClear.Format = BaseColorRoughnessFormat;
-    baseColorClear.Color[3] = 1.0f;
+    baseColorClear.Color[3] = 0.0f;
     mBaseColorRoughness.Initialize2D(
         device,
         width,
@@ -132,7 +132,7 @@ void TrDeferredRenderTargets::BeginGBufferPass(
         FALSE,
         &mDepthDsv.CpuHandle);
 
-    const float baseColorClear[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    const float baseColorClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float normalClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
     commandList->ClearRenderTargetView(
         mBaseColorRtv.CpuHandle,

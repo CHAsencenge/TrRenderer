@@ -19,13 +19,31 @@ TrDeferredRenderer::TrDeferredRenderer(UINT width, UINT height, std::wstring tit
 void TrDeferredRenderer::OnInitialize()
 {
     LoadPipeline();
+    RegisterGpuDebugViews();
     LoadAssetsCornellBox();
+    mGpuDebugPanel.Initialize(
+        TrWindowApp::GetHwnd(),
+        mDevice.Get(),
+        SwapFrameCount,
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        mResourceHeap,
+        mExposure,
+        mDepthVisualizationRange);
     mInitialized = true;
+    UpdateWindowTitle();
 }
 
 void TrDeferredRenderer::OnUpdate()
 {
     using namespace DirectX;
+
+    if(mGpuDebugPanel.BuildFrame(
+           mGpuDebug,
+           mExposure,
+           mDepthVisualizationRange))
+    {
+        UpdateWindowTitle();
+    }
 
     const XMMATRIX model = XMMatrixIdentity();
     const XMVECTOR cameraPosition = XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
@@ -83,7 +101,13 @@ void TrDeferredRenderer::OnUpdate()
 
     const TrMaterialConstants materialConstants = {};
     const TrDeferredLightingPassConstants lightingPassConstants = {};
-    const TrCompositePassConstants compositePassConstants = {};
+    TrCompositePassConstants compositePassConstants = {};
+    compositePassConstants.Exposure = mExposure;
+    compositePassConstants.VisualizationMode = static_cast<std::uint32_t>(
+        mGpuDebug.GetSelectedView().Visualization);
+    compositePassConstants.DepthVisualizationRange = mDepthVisualizationRange;
+    compositePassConstants.NearPlane = viewConstants.NearPlane;
+    compositePassConstants.FarPlane = viewConstants.FarPlane;
 
     TrFrameContext& frame = mFrameContexts[mFrameIndex];
     frame.SceneConstantBuffer.Update(sceneConstants);
@@ -128,7 +152,6 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
         0,
         static_cast<LONG>(width),
         static_cast<LONG>(height));
-
     // WM_SIZE can arrive while CreateWindow is still constructing the window.
     if(!mInitialized)
     {
@@ -168,6 +191,7 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
 void TrDeferredRenderer::OnDestroy()
 {
     FlushCommandQueue();
+    mGpuDebugPanel.Shutdown();
     mInitialized = false;
     if(mFenceEvent != nullptr)
     {
@@ -324,6 +348,43 @@ void TrDeferredRenderer::CreateBackBufferResources()
     }
 }
 
+void TrDeferredRenderer::RegisterGpuDebugViews()
+{
+    mGpuDebug.Reset();
+    mGpuDebug.RegisterView(
+        L"Final Lighting",
+        mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
+    mGpuDebug.RegisterView(
+        L"Base Color",
+        mDeferredRenderTargets.GetBaseColorSrv().GpuHandle,
+        TrDebugVisualization::LinearColor);
+    mGpuDebug.RegisterView(
+        L"World Normal",
+        mDeferredRenderTargets.GetNormalSrv().GpuHandle,
+        TrDebugVisualization::WorldNormal);
+    mGpuDebug.RegisterView(
+        L"Roughness",
+        mDeferredRenderTargets.GetBaseColorSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
+    mGpuDebug.RegisterView(
+        L"Metallic",
+        mDeferredRenderTargets.GetNormalSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
+    mGpuDebug.RegisterView(
+        L"Linear Depth",
+        mDeferredRenderTargets.GetDepthSrv().GpuHandle,
+        TrDebugVisualization::DeviceDepth);
+}
+
+void TrDeferredRenderer::UpdateWindowTitle() const
+{
+    const TrGpuDebugView& debugView = mGpuDebug.GetSelectedView();
+    const std::wstring title = mTitle + L" | GPU Debug [" +
+        std::to_wstring(mGpuDebug.GetSelectedIndex()) + L"] " + debugView.Name;
+    SetWindowTextW(TrWindowApp::GetHwnd(), title.c_str());
+}
+
 /* note:
  * upload heap: used for the resources that need to be updated frequently by the cpu, is optimized for cpu write
  * (constant buffers, dynamic vertex buffers)
@@ -435,10 +496,15 @@ void TrDeferredRenderer::PopulateCommandList()
     mCompositePass.Render(
         mCommandList.Get(),
         mResourceHeap,
-        mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+        mGpuDebug.GetSelectedView().SourceSrv,
         frame.CompositePassConstantBuffer.GetGpuVirtualAddress(),
         mRenderTargets[mFrameIndex],
         mRenderTargetViews[mFrameIndex].CpuHandle);
+
+    mGpuDebugPanel.Render(mCommandList.Get(), mResourceHeap);
+    mRenderTargets[mFrameIndex].Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_PRESENT);
 
     ThrowIfFailed(mCommandList->Close());
 }

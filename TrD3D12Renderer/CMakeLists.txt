@@ -64,6 +64,21 @@ if(NOT TR_HAS_NVPRO_CORE)
   list(FILTER COMMON_SOURCE_FILES EXCLUDE REGEX "[/\\\\]obj_loader\\.(cpp|h)$")
 endif()
 include_directories(${TR_RENDERER_DIR}/common)
+
+# Dear ImGui is consumed directly from the repository. This keeps the D3D12
+# renderer independent from nvpro_core and builds only the core plus Win32/DX12
+# backends required by this executable.
+set(TR_IMGUI_DIR "${TR_RENDERER_DIR}/Includes/imgui")
+set(IMGUI_SOURCE_FILES
+  "${TR_IMGUI_DIR}/imgui.cpp"
+  "${TR_IMGUI_DIR}/imgui_draw.cpp"
+  "${TR_IMGUI_DIR}/imgui_tables.cpp"
+  "${TR_IMGUI_DIR}/imgui_widgets.cpp"
+  "${TR_IMGUI_DIR}/backends/imgui_impl_win32.cpp"
+  "${TR_IMGUI_DIR}/backends/imgui_impl_dx12.cpp")
+if(NOT EXISTS "${TR_IMGUI_DIR}/imgui.h")
+  message(FATAL_ERROR "Standalone Dear ImGui sources were not found at ${TR_IMGUI_DIR}")
+endif()
 file(GLOB HLSL_SOURCE_FILES
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRaster/*.hlsl"
 "${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRayTracing/*.hlsl"
@@ -81,17 +96,21 @@ add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/shaders/")
 # Sources
 target_sources(${PROJNAME} PUBLIC ${SOURCE_FILES} ${HEADER_FILES})
 target_sources(${PROJNAME} PUBLIC ${COMMON_SOURCE_FILES})
-target_sources(${PROJNAME} PUBLIC ${PACKAGE_SOURCE_FILES})
+target_sources(${PROJNAME} PRIVATE ${IMGUI_SOURCE_FILES})
 target_sources(${PROJNAME} PUBLIC ${HLSL_SOURCE_FILES})
-target_include_directories(${PROJNAME} PRIVATE ${TR_DXC_INCLUDE_DIR})
+target_include_directories(${PROJNAME} PRIVATE
+  ${TR_DXC_INCLUDE_DIR}
+  "${TR_IMGUI_DIR}"
+  "${TR_IMGUI_DIR}/backends")
 
 #--------------------------------------------------------------------------------------------------
 # Sub-folders in Visual Studio
 #
-source_group("Common"       FILES ${COMMON_SOURCE_FILES} ${PACKAGE_SOURCE_FILES} nvpro_core)
+source_group("Common"       FILES ${COMMON_SOURCE_FILES})
 source_group("Sources"      FILES ${SOURCE_FILES})
 source_group("Headers"      FILES ${HEADER_FILES})
 source_group("Shader Sources"  FILES ${HLSL_SOURCE_FILES})
+source_group("ThirdParty\\Dear ImGui" FILES ${IMGUI_SOURCE_FILES})
 
 #--------------------------------------------------------------------------------------------------
 # Linkage

@@ -41,13 +41,13 @@ void TrCompositePass::Initialize(
 void TrCompositePass::Render(
     ID3D12GraphicsCommandList* commandList,
     TrDescriptorHeap& resourceHeap,
-    D3D12_GPU_DESCRIPTOR_HANDLE hdrLightingSrv,
+    D3D12_GPU_DESCRIPTOR_HANDLE sourceSrv,
     D3D12_GPU_VIRTUAL_ADDRESS compositeConstants,
     TrTexture& backBuffer,
     D3D12_CPU_DESCRIPTOR_HANDLE backBufferRtv)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
-       !resourceHeap.IsShaderVisible() || hdrLightingSrv.ptr == 0 ||
+       !resourceHeap.IsShaderVisible() || sourceSrv.ptr == 0 ||
        compositeConstants == 0)
     {
         throw std::invalid_argument("Composite pass inputs are invalid.");
@@ -58,11 +58,10 @@ void TrCompositePass::Render(
     commandList->SetPipelineState(mPipeline.GetPipelineState());
     commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
     commandList->SetGraphicsRootConstantBufferView(0, compositeConstants);
-    commandList->SetGraphicsRootDescriptorTable(1, hdrLightingSrv);
+    commandList->SetGraphicsRootDescriptorTable(1, sourceSrv);
 
     backBuffer.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
     commandList->OMSetRenderTargets(1, &backBufferRtv, FALSE, nullptr);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->DrawInstanced(3, 1, 0, 0);
-    backBuffer.Transition(commandList, D3D12_RESOURCE_STATE_PRESENT);
 }

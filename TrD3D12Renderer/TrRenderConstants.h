@@ -74,16 +74,18 @@ struct alignas(16) TrDeferredLightingPassConstants
 {
     float DirectLightingScale = 1.0f;
     float AmbientLightingScale = 1.0f;
-    std::uint32_t DebugView = 0;
-    float Padding = 0.0f;
+    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
 };
 
 struct alignas(16) TrCompositePassConstants
 {
     float Exposure = 1.0f;
     float Gamma = 2.2f;
-    std::uint32_t DebugView = 0;
-    float Padding = 0.0f;
+    std::uint32_t VisualizationMode = 0;
+    float DepthVisualizationRange = 10.0f;
+    float NearPlane = 0.1f;
+    float FarPlane = 100.0f;
+    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
 };
 
 struct alignas(16) TrDrawConstants
@@ -100,5 +102,5 @@ static_assert(sizeof(TrGBufferPassConstants) == 16);
 static_assert(sizeof(TrPrimitiveConstants) == 224);
 static_assert(sizeof(TrMaterialConstants) == 32);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 16);
-static_assert(sizeof(TrCompositePassConstants) == 16);
+static_assert(sizeof(TrCompositePassConstants) == 32);
 static_assert(sizeof(TrDrawConstants) == 16);

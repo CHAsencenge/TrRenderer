@@ -34,6 +34,12 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -70,6 +76,24 @@
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_draw.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_tables.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_widgets.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\backends\imgui_impl_dx12.cpp">
+      <Filter>ThirdParty\Dear ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h">
@@ -103,6 +127,12 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.h">
@@ -178,6 +208,12 @@
     </Filter>
     <Filter Include="Sources">
       <UniqueIdentifier>{E602A0D2-4680-3AC2-9D85-32C831D60D83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{910023C5-678E-3DA6-8DD5-A6F0DD764645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\Dear ImGui">
+      <UniqueIdentifier>{625CF860-0DF3-3A76-A425-2318B94DC6A1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

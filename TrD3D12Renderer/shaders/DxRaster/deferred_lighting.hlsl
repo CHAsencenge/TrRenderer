@@ -33,8 +33,7 @@ cbuffer DeferredLightingPassConstants : register(b2)
 {
     float g_directLightingScale;
     float g_ambientLightingScale;
-    uint g_lightingDebugView;
-    float g_lightingPadding;
+    float2 g_lightingPadding;
 };
 
 Texture2D<float4> g_baseColorRoughness : register(t0);
@@ -68,11 +67,6 @@ float4 PSMain(FullscreenVertex input) : SV_Target
 
     const float3 baseColor = g_baseColorRoughness.Load(int3(pixel, 0)).rgb;
     const float3 worldNormal = normalize(g_normalMetallic.Load(int3(pixel, 0)).xyz);
-    if(g_lightingDebugView == 1u)
-    {
-        return float4(worldNormal * 0.5f + 0.5f, 1.0f);
-    }
-
     const float diffuse = saturate(dot(worldNormal, normalize(g_lightDirection)));
     const float lighting = g_ambientStrength * g_ambientLightingScale +
         (1.0f - g_ambientStrength) * g_lightIntensity *

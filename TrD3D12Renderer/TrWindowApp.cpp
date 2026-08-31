@@ -1,6 +1,14 @@
 
 #include "TrWindowApp.h"
 #include "TrRendererBase.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+	HWND hWnd,
+	UINT message,
+	WPARAM wParam,
+	LPARAM lParam);
 
 HWND TrWindowApp::mHwnd = nullptr;
 UINT TrWindowApp::mPendingWidth = 0;
@@ -30,14 +38,15 @@ int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdSho
 	wndClass.lpszClassName = L"TrRenderer";
 	RegisterClassEx(&wndClass);
 
+	constexpr DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 	RECT wndRect = { 0, 0, static_cast<LONG>(pRenderer->GetWidth()), static_cast<LONG>(pRenderer->GetHeight()) };
-	AdjustWindowRect(&wndRect, WS_OVERLAPPEDWINDOW, FALSE);
+	AdjustWindowRect(&wndRect, windowStyle, FALSE);
 
 	// create the window and store a handle to it
 	mHwnd = CreateWindow(
 		wndClass.lpszClassName,
 		pRenderer->GetTitle(),
-		WS_OVERLAPPEDWINDOW,
+		windowStyle,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		wndRect.right - wndRect.left,
@@ -100,6 +109,11 @@ HWND TrWindowApp::GetHwnd()
 // must be static for wndClass.lpfnWndProc
 LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+	{
+		return 1;
+	}
+
 	// each window has a long ptr, to store a custom data
 	// GWLP_USERDATA is an index to access this user data
 	TrRendererBase* pRenderer = reinterpret_cast<TrRendererBase*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));

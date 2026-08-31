@@ -12,6 +12,8 @@
 #include "TrDeferredRenderTargets.h"
 #include "TrDescriptorHeap.h"
 #include "TrGBufferPass.h"
+#include "TrGpuDebug.h"
+#include "TrGpuDebugPanel.h"
 #include "TrHistoryTexture.h"
 #include "TrMesh.h"
 #include "TrRenderConstants.h"
@@ -35,6 +37,8 @@ private:
     void LoadPipeline();
     void LoadAssetsCornellBox();
     void CreateBackBufferResources();
+    void RegisterGpuDebugViews();
+    void UpdateWindowTitle() const;
 
     // populate: add datas to...
     void PopulateCommandList();
@@ -92,6 +96,8 @@ private:
     TrDescriptorHeap mResourceHeap;
     TrDeferredRenderTargets mDeferredRenderTargets;
     TrHistoryTexture mLightingHistory;
+    TrGpuDebug mGpuDebug;
+    TrGpuDebugPanel mGpuDebugPanel;
 
     // app resources
     TrMesh mSceneMesh;
@@ -104,5 +110,7 @@ private:
     UINT mFrameIndex;
     UINT mFrameNumber = 0;
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
+    float mExposure = 1.0f;
+    float mDepthVisualizationRange = 10.0f;
     bool mInitialized = false;
 };
