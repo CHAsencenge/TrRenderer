@@ -7,8 +7,10 @@
 #include "TrD3D12Util.h"
 #include "TrD3D12RendererBase.h"
 #include "TrD3D12ConstantBuffer.h"
+#include "TrD3D12DescriptorHeap.h"
 #include "TrD3D12GraphicsPipeline.h"
 #include "TrD3D12Mesh.h"
+#include "TrD3D12Texture.h"
 
 class TrWindowApp;
 
@@ -48,6 +50,7 @@ private:
      * constexpr variable's value is evaluated at compile time. It must be initialized with a constant expression and a value.
      */
     static constexpr UINT SwapFrameCount = 2;
+    static constexpr UINT ResourceDescriptorCount = 64;
 
     struct FrameContext
     {
@@ -66,11 +69,19 @@ private:
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
     TrD3D12GraphicsPipeline mGraphicsPipeline;
     
-    Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    UINT mRtvDescriptorSize;
-    Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencil;
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+    TrD3D12Texture mRenderTargets[SwapFrameCount];
+    TrD3D12DescriptorAllocation mRenderTargetViews[SwapFrameCount];
+    TrD3D12DescriptorHeap mRtvHeap;
+    TrD3D12Texture mDepthStencil;
+    TrD3D12DescriptorAllocation mDepthStencilView;
+    TrD3D12DescriptorHeap mDsvHeap;
+    TrD3D12DescriptorHeap mResourceHeap;
+
+    // Temporary iteration-1 validation target. It becomes a real GBuffer/HDR
+    // resource in the next deferred-rendering iteration.
+    TrD3D12Texture mOffscreenTarget;
+    TrD3D12DescriptorAllocation mOffscreenRtv;
+    TrD3D12DescriptorAllocation mOffscreenSrv;
 
     // app resources
     TrD3D12Mesh mSceneMesh;

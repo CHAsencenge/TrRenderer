@@ -331,6 +331,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Mesh.cpp" />
@@ -341,6 +343,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12UploadContext.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12UploadContext.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp" />

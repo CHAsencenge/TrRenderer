@@ -9,8 +9,7 @@ TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstri
     TrD3D12RendererBase(width, height, title),
     mFrameIndex(0),
     mViewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
-    mScissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
-    mRtvDescriptorSize(0)
+    mScissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height))
 {
 }
 
@@ -131,30 +130,39 @@ void TrD3D12RendererRaster::LoadPipeline()
     ThrowIfFailed(swapChain.As(&mSwapChain));
     mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
 
-    // create descriptor heaps
-    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    rtvHeapDesc.NumDescriptors = SwapFrameCount;
-    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    ThrowIfFailed(mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRtvHeap)));
-    mRtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-    D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-    dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    dsvHeapDesc.NumDescriptors = 1;
-    dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-    ThrowIfFailed(mDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&mDsvHeap)));
-    
-
-    // create frame resources
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart()); // get cpu heap start handle, need d3dx12.h
+    mRtvHeap.Initialize(
+        mDevice.Get(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+        SwapFrameCount + 1,
+        false,
+        L"Main RTV Heap");
+    mDsvHeap.Initialize(
+        mDevice.Get(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+        1,
+        false,
+        L"Main DSV Heap");
+    mResourceHeap.Initialize(
+        mDevice.Get(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+        ResourceDescriptorCount,
+        true,
+        L"Shader Resource Heap");
 
     // create a rtv for each frame
     for(UINT n = 0; n < SwapFrameCount; n++)
     {
-        ThrowIfFailed(mSwapChain->GetBuffer(n, IID_PPV_ARGS(&mRenderTargets[n])));
-        mDevice->CreateRenderTargetView(mRenderTargets[n].Get(), nullptr, rtvHandle);
-        rtvHandle.Offset(1, mRtvDescriptorSize); // Offset is declared in d3dx12.h
+        Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
+        ThrowIfFailed(mSwapChain->GetBuffer(n, IID_PPV_ARGS(&backBuffer)));
+        const std::wstring debugName = L"Back Buffer " + std::to_wstring(n);
+        mRenderTargets[n].Attach(
+            backBuffer.Get(),
+            D3D12_RESOURCE_STATE_PRESENT,
+            debugName.c_str());
+        mRenderTargetViews[n] = mRtvHeap.Allocate();
+        mRenderTargets[n].CreateRenderTargetView(
+            mDevice.Get(),
+            mRenderTargetViews[n].CpuHandle);
     }
 
     D3D12_CLEAR_VALUE depthClearValue = {};
@@ -162,32 +170,43 @@ void TrD3D12RendererRaster::LoadPipeline()
     depthClearValue.DepthStencil.Depth = 1.0f;
     depthClearValue.DepthStencil.Stencil = 0;
 
-    CD3DX12_HEAP_PROPERTIES depthHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-    CD3DX12_RESOURCE_DESC depthResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
-        DXGI_FORMAT_D32_FLOAT,
+    mDepthStencil.Initialize2D(
+        mDevice.Get(),
         mWidth,
         mHeight,
-        1,
-        1,
-        1,
-        0,
-        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-    ThrowIfFailed(mDevice->CreateCommittedResource(
-        &depthHeapProperties,
-        D3D12_HEAP_FLAG_NONE,
-        &depthResourceDesc,
+        DXGI_FORMAT_D32_FLOAT,
+        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
         D3D12_RESOURCE_STATE_DEPTH_WRITE,
         &depthClearValue,
-        IID_PPV_ARGS(&mDepthStencil)));
+        L"Main Depth");
+    mDepthStencilView = mDsvHeap.Allocate();
+    mDepthStencil.CreateDepthStencilView(
+        mDevice.Get(),
+        mDepthStencilView.CpuHandle);
 
-    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-    mDevice->CreateDepthStencilView(
-        mDepthStencil.Get(),
-        &dsvDesc,
-        mDsvHeap->GetCPUDescriptorHandleForHeapStart());
+    D3D12_CLEAR_VALUE offscreenClearValue = {};
+    offscreenClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    offscreenClearValue.Color[0] = 0.025f;
+    offscreenClearValue.Color[1] = 0.025f;
+    offscreenClearValue.Color[2] = 0.025f;
+    offscreenClearValue.Color[3] = 1.0f;
+    mOffscreenTarget.Initialize2D(
+        mDevice.Get(),
+        mWidth,
+        mHeight,
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        &offscreenClearValue,
+        L"Iteration 1 Offscreen Target");
+    mOffscreenRtv = mRtvHeap.Allocate();
+    mOffscreenTarget.CreateRenderTargetView(
+        mDevice.Get(),
+        mOffscreenRtv.CpuHandle);
+    mOffscreenSrv = mResourceHeap.Allocate();
+    mOffscreenTarget.CreateShaderResourceView(
+        mDevice.Get(),
+        mOffscreenSrv.CpuHandle);
 
     for(FrameContext& frame : mFrameContexts)
     {
@@ -298,10 +317,11 @@ void TrD3D12RendererRaster::PopulateCommandList()
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
-    CD3DX12_RESOURCE_BARRIER present2RtBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    mCommandList->ResourceBarrier(1, &present2RtBarrier);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart(), mFrameIndex, mRtvDescriptorSize);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(mDsvHeap->GetCPUDescriptorHandleForHeapStart());
+    mOffscreenTarget.Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_RENDER_TARGET);
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mOffscreenRtv.CpuHandle;
+    const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDepthStencilView.CpuHandle;
     mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
     // record commands
@@ -317,9 +337,24 @@ void TrD3D12RendererRaster::PopulateCommandList()
 
     mSceneMesh.Bind(mCommandList.Get());
     mSceneMesh.Draw(mCommandList.Get());
-    
-    CD3DX12_RESOURCE_BARRIER rt2PresentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mRenderTargets[mFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    mCommandList->ResourceBarrier(1, &rt2PresentBarrier);
+
+    // Until the composite pass exists, copy the offscreen result directly to
+    // the swap-chain buffer. This makes the iteration-1 target observable.
+    mOffscreenTarget.Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_COPY_SOURCE);
+    mRenderTargets[mFrameIndex].Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_COPY_DEST);
+    mCommandList->CopyResource(
+        mRenderTargets[mFrameIndex].Get(),
+        mOffscreenTarget.Get());
+    mRenderTargets[mFrameIndex].Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_PRESENT);
+    mOffscreenTarget.Transition(
+        mCommandList.Get(),
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     ThrowIfFailed(mCommandList->Close());
 }

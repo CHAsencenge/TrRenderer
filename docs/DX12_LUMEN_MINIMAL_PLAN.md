@@ -33,6 +33,10 @@
 - HLSL VS/PS 编译；
 - Default Heap Vertex/Index Buffer；
 - 独立的一次性 Upload Context；
+- 记录资源状态的 Texture2D 封装，以及 RTV、DSV、SRV、UAV View 创建；
+- 固定容量、线性分配的 RTV、DSV、Shader-visible CBV/SRV/UAV Descriptor Heap；
+- 可跳过无效重复转换的 Transition 和 UAV Barrier 辅助；
+- 离屏 Render Target 渲染并复制到 SwapChain 的可视化验证路径；
 - Command List；
 - Resource Barrier；
 - 双缓冲 FrameContext 和按帧 Fence/Event 同步；
@@ -77,6 +81,9 @@ TrD3D12Renderer/
   TrD3D12UploadContext.*    一次性静态资源上传及上传资源生命周期
   TrD3D12Mesh.*             Vertex/Index Buffer、View、Bind 和 Draw
   TrD3D12GraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
+  TrD3D12Texture.*          Texture2D、View 创建和资源状态跟踪
+  TrD3D12DescriptorHeap.*   固定容量描述符堆与线性分配
+  TrD3D12ResourceBarrier.*  Transition 和 UAV Barrier
   CornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
   TrD3D12RendererRaster.*   初始化与逐帧编排
 ```
@@ -91,6 +98,13 @@ GraphicsPipeline -------------> Root Signature + PSO
 ConstantBuffer ----------------> 每个 FrameContext 一份
                                   |
 Renderer ------------------------+-> 逐帧 Bind / Draw / Present
+```
+
+延迟渲染迭代 1 已完成：Cornell Box 先渲染到带 RTV/SRV 的离屏纹理，再以 `COPY_SOURCE` 复制到 `COPY_DEST` 状态的 SwapChain Back Buffer。当前逐帧状态链为：
+
+```text
+Offscreen: PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> COPY_SOURCE -> PIXEL_SHADER_RESOURCE
+BackBuffer: PRESENT -> COPY_DEST -> PRESENT
 ```
 
 后续只在需求出现时继续拆分，不建立复杂继承体系：

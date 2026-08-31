@@ -1,4 +1,5 @@
 #include "TrD3D12UploadContext.h"
+#include "TrD3D12ResourceBarrier.h"
 
 #include <stdexcept>
 
@@ -86,11 +87,11 @@ void TrD3D12UploadContext::UploadStaticBuffer(
         1,
         &subresourceData);
 
-    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+    TrD3D12ResourceBarrier::Transition(
+        mCommandList.Get(),
         destination.Get(),
         D3D12_RESOURCE_STATE_COPY_DEST,
         finalState);
-    mCommandList->ResourceBarrier(1, &barrier);
     mIntermediateResources.push_back(intermediate);
 }
 
