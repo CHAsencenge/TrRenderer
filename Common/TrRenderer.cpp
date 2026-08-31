@@ -21,7 +21,7 @@
 
 #ifdef IS_TR_D3D_RENDERER
 #include "../TrD3D12Renderer/TrWindowApp.h"
-#include "../TrD3D12Renderer/TrD3D12RendererRaster.h"
+#include "../TrD3D12Renderer/TrDeferredRenderer.h"
 #endif
 
 #ifdef IS_TR_VULKAN_RENDERER
@@ -138,10 +138,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
     try
     {
-        TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Cornell Box");
+        TrDeferredRenderer Renderer(1920, 1080, L"Tr Cornell Box");
         return TrWindowApp::Run(&Renderer, hInstance, showCmd);
     }
-    catch(const DxException& exception)
+    catch(const TrGraphicsException& exception)
     {
         const std::wstring message = exception.ToString();
         OutputDebugStringW(message.c_str());

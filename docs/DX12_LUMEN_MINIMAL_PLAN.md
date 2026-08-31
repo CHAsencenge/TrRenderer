@@ -39,7 +39,7 @@
 - 离屏 Render Target 渲染并复制到 SwapChain 的可视化验证路径；
 - Command List；
 - Resource Barrier；
-- 双缓冲 FrameContext 和按帧 Fence/Event 同步；
+- 双缓冲 TrFrameContext 和按帧 Fence/Event 同步；
 - 持续 Update/Render 主循环；
 - `R32_TYPELESS` Depth Buffer，以及 `D32_FLOAT` DSV、`R32_FLOAT` SRV；
 - Default Heap 静态 Vertex/Index Buffer；
@@ -79,49 +79,51 @@
 
 当前已经落地的资源和管线组件：
 
+命名约定：`TrD3D12Renderer` 只保留为后端目录和构建目标名，用于区分 D3D12、Vulkan 等平台模块；模块内自定义 C++ 类型不再重复携带 `D3D12`。主编排类由 `TrD3D12RendererRaster` 改为 `TrDeferredRenderer`，因为它已经负责 GBuffer、Deferred Lighting、Composite，并将继续接入 Compute 和 RayQuery；Raster 只是其中一个执行阶段，不足以描述整条管线。
+
 ```text
 TrD3D12Renderer/
-  TrD3D12ConstantBuffer.*   256 字节对齐、持久映射、按帧更新
-  TrD3D12RenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
-  TrD3D12UploadContext.*    一次性静态资源上传及上传资源生命周期
-  TrD3D12Mesh.*             Vertex/Index Buffer、View、Bind 和 Draw
-  TrD3D12GraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
-  TrD3D12ComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
-  TrD3D12Texture.*          Texture2D、View 创建和资源状态跟踪
-  TrD3D12DescriptorHeap.*   固定容量描述符堆与线性分配
-  TrD3D12ResourceBarrier.*  Transition 和 UAV Barrier
-  TrD3D12DeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
-  TrD3D12GBufferPass.*      MRT GBuffer 管线与 Pass 边界
-  TrD3D12DeferredLightingPass.* GBuffer 读取和方向光照
-  TrD3D12CompositePass.*    HDR 读取、Gamma 转换和 SwapChain 输出
-  CornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
-  TrD3D12RendererRaster.*   初始化与逐帧编排
+  TrConstantBuffer.*   256 字节对齐、持久映射、按帧更新
+  TrRenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
+  TrUploadContext.*    一次性静态资源上传及上传资源生命周期
+  TrMesh.*             Vertex/Index Buffer、View、Bind 和 Draw
+  TrGraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
+  TrComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
+  TrTexture.*          Texture2D、View 创建和资源状态跟踪
+  TrDescriptorHeap.*   固定容量描述符堆与线性分配
+  TrResourceBarrier.*  Transition 和 UAV Barrier
+  TrDeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
+  TrGBufferPass.*      MRT GBuffer 管线与 Pass 边界
+  TrDeferredLightingPass.* GBuffer 读取和方向光照
+  TrCompositePass.*    HDR 读取、Gamma 转换和 SwapChain 输出
+  TrCornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
+  TrDeferredRenderer.*   初始化与逐帧编排
 ```
 
 初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
 
 ```text
-CornellBoxScene -> CPU MeshData
+TrCornellBoxScene -> TrCornellBoxMeshData
                          |
-UploadContext ----------> Mesh -> GPU Vertex/Index Buffer
-GraphicsPipeline -------------> Root Signature + PSO
-ConstantBuffer ----------------> 每个 FrameContext 一份
+TrUploadContext --------> TrMesh -> GPU Vertex/Index Buffer
+TrGraphicsPipeline -----------> Root Signature + PSO
+TrConstantBuffer -------------> 每个 TrFrameContext 一份
                                   |
-Renderer ------------------------+-> 逐帧 Bind / Draw / Present
+TrDeferredRenderer --------------+-> 逐帧 Bind / Draw / Present
 ```
 
 常量数据按 UE 风格的逻辑生命周期拆成六层，所有 Shader 使用同一寄存器约定：
 
 ```text
-SceneConstants              b0  方向光、环境光等场景公共数据
-ViewConstants               b1  当前/上一帧矩阵、相机、渲染尺寸、Jitter、帧号
-PassConstants               b2  GBuffer、DeferredLighting、Composite 各自的强类型参数
-PrimitiveConstants          b3  World、PreviousWorld、法线矩阵、包围球、PrimitiveId
-MaterialConstants           b4  BaseColorFactor、Roughness、Metallic、EmissiveStrength
-DrawConstants               b5  Primitive/Material 索引、InstanceOffset、Draw Flags
+TrSceneConstants            b0  方向光、环境光等场景公共数据
+TrViewConstants             b1  当前/上一帧矩阵、相机、渲染尺寸、Jitter、帧号
+Tr*PassConstants            b2  GBuffer、DeferredLighting、Composite 各自的强类型参数
+TrPrimitiveConstants        b3  World、PreviousWorld、法线矩阵、包围球、PrimitiveId
+TrMaterialConstants         b4  BaseColorFactor、Roughness、Metallic、EmissiveStrength
+TrDrawConstants             b5  Primitive/Material 索引、InstanceOffset、Draw Flags
 ```
 
-`PassConstants` 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `GBufferPassConstants`、`DeferredLightingPassConstants` 和 `CompositePassConstants`。Scene、View、Pass、Primitive、Material 的 CBV 按 `FrameContext` 分配，CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
+`b2` Pass Constants 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `TrGBufferPassConstants`、`TrDeferredLightingPassConstants` 和 `TrCompositePassConstants`。Scene、View、Pass、Primitive、Material 的 CBV 按 `TrFrameContext` 分配，CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
 
 延迟渲染迭代 1 已完成：Cornell Box 先渲染到带 RTV/SRV 的离屏纹理，再以 `COPY_SOURCE` 复制到 `COPY_DEST` 状态的 SwapChain Back Buffer。当前逐帧状态链为：
 
@@ -143,22 +145,22 @@ BackBuffer: PRESENT -> RENDER_TARGET -> PRESENT
 
 ```text
 TrD3D12Renderer/
-  DxContext.*          Device、Queue、SwapChain、Fence
-  FrameContext.*       每帧 CommandAllocator、FenceValue、上传偏移
-  GpuResource.*        Buffer/Texture、资源状态和 Barrier 辅助
-  DescriptorHeap.*     RTV、DSV、CBV/SRV/UAV 的简单线性分配
-  TrD3D12UploadContext.* 静态资源上传（已完成 Buffer 路径）
-  Scene.*              Camera、Mesh、Material、Instance
-  Renderer.*           帧流程和 Pass 调度
+  TrDeviceContext.*    Device、Queue、SwapChain、Fence
+  TrFrameContext.*     每帧 CommandAllocator、FenceValue、上传偏移
+  TrGpuResource.*      Buffer/Texture、资源状态和 Barrier 辅助
+  TrDescriptorHeap.*   RTV、DSV、CBV/SRV/UAV 的简单线性分配
+  TrUploadContext.*    静态资源上传（已完成 Buffer 路径）
+  TrScene.*            Camera、Mesh、Material、Instance
+  TrDeferredRenderer.* 帧流程和 Pass 调度
   Passes/
-    GBufferPass.*
-    LightingPass.*
-    HzbPass.*
-    ScreenTracePass.*
-    RayQueryPass.*
-    SurfaceCachePass.*
-    ScreenProbePass.*
-    CompositePass.*
+    TrGBufferPass.*
+    TrDeferredLightingPass.*
+    TrHzbPass.*
+    TrScreenTracePass.*
+    TrRayQueryPass.*
+    TrSurfaceCachePass.*
+    TrScreenProbePass.*
+    TrCompositePass.*
 ```
 
 Pass 初期可以只是普通函数或小类。不要建立通用节点系统、反射注册系统或插件框架。
@@ -171,8 +173,8 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 
 - 将 `Update/Render` 从单纯的 `WM_PAINT` 回调移到空闲消息循环；
 - 处理 `WM_SIZE`，重建 Back Buffer 和 RTV；
-- 建立两个 `FrameContext`，对应双缓冲 SwapChain；
-- 每个 FrameContext 保存 CommandAllocator 和 FenceValue；
+- 建立两个 `TrFrameContext`，对应双缓冲 SwapChain；
+- 每个 TrFrameContext 保存 CommandAllocator 和 FenceValue；
 - 只在复用该帧资源时等待 Fence，不在每次 Present 后立即全局等待；
 - 修正 Fence Event 创建失败判断；
 - 启用 Debug Layer、GPU-Based Validation 和 DRED；
@@ -326,7 +328,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 
 严格按以下顺序推进：
 
-1. 持续帧循环、Resize、FrameContext、Fence；
+1. 持续帧循环、Resize、TrFrameContext、Fence；
 2. Buffer/Texture、Descriptor、Upload、Barrier；
 3. DXC、Compute PSO、调试输出；
 4. Cornell Box、Camera、Depth、GBuffer；
@@ -344,7 +346,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 重写 Win32 主循环，使渲染持续运行；
 - [ ] 添加 `WM_SIZE` 处理；
 - [x] 修正 Fence Event 错误判断；
-- [x] 增加双缓冲 `FrameContext`；
+- [x] 增加双缓冲 `TrFrameContext`；
 - [x] 增加 DSV 和 Depth Buffer；
 - [x] 增加 Index Buffer；
 - [x] 将静态几何从 Upload Heap 移入 Default Heap；

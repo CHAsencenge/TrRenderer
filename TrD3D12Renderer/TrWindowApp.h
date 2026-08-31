@@ -1,13 +1,13 @@
 #pragma once
-#include "TrD3D12Util.h"
+#include "TrUtil.h"
 
-class TrD3D12RendererBase;
+class TrRendererBase;
 
 class TrWindowApp
 {
 public:
 
-    static int Run(TrD3D12RendererBase* renderer, HINSTANCE hInstance, int nCmdShow);
+    static int Run(TrRendererBase* renderer, HINSTANCE hInstance, int nCmdShow);
 
     static HWND GetHwnd();
 

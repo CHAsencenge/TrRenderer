@@ -1,11 +1,11 @@
 
 #include "TrWindowApp.h"
-#include "TrD3D12RendererBase.h"
+#include "TrRendererBase.h"
 
 HWND TrWindowApp::mHwnd = nullptr;
 
 
-int TrWindowApp::Run(TrD3D12RendererBase* pRenderer, HINSTANCE hInstance, int nCmdShow)
+int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdShow)
 {
 	// parse the command line parameters
 	int argc;
@@ -77,7 +77,7 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 {
 	// each window has a long ptr, to store a custom data
 	// GWLP_USERDATA is an index to access this user data
-	TrD3D12RendererBase* pRenderer = reinterpret_cast<TrD3D12RendererBase*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	TrRendererBase* pRenderer = reinterpret_cast<TrRendererBase*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
 	switch (message)
 	{
