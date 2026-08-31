@@ -10,6 +10,48 @@ void TrDeferredRenderTargets::Initialize(
     TrDescriptorHeap& dsvHeap,
     TrDescriptorHeap& resourceHeap)
 {
+    mBaseColorRtv = rtvHeap.Allocate();
+    mNormalRtv = rtvHeap.Allocate();
+    mHdrLightingRtv = rtvHeap.Allocate();
+    mDepthDsv = dsvHeap.Allocate();
+
+    mBaseColorSrv = resourceHeap.Allocate();
+    mNormalSrv = resourceHeap.Allocate();
+    mDepthSrv = resourceHeap.Allocate();
+    mHdrLightingSrv = resourceHeap.Allocate();
+
+    if(mNormalSrv.Index != mBaseColorSrv.Index + 1 ||
+       mDepthSrv.Index != mBaseColorSrv.Index + 2)
+    {
+        throw std::logic_error("GBuffer SRVs must occupy one contiguous descriptor table.");
+    }
+
+    CreateResources(device, width, height);
+}
+
+void TrDeferredRenderTargets::Resize(
+    ID3D12Device* device,
+    UINT width,
+    UINT height)
+{
+    if(mBaseColorRtv.Index == UINT_MAX || mDepthDsv.Index == UINT_MAX ||
+       mBaseColorSrv.Index == UINT_MAX)
+    {
+        throw std::logic_error("Deferred render targets have not been initialized.");
+    }
+    CreateResources(device, width, height);
+}
+
+void TrDeferredRenderTargets::CreateResources(
+    ID3D12Device* device,
+    UINT width,
+    UINT height)
+{
+    if(device == nullptr || width == 0 || height == 0)
+    {
+        throw std::invalid_argument("Deferred render target dimensions are invalid.");
+    }
+
     D3D12_CLEAR_VALUE baseColorClear = {};
     baseColorClear.Format = BaseColorRoughnessFormat;
     baseColorClear.Color[3] = 1.0f;
@@ -60,22 +102,6 @@ void TrDeferredRenderTargets::Initialize(
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
         &hdrClear,
         L"HDR Lighting");
-
-    mBaseColorRtv = rtvHeap.Allocate();
-    mNormalRtv = rtvHeap.Allocate();
-    mHdrLightingRtv = rtvHeap.Allocate();
-    mDepthDsv = dsvHeap.Allocate();
-
-    mBaseColorSrv = resourceHeap.Allocate();
-    mNormalSrv = resourceHeap.Allocate();
-    mDepthSrv = resourceHeap.Allocate();
-    mHdrLightingSrv = resourceHeap.Allocate();
-
-    if(mNormalSrv.Index != mBaseColorSrv.Index + 1 ||
-       mDepthSrv.Index != mBaseColorSrv.Index + 2)
-    {
-        throw std::logic_error("GBuffer SRVs must occupy one contiguous descriptor table.");
-    }
 
     mBaseColorRoughness.CreateRenderTargetView(device, mBaseColorRtv.CpuHandle);
     mNormalMetallic.CreateRenderTargetView(device, mNormalRtv.CpuHandle);

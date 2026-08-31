@@ -24,6 +24,7 @@ public:
         TrDescriptorHeap& rtvHeap,
         TrDescriptorHeap& dsvHeap,
         TrDescriptorHeap& resourceHeap);
+    void Resize(ID3D12Device* device, UINT width, UINT height);
 
     void BeginGBufferPass(ID3D12GraphicsCommandList* commandList);
     void EndGBufferPass(ID3D12GraphicsCommandList* commandList);
@@ -42,6 +43,8 @@ public:
     const TrDescriptorAllocation& GetHdrLightingSrv() const { return mHdrLightingSrv; }
 
 private:
+    void CreateResources(ID3D12Device* device, UINT width, UINT height);
+
     TrTexture mBaseColorRoughness;
     TrTexture mNormalMetallic;
     TrTexture mDepth;

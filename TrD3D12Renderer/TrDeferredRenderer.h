@@ -12,6 +12,7 @@
 #include "TrDeferredRenderTargets.h"
 #include "TrDescriptorHeap.h"
 #include "TrGBufferPass.h"
+#include "TrHistoryTexture.h"
 #include "TrMesh.h"
 #include "TrRenderConstants.h"
 
@@ -24,6 +25,7 @@ public:
     void OnInitialize() override;
     void OnUpdate() override;
     void OnRender() override;
+    void OnResize(UINT width, UINT height) override;
     void OnDestroy() override;
 
     void OnKeyDown(UINT8 wParam) override;
@@ -32,6 +34,7 @@ public:
 private:
     void LoadPipeline();
     void LoadAssetsCornellBox();
+    void CreateBackBufferResources();
 
     // populate: add datas to...
     void PopulateCommandList();
@@ -88,6 +91,7 @@ private:
     TrDescriptorHeap mDsvHeap;
     TrDescriptorHeap mResourceHeap;
     TrDeferredRenderTargets mDeferredRenderTargets;
+    TrHistoryTexture mLightingHistory;
 
     // app resources
     TrMesh mSceneMesh;
@@ -100,4 +104,5 @@ private:
     UINT mFrameIndex;
     UINT mFrameNumber = 0;
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
+    bool mInitialized = false;
 };

@@ -15,6 +15,7 @@ public:
 	virtual void OnInitialize() = 0;
 	virtual void OnUpdate() = 0;
 	virtual void OnRender() = 0;
+	virtual void OnResize(UINT width, UINT height) = 0;
 	virtual void OnDestroy() = 0;
 
 	virtual void OnKeyDown(UINT8 wParam) = 0;

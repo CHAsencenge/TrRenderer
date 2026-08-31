@@ -3,10 +3,17 @@
 #include "TrRendererBase.h"
 
 HWND TrWindowApp::mHwnd = nullptr;
+UINT TrWindowApp::mPendingWidth = 0;
+UINT TrWindowApp::mPendingHeight = 0;
+bool TrWindowApp::mResizePending = false;
+bool TrWindowApp::mMinimized = false;
 
 
 int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdShow)
 {
+	mResizePending = false;
+	mMinimized = false;
+
 	// parse the command line parameters
 	int argc;
 	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -33,12 +40,19 @@ int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdSho
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		static_cast<LONG>(pRenderer->GetWidth()),
-		static_cast<LONG>(pRenderer->GetHeight()),
+		wndRect.right - wndRect.left,
+		wndRect.bottom - wndRect.top,
 		nullptr,
 		nullptr,
 		hInstance,
 		pRenderer);
+
+	RECT clientRect = {};
+	GetClientRect(mHwnd, &clientRect);
+	pRenderer->OnResize(
+		static_cast<UINT>(clientRect.right - clientRect.left),
+		static_cast<UINT>(clientRect.bottom - clientRect.top));
+	mResizePending = false;
 
 	// initialize the renderer
 	pRenderer->OnInitialize();
@@ -54,10 +68,21 @@ int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdSho
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else
+		else if (mResizePending && !mMinimized)
+		{
+			const UINT width = mPendingWidth;
+			const UINT height = mPendingHeight;
+			mResizePending = false;
+			pRenderer->OnResize(width, height);
+		}
+		else if (!mMinimized)
 		{
 			pRenderer->OnUpdate();
 			pRenderer->OnRender();
+		}
+		else
+		{
+			WaitMessage();
 		}
 	}
 
@@ -100,6 +125,21 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			if (pRenderer)
 			{
 				pRenderer->OnKeyUp(static_cast<UINT8>(wParam));
+			}
+			return 0;
+		}
+		case WM_SIZE:
+		{
+			mMinimized = wParam == SIZE_MINIMIZED;
+			if (!mMinimized)
+			{
+				mPendingWidth = LOWORD(lParam);
+				mPendingHeight = HIWORD(lParam);
+				mResizePending = mPendingWidth != 0 && mPendingHeight != 0;
+			}
+			else
+			{
+				mResizePending = false;
 			}
 			return 0;
 		}

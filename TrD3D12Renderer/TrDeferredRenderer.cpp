@@ -20,6 +20,7 @@ void TrDeferredRenderer::OnInitialize()
 {
     LoadPipeline();
     LoadAssetsCornellBox();
+    mInitialized = true;
 }
 
 void TrDeferredRenderer::OnUpdate()
@@ -107,9 +108,67 @@ void TrDeferredRenderer::OnRender()
     MoveToNextFrame();
 }
 
+void TrDeferredRenderer::OnResize(UINT width, UINT height)
+{
+    if(width == 0 || height == 0 || (width == mWidth && height == mHeight))
+    {
+        return;
+    }
+
+    mWidth = width;
+    mHeight = height;
+    mAspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    mViewport = CD3DX12_VIEWPORT(
+        0.0f,
+        0.0f,
+        static_cast<float>(width),
+        static_cast<float>(height));
+    mScissorRect = CD3DX12_RECT(
+        0,
+        0,
+        static_cast<LONG>(width),
+        static_cast<LONG>(height));
+
+    // WM_SIZE can arrive while CreateWindow is still constructing the window.
+    if(!mInitialized)
+    {
+        return;
+    }
+
+    FlushCommandQueue();
+    for(TrTexture& renderTarget : mRenderTargets)
+    {
+        renderTarget.Reset();
+    }
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    ThrowIfFailed(mSwapChain->GetDesc(&swapChainDesc));
+    ThrowIfFailed(mSwapChain->ResizeBuffers(
+        SwapFrameCount,
+        width,
+        height,
+        DXGI_FORMAT_UNKNOWN,
+        swapChainDesc.Flags));
+
+    mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
+    CreateBackBufferResources();
+    mDeferredRenderTargets.Resize(mDevice.Get(), width, height);
+    mLightingHistory.Resize(mDevice.Get(), width, height);
+
+    for(TrFrameContext& frame : mFrameContexts)
+    {
+        frame.FenceValue = 0;
+    }
+    mFrameNumber = 0;
+    DirectX::XMStoreFloat4x4(
+        &mPreviousViewProjection,
+        DirectX::XMMatrixIdentity());
+}
+
 void TrDeferredRenderer::OnDestroy()
 {
     FlushCommandQueue();
+    mInitialized = false;
     if(mFenceEvent != nullptr)
     {
         CloseHandle(mFenceEvent);
@@ -205,21 +264,12 @@ void TrDeferredRenderer::LoadPipeline()
         true,
         L"Shader Resource Heap");
 
-    // create a rtv for each frame
+    // Reserve stable RTV slots. Resize rewrites these descriptors in place.
     for(UINT n = 0; n < SwapFrameCount; n++)
     {
-        Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
-        ThrowIfFailed(mSwapChain->GetBuffer(n, IID_PPV_ARGS(&backBuffer)));
-        const std::wstring debugName = L"Back Buffer " + std::to_wstring(n);
-        mRenderTargets[n].Attach(
-            backBuffer.Get(),
-            D3D12_RESOURCE_STATE_PRESENT,
-            debugName.c_str());
         mRenderTargetViews[n] = mRtvHeap.Allocate();
-        mRenderTargets[n].CreateRenderTargetView(
-            mDevice.Get(),
-            mRenderTargetViews[n].CpuHandle);
     }
+    CreateBackBufferResources();
 
     mDeferredRenderTargets.Initialize(
         mDevice.Get(),
@@ -228,6 +278,13 @@ void TrDeferredRenderer::LoadPipeline()
         mRtvHeap,
         mDsvHeap,
         mResourceHeap);
+    mLightingHistory.Initialize(
+        mDevice.Get(),
+        mWidth,
+        mHeight,
+        TrDeferredRenderTargets::HdrLightingFormat,
+        mResourceHeap,
+        L"Indirect Lighting History");
 
     for(TrFrameContext& frame : mFrameContexts)
     {
@@ -242,6 +299,28 @@ void TrDeferredRenderer::LoadPipeline()
     if(mFenceEvent == nullptr)
     {
         ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+    }
+}
+
+void TrDeferredRenderer::CreateBackBufferResources()
+{
+    for(UINT index = 0; index < SwapFrameCount; ++index)
+    {
+        if(mRenderTargetViews[index].Index == UINT_MAX)
+        {
+            throw std::logic_error("Back buffer RTV slot has not been allocated.");
+        }
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
+        ThrowIfFailed(mSwapChain->GetBuffer(index, IID_PPV_ARGS(&backBuffer)));
+        const std::wstring debugName = L"Back Buffer " + std::to_wstring(index);
+        mRenderTargets[index].Attach(
+            backBuffer.Get(),
+            D3D12_RESOURCE_STATE_PRESENT,
+            debugName.c_str());
+        mRenderTargets[index].CreateRenderTargetView(
+            mDevice.Get(),
+            mRenderTargetViews[index].CpuHandle);
     }
 }
 

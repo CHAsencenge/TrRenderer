@@ -33,9 +33,11 @@
 - DXC HLSL 编译、Shader Model 6.5 VS/PS/CS 和运行时能力检查；
 - Default Heap Vertex/Index Buffer；
 - 独立的一次性 Upload Context；
-- 记录资源状态的 Texture2D 封装，以及 RTV、DSV、SRV、UAV View 创建；
+- 记录每级 Mip 状态的 Texture2D 封装，以及可指定 Mip 范围的 RTV、DSV、SRV、UAV View 创建；
 - 固定容量、线性分配的 RTV、DSV、Shader-visible CBV/SRV/UAV Descriptor Heap；
 - 可跳过无效重复转换的 Transition 和 UAV Barrier 辅助；
+- 可复用描述符的双纹理 `TrHistoryTexture`，支持 Current/Previous、Advance 和 Invalidate；
+- `WM_SIZE` 驱动的 SwapChain、GBuffer、Depth、HDR 与历史纹理重建；
 - 离屏 Render Target 渲染并复制到 SwapChain 的可视化验证路径；
 - Command List；
 - Resource Barrier；
@@ -56,7 +58,7 @@
 
 当前主要不足：
 
-- 没有 Resize；
+- 历史纹理生命周期已具备，但尚未接入实际时间累积、Motion Vector 和 History Rejection；
 - 只有固定 View/Projection 和单个 Primitive/Material，尚无可交互相机及场景对象容器；
 - Compute 基础已接入，尚未实现 HZB 和屏幕空间追踪；
 - 没有 DXR 加速结构和 RayQuery；
@@ -90,7 +92,8 @@ TrD3D12Renderer/
   TrMesh.*             Vertex/Index Buffer、View、Bind 和 Draw
   TrGraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
   TrComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
-  TrTexture.*          Texture2D、View 创建和资源状态跟踪
+  TrTexture.*          Texture2D、分 Mip View 和按 Mip 资源状态跟踪
+  TrHistoryTexture.*   固定双纹理历史、SRV/UAV、交换和失效
   TrDescriptorHeap.*   固定容量描述符堆与线性分配
   TrResourceBarrier.*  Transition 和 UAV Barrier
   TrDeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
@@ -346,7 +349,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 ## 8. 第一批具体任务
 
 - [x] 重写 Win32 主循环，使渲染持续运行；
-- [ ] 添加 `WM_SIZE` 处理；
+- [x] 添加 `WM_SIZE` 处理；
 - [x] 修正 Fence Event 错误判断；
 - [x] 增加双缓冲 `TrFrameContext`；
 - [x] 增加 DSV 和 Depth Buffer；

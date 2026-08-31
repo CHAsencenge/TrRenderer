@@ -15,5 +15,8 @@ public:
 
 private:
     static HWND mHwnd; // shared among all instances of the class
+    static UINT mPendingWidth;
+    static UINT mPendingHeight;
+    static bool mResizePending;
+    static bool mMinimized;
 };
-

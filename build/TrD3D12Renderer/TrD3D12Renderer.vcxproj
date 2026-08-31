@@ -405,6 +405,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRenderConstants.h" />

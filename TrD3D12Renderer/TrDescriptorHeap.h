@@ -22,6 +22,7 @@ public:
     TrDescriptorAllocation Allocate();
 
     ID3D12DescriptorHeap* Get() const { return mHeap.Get(); }
+    D3D12_DESCRIPTOR_HEAP_TYPE GetType() const { return mType; }
     UINT GetCapacity() const { return mCapacity; }
     UINT GetAllocatedCount() const { return mNextIndex; }
     bool IsShaderVisible() const { return mShaderVisible; }

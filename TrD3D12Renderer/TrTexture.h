@@ -2,6 +2,8 @@
 
 #include "TrResourceBarrier.h"
 
+#include <vector>
+
 class TrTexture
 {
 public:
@@ -29,34 +31,47 @@ public:
     void CreateRenderTargetView(
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
-        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN) const;
+        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
+        UINT mipSlice = 0) const;
     void CreateDepthStencilView(
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
-        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN) const;
+        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
+        UINT mipSlice = 0) const;
+
+    // A mipCount of zero exposes every mip from mostDetailedMip onward.
     void CreateShaderResourceView(
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
-        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN) const;
+        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
+        UINT mostDetailedMip = 0,
+        UINT mipCount = 0) const;
     void CreateUnorderedAccessView(
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
-        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN) const;
+        DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
+        UINT mipSlice = 0) const;
 
+    // ALL_SUBRESOURCES transitions every mip, including mixed-state mip chains.
     bool Transition(
         ID3D12GraphicsCommandList* commandList,
-        D3D12_RESOURCE_STATES newState);
+        D3D12_RESOURCE_STATES newState,
+        UINT mipSlice = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
     void UavBarrier(ID3D12GraphicsCommandList* commandList) const;
 
     ID3D12Resource* Get() const { return mResource.Get(); }
-    D3D12_RESOURCE_STATES GetState() const { return mState; }
+    D3D12_RESOURCE_STATES GetState() const;
+    D3D12_RESOURCE_STATES GetState(UINT mipSlice) const;
+    UINT GetMipCount() const { return mDescription.MipLevels; }
     const D3D12_RESOURCE_DESC& GetDescription() const { return mDescription; }
 
 private:
     DXGI_FORMAT ResolveViewFormat(DXGI_FORMAT viewFormat) const;
+    UINT ResolveMipCount(UINT mostDetailedMip, UINT mipCount) const;
+    void ValidateMipSlice(UINT mipSlice) const;
     void ValidateResource() const;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
     D3D12_RESOURCE_DESC mDescription = {};
-    D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
+    std::vector<D3D12_RESOURCE_STATES> mMipStates;
 };
