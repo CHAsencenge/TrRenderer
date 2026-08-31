@@ -10,6 +10,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ComputePipeline.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -73,6 +76,9 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ComputePipeline.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.h">

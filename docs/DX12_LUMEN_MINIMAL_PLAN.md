@@ -29,8 +29,8 @@
 - Device、Direct Command Queue；
 - 双缓冲 SwapChain；
 - RTV、DSV Descriptor Heap；
-- 独立封装的 Root Signature 和 Graphics PSO；
-- DXC HLSL 编译、Shader Model 6.5 VS/PS 和运行时能力检查；
+- 独立封装的 Graphics/Compute Root Signature 和 PSO；
+- DXC HLSL 编译、Shader Model 6.5 VS/PS/CS 和运行时能力检查；
 - Default Heap Vertex/Index Buffer；
 - 独立的一次性 Upload Context；
 - 记录资源状态的 Texture2D 封装，以及 RTV、DSV、SRV、UAV View 创建；
@@ -58,8 +58,7 @@
 
 - 没有 Resize；
 - 只有固定 View/Projection 和单个 Primitive/Material，尚无可交互相机及场景对象容器；
-- 没有 Compute Shader 基础；
-- Graphics Shader 已使用 DXC 和 Shader Model 6.5，Compute Pipeline 尚未接入；
+- Compute 基础已接入，尚未实现 HZB 和屏幕空间追踪；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调和逐帧更新为空。
 
@@ -87,6 +86,7 @@ TrD3D12Renderer/
   TrD3D12UploadContext.*    一次性静态资源上传及上传资源生命周期
   TrD3D12Mesh.*             Vertex/Index Buffer、View、Bind 和 Draw
   TrD3D12GraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
+  TrD3D12ComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
   TrD3D12Texture.*          Texture2D、View 创建和资源状态跟踪
   TrD3D12DescriptorHeap.*   固定容量描述符堆与线性分配
   TrD3D12ResourceBarrier.*  Transition 和 UAV Barrier
@@ -353,7 +353,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 将 Constant Buffer、静态上传、Mesh、Graphics PSO 拆成独立组件；
 - [x] 将 Cornell Box CPU 几何生成移出 Renderer；
 - [x] 用 DXC 替换 `D3DCompileFromFile`，并检查 Shader Model 6.5 支持；
-- [ ] 增加最小 Compute Shader Dispatch；
+- [ ] 在首个实际 Compute Pass 中验证 SRV 读取、UAV 写入和 Dispatch；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
 
