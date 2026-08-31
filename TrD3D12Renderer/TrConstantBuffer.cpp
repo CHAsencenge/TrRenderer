@@ -1,6 +1,5 @@
 #include "TrConstantBuffer.h"
 
-#include <cstring>
 #include <stdexcept>
 
 namespace
@@ -28,48 +27,31 @@ void TrConstantBuffer::Initialize(ID3D12Device* device, UINT dataSize)
     mDataSize = dataSize;
     mAllocatedSize = AlignConstantBufferSize(dataSize);
 
-    CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
-    CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(mAllocatedSize);
-    ThrowIfFailed(device->CreateCommittedResource(
-        &heapProperties,
-        D3D12_HEAP_FLAG_NONE,
-        &resourceDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&mResource)));
-
-    const CD3DX12_RANGE noCpuReads(0, 0);
-    ThrowIfFailed(mResource->Map(
-        0,
-        &noCpuReads,
-        reinterpret_cast<void**>(&mMappedData)));
-    std::memset(mMappedData, 0, mAllocatedSize);
+    TrBufferDesc bufferDesc;
+    bufferDesc.SizeInBytes = mAllocatedSize;
+    bufferDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+    bufferDesc.InitialState = D3D12_RESOURCE_STATE_GENERIC_READ;
+    mBuffer.Initialize(device, bufferDesc);
 }
 
 void TrConstantBuffer::Update(const void* data, UINT dataSize)
 {
-    if(mMappedData == nullptr || data == nullptr || dataSize > mDataSize)
+    if(mBuffer.Get() == nullptr || data == nullptr || dataSize > mDataSize)
     {
         throw std::invalid_argument("Invalid constant buffer update.");
     }
 
-    std::memcpy(mMappedData, data, dataSize);
+    mBuffer.Update(data, dataSize);
 }
 
 void TrConstantBuffer::Reset()
 {
-    if(mResource != nullptr && mMappedData != nullptr)
-    {
-        mResource->Unmap(0, nullptr);
-    }
-
-    mMappedData = nullptr;
-    mResource.Reset();
+    mBuffer.Reset();
     mDataSize = 0;
     mAllocatedSize = 0;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS TrConstantBuffer::GetGpuVirtualAddress() const
 {
-    return mResource != nullptr ? mResource->GetGPUVirtualAddress() : 0;
+    return mBuffer.Get() != nullptr ? mBuffer.GetGpuVirtualAddress() : 0;
 }

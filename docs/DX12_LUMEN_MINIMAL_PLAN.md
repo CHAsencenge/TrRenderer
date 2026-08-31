@@ -83,6 +83,7 @@
 
 ```text
 TrD3D12Renderer/
+  TrBuffer.*           Default/Upload/Readback、VBV/IBV/CBV/SRV/UAV、状态跟踪
   TrConstantBuffer.*   256 字节对齐、持久映射、按帧更新
   TrRenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
   TrUploadContext.*    一次性静态资源上传及上传资源生命周期
@@ -105,9 +106,9 @@ TrD3D12Renderer/
 ```text
 TrCornellBoxScene -> TrCornellBoxMeshData
                          |
-TrUploadContext --------> TrMesh -> GPU Vertex/Index Buffer
+TrUploadContext -> TrBuffer -> TrMesh -> GPU Vertex/Index Buffer
 TrGraphicsPipeline -----------> Root Signature + PSO
-TrConstantBuffer -------------> 每个 TrFrameContext 一份
+TrBuffer -------> TrConstantBuffer -> 每个 TrFrameContext 一份
                                   |
 TrDeferredRenderer --------------+-> 逐帧 Bind / Draw / Present
 ```
@@ -147,7 +148,8 @@ BackBuffer: PRESENT -> RENDER_TARGET -> PRESENT
 TrD3D12Renderer/
   TrDeviceContext.*    Device、Queue、SwapChain、Fence
   TrFrameContext.*     每帧 CommandAllocator、FenceValue、上传偏移
-  TrGpuResource.*      Buffer/Texture、资源状态和 Barrier 辅助
+  TrBuffer.*           通用 Buffer、各种 View 和资源状态
+  TrTexture.*          Texture2D、各种 View 和资源状态
   TrDescriptorHeap.*   RTV、DSV、CBV/SRV/UAV 的简单线性分配
   TrUploadContext.*    静态资源上传（已完成 Buffer 路径）
   TrScene.*            Camera、Mesh、Material、Instance
@@ -191,7 +193,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 
 任务：
 
-- 实现轻量 `GpuBuffer` 和 `GpuTexture`；
+- 实现轻量 `TrBuffer` 和 `TrTexture`（已完成）；
 - 资源对象记录当前 `D3D12_RESOURCE_STATES`；
 - 提供 Transition 和 UAV Barrier 辅助函数；
 - 建立 CPU 可见 RTV、DSV Heap；

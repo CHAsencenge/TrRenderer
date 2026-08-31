@@ -4,6 +4,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -67,6 +70,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.h">

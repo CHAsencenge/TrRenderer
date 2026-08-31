@@ -47,29 +47,32 @@ void TrUploadContext::UploadStaticBuffer(
     const void* sourceData,
     UINT64 byteSize,
     D3D12_RESOURCE_STATES finalState,
-    Microsoft::WRL::ComPtr<ID3D12Resource>& destination)
+    Microsoft::WRL::ComPtr<ID3D12Resource>& destination,
+    D3D12_RESOURCE_FLAGS flags)
 {
     if(!mRecording || sourceData == nullptr || byteSize == 0)
     {
         throw std::invalid_argument("Invalid static buffer upload.");
     }
 
-    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
+    const CD3DX12_RESOURCE_DESC destinationDesc =
+        CD3DX12_RESOURCE_DESC::Buffer(byteSize, flags);
     CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
     ThrowIfFailed(mDevice->CreateCommittedResource(
         &defaultHeapProperties,
         D3D12_HEAP_FLAG_NONE,
-        &bufferDesc,
+        &destinationDesc,
         D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
         IID_PPV_ARGS(&destination)));
 
     Microsoft::WRL::ComPtr<ID3D12Resource> intermediate;
+    const CD3DX12_RESOURCE_DESC uploadDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
     CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
     ThrowIfFailed(mDevice->CreateCommittedResource(
         &uploadHeapProperties,
         D3D12_HEAP_FLAG_NONE,
-        &bufferDesc,
+        &uploadDesc,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&intermediate)));

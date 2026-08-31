@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TrUtil.h"
+#include "TrBuffer.h"
 
 class TrConstantBuffer
 {
@@ -26,8 +26,7 @@ public:
     UINT GetAllocatedSize() const { return mAllocatedSize; }
 
 private:
-    Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
-    UINT8* mMappedData = nullptr;
+    TrBuffer mBuffer;
     UINT mDataSize = 0;
     UINT mAllocatedSize = 0;
 };

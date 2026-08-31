@@ -16,7 +16,8 @@ public:
         const void* sourceData,
         UINT64 byteSize,
         D3D12_RESOURCE_STATES finalState,
-        Microsoft::WRL::ComPtr<ID3D12Resource>& destination);
+        Microsoft::WRL::ComPtr<ID3D12Resource>& destination,
+        D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void ExecuteAndWait(ID3D12CommandQueue* commandQueue);
 
 private:

@@ -1,5 +1,7 @@
 #include "TrMesh.h"
 
+#include "TrUploadContext.h"
+
 #include <limits>
 #include <stdexcept>
 
@@ -40,23 +42,23 @@ void TrMesh::Initialize(
         throw std::overflow_error("Mesh buffer exceeds the D3D12 view size limit.");
     }
 
-    uploadContext.UploadStaticBuffer(
+    mVertexBuffer.InitializeStatic(
+        uploadContext,
         vertices,
         vertexBufferSize,
         D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-        mVertexBuffer);
-    uploadContext.UploadStaticBuffer(
+        D3D12_RESOURCE_FLAG_NONE,
+        L"Mesh Vertex Buffer");
+    mIndexBuffer.InitializeStatic(
+        uploadContext,
         indices,
         indexBufferSize,
         D3D12_RESOURCE_STATE_INDEX_BUFFER,
-        mIndexBuffer);
+        D3D12_RESOURCE_FLAG_NONE,
+        L"Mesh Index Buffer");
 
-    mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
-    mVertexBufferView.SizeInBytes = static_cast<UINT>(vertexBufferSize);
-    mVertexBufferView.StrideInBytes = vertexStride;
-    mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
-    mIndexBufferView.SizeInBytes = static_cast<UINT>(indexBufferSize);
-    mIndexBufferView.Format = indexFormat;
+    mVertexBufferView = mVertexBuffer.CreateVertexBufferView(vertexStride);
+    mIndexBufferView = mIndexBuffer.CreateIndexBufferView(indexFormat);
     mIndexCount = indexCount;
 }
 

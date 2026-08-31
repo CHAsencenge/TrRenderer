@@ -1,6 +1,8 @@
 #pragma once
 
-#include "TrUploadContext.h"
+#include "TrBuffer.h"
+
+class TrUploadContext;
 
 class TrMesh
 {
@@ -20,8 +22,8 @@ public:
     UINT GetIndexCount() const { return mIndexCount; }
 
 private:
-    Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> mIndexBuffer;
+    TrBuffer mVertexBuffer;
+    TrBuffer mIndexBuffer;
     D3D12_VERTEX_BUFFER_VIEW mVertexBufferView = {};
     D3D12_INDEX_BUFFER_VIEW mIndexBufferView = {};
     UINT mIndexCount = 0;

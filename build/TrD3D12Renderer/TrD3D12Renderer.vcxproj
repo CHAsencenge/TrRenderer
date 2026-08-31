@@ -383,6 +383,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrComputePipeline.cpp" />
