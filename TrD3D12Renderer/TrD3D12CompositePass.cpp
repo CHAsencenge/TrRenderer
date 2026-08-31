@@ -9,16 +9,20 @@ void TrD3D12CompositePass::Initialize(
     CD3DX12_DESCRIPTOR_RANGE lightingRange;
     lightingRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameter;
-    rootParameter.InitAsDescriptorTable(
+    CD3DX12_ROOT_PARAMETER rootParameters[2];
+    rootParameters[0].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Pass,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[1].InitAsDescriptorTable(
         1,
         &lightingRange,
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(
-        1,
-        &rootParameter,
+        _countof(rootParameters),
+        rootParameters,
         0,
         nullptr,
         D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -38,11 +42,13 @@ void TrD3D12CompositePass::Render(
     ID3D12GraphicsCommandList* commandList,
     TrD3D12DescriptorHeap& resourceHeap,
     D3D12_GPU_DESCRIPTOR_HANDLE hdrLightingSrv,
+    D3D12_GPU_VIRTUAL_ADDRESS compositeConstants,
     TrD3D12Texture& backBuffer,
     D3D12_CPU_DESCRIPTOR_HANDLE backBufferRtv)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
-       !resourceHeap.IsShaderVisible() || hdrLightingSrv.ptr == 0)
+       !resourceHeap.IsShaderVisible() || hdrLightingSrv.ptr == 0 ||
+       compositeConstants == 0)
     {
         throw std::invalid_argument("Composite pass inputs are invalid.");
     }
@@ -51,7 +57,8 @@ void TrD3D12CompositePass::Render(
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
     commandList->SetPipelineState(mPipeline.GetPipelineState());
     commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
-    commandList->SetGraphicsRootDescriptorTable(0, hdrLightingSrv);
+    commandList->SetGraphicsRootConstantBufferView(0, compositeConstants);
+    commandList->SetGraphicsRootDescriptorTable(1, hdrLightingSrv);
 
     backBuffer.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
     commandList->OMSetRenderTargets(1, &backBufferRtv, FALSE, nullptr);

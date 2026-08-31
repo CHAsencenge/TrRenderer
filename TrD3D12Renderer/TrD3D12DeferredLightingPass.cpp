@@ -6,15 +6,23 @@ void TrD3D12DeferredLightingPass::Initialize(
     ID3D12Device* device,
     const std::wstring& shaderPath)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[2];
+    CD3DX12_ROOT_PARAMETER rootParameters[4];
     rootParameters[0].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Scene,
         0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[1].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::View,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[2].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Pass,
         0,
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_DESCRIPTOR_RANGE gBufferRange;
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
-    rootParameters[1].InitAsDescriptorTable(
+    rootParameters[3].InitAsDescriptorTable(
         1,
         &gBufferRange,
         D3D12_SHADER_VISIBILITY_PIXEL);
@@ -43,10 +51,13 @@ void TrD3D12DeferredLightingPass::Render(
     ID3D12GraphicsCommandList* commandList,
     TrD3D12DeferredRenderTargets& renderTargets,
     TrD3D12DescriptorHeap& resourceHeap,
-    D3D12_GPU_VIRTUAL_ADDRESS sceneConstants)
+    D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
-       !resourceHeap.IsShaderVisible() || sceneConstants == 0)
+       !resourceHeap.IsShaderVisible() || sceneConstants == 0 ||
+       viewConstants == 0 || passConstants == 0)
     {
         throw std::invalid_argument("Deferred lighting pass inputs are invalid.");
     }
@@ -56,8 +67,10 @@ void TrD3D12DeferredLightingPass::Render(
     commandList->SetPipelineState(mPipeline.GetPipelineState());
     commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
     commandList->SetGraphicsRootConstantBufferView(0, sceneConstants);
+    commandList->SetGraphicsRootConstantBufferView(1, viewConstants);
+    commandList->SetGraphicsRootConstantBufferView(2, passConstants);
     commandList->SetGraphicsRootDescriptorTable(
-        1,
+        3,
         renderTargets.GetBaseColorSrv().GpuHandle);
 
     renderTargets.BeginDeferredLightingPass(commandList);

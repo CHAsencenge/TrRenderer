@@ -6,16 +6,33 @@ void TrD3D12GBufferPass::Initialize(
     ID3D12Device* device,
     const std::wstring& shaderPath)
 {
-    CD3DX12_ROOT_PARAMETER rootParameter;
-    rootParameter.InitAsConstantBufferView(
-        0,
+    CD3DX12_ROOT_PARAMETER rootParameters[5];
+    rootParameters[0].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::View,
         0,
         D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[1].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Pass,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[2].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Primitive,
+        0,
+        D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[3].InitAsConstantBufferView(
+        TrD3D12ConstantRegister::Material,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[4].InitAsConstants(
+        sizeof(TrD3D12DrawConstants) / sizeof(std::uint32_t),
+        TrD3D12ConstantRegister::Draw,
+        0,
+        D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(
-        1,
-        &rootParameter,
+        _countof(rootParameters),
+        rootParameters,
         0,
         nullptr,
         D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -46,16 +63,29 @@ void TrD3D12GBufferPass::Initialize(
 void TrD3D12GBufferPass::Begin(
     ID3D12GraphicsCommandList* commandList,
     TrD3D12DeferredRenderTargets& renderTargets,
-    D3D12_GPU_VIRTUAL_ADDRESS sceneConstants)
+    D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS primitiveConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS materialConstants,
+    const TrD3D12DrawConstants& drawConstants)
 {
-    if(commandList == nullptr || sceneConstants == 0)
+    if(commandList == nullptr || viewConstants == 0 || passConstants == 0 ||
+       primitiveConstants == 0 || materialConstants == 0)
     {
-        throw std::invalid_argument("GBuffer pass requires a command list and scene constants.");
+        throw std::invalid_argument("GBuffer pass constant buffers are incomplete.");
     }
 
     commandList->SetPipelineState(mPipeline.GetPipelineState());
     commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
-    commandList->SetGraphicsRootConstantBufferView(0, sceneConstants);
+    commandList->SetGraphicsRootConstantBufferView(0, viewConstants);
+    commandList->SetGraphicsRootConstantBufferView(1, passConstants);
+    commandList->SetGraphicsRootConstantBufferView(2, primitiveConstants);
+    commandList->SetGraphicsRootConstantBufferView(3, materialConstants);
+    commandList->SetGraphicsRoot32BitConstants(
+        4,
+        sizeof(TrD3D12DrawConstants) / sizeof(std::uint32_t),
+        &drawConstants,
+        0);
     renderTargets.BeginGBufferPass(commandList);
 }
 

@@ -11,6 +11,9 @@ TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstri
     mViewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
     mScissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height))
 {
+    DirectX::XMStoreFloat4x4(
+        &mPreviousViewProjection,
+        DirectX::XMMatrixIdentity());
 }
 
 void TrD3D12RendererRaster::OnInitialize()
@@ -24,8 +27,9 @@ void TrD3D12RendererRaster::OnUpdate()
     using namespace DirectX;
 
     const XMMATRIX model = XMMatrixIdentity();
+    const XMVECTOR cameraPosition = XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
     const XMMATRIX view = XMMatrixLookAtLH(
-        XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f),
+        cameraPosition,
         XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f),
         XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
     const XMMATRIX projection = XMMatrixPerspectiveFovLH(
@@ -33,14 +37,64 @@ void TrD3D12RendererRaster::OnUpdate()
         mAspectRatio,
         0.1f,
         100.0f);
+    const XMMATRIX viewProjection = view * projection;
+    const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
+    const XMMATRIX worldInverseTranspose = XMMatrixTranspose(
+        XMMatrixInverse(nullptr, model));
 
-    CornellBoxConstants constants = {};
-    XMStoreFloat4x4(&constants.ModelViewProjection, XMMatrixTranspose(model * view * projection));
+    TrD3D12SceneConstants sceneConstants = {};
     XMStoreFloat3(
-        &constants.LightDirection,
+        &sceneConstants.LightDirection,
         XMVector3Normalize(XMVectorSet(-0.25f, 1.0f, -0.35f, 0.0f)));
-    constants.AmbientStrength = 0.22f;
-    mFrameContexts[mFrameIndex].ConstantBuffer.Update(constants);
+
+    TrD3D12ViewConstants viewConstants = {};
+    XMStoreFloat4x4(&viewConstants.View, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&viewConstants.Projection, XMMatrixTranspose(projection));
+    XMStoreFloat4x4(&viewConstants.ViewProjection, XMMatrixTranspose(viewProjection));
+    XMStoreFloat4x4(
+        &viewConstants.InverseViewProjection,
+        XMMatrixTranspose(inverseViewProjection));
+    const XMMATRIX previousViewProjection = mFrameNumber == 0
+        ? viewProjection
+        : XMLoadFloat4x4(&mPreviousViewProjection);
+    XMStoreFloat4x4(
+        &viewConstants.PreviousViewProjection,
+        XMMatrixTranspose(previousViewProjection));
+    XMStoreFloat3(&viewConstants.CameraPosition, cameraPosition);
+    viewConstants.RenderSize = XMFLOAT2(
+        static_cast<float>(mWidth),
+        static_cast<float>(mHeight));
+    viewConstants.InverseRenderSize = XMFLOAT2(
+        1.0f / static_cast<float>(mWidth),
+        1.0f / static_cast<float>(mHeight));
+    viewConstants.FrameNumber = mFrameNumber;
+
+    const TrD3D12GBufferPassConstants gBufferPassConstants = {};
+
+    TrD3D12PrimitiveConstants primitiveConstants = {};
+    XMStoreFloat4x4(&primitiveConstants.World, XMMatrixTranspose(model));
+    XMStoreFloat4x4(&primitiveConstants.PreviousWorld, XMMatrixTranspose(model));
+    XMStoreFloat4x4(
+        &primitiveConstants.WorldInverseTranspose,
+        XMMatrixTranspose(worldInverseTranspose));
+    primitiveConstants.BoundsCenter = XMFLOAT3(0.0f, 1.0f, 1.0f);
+    primitiveConstants.BoundsRadius = 2.5f;
+
+    const TrD3D12MaterialConstants materialConstants = {};
+    const TrD3D12DeferredLightingPassConstants lightingPassConstants = {};
+    const TrD3D12CompositePassConstants compositePassConstants = {};
+
+    FrameContext& frame = mFrameContexts[mFrameIndex];
+    frame.SceneConstantBuffer.Update(sceneConstants);
+    frame.ViewConstantBuffer.Update(viewConstants);
+    frame.GBufferPassConstantBuffer.Update(gBufferPassConstants);
+    frame.PrimitiveConstantBuffer.Update(primitiveConstants);
+    frame.MaterialConstantBuffer.Update(materialConstants);
+    frame.LightingPassConstantBuffer.Update(lightingPassConstants);
+    frame.CompositePassConstantBuffer.Update(compositePassConstants);
+
+    XMStoreFloat4x4(&mPreviousViewProjection, viewProjection);
+    ++mFrameNumber;
 }
 
 void TrD3D12RendererRaster::OnRender()
@@ -223,9 +277,27 @@ void TrD3D12RendererRaster::LoadAssetsCornellBox()
 
     for(FrameContext& frame : mFrameContexts)
     {
-        frame.ConstantBuffer.Initialize(
+        frame.SceneConstantBuffer.Initialize(
             mDevice.Get(),
-            static_cast<UINT>(sizeof(CornellBoxConstants)));
+            static_cast<UINT>(sizeof(TrD3D12SceneConstants)));
+        frame.ViewConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12ViewConstants)));
+        frame.GBufferPassConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12GBufferPassConstants)));
+        frame.PrimitiveConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12PrimitiveConstants)));
+        frame.MaterialConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12MaterialConstants)));
+        frame.LightingPassConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12DeferredLightingPassConstants)));
+        frame.CompositePassConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrD3D12CompositePassConstants)));
     }
 
     ThrowIfFailed(mDevice->CreateCommandList(
@@ -258,10 +330,15 @@ void TrD3D12RendererRaster::PopulateCommandList()
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
+    const TrD3D12DrawConstants sceneDrawConstants = {};
     mGBufferPass.Begin(
         mCommandList.Get(),
         mDeferredRenderTargets,
-        frame.ConstantBuffer.GetGpuVirtualAddress());
+        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
+        frame.PrimitiveConstantBuffer.GetGpuVirtualAddress(),
+        frame.MaterialConstantBuffer.GetGpuVirtualAddress(),
+        sceneDrawConstants);
 
     mSceneMesh.Bind(mCommandList.Get());
     mSceneMesh.Draw(mCommandList.Get());
@@ -271,12 +348,15 @@ void TrD3D12RendererRaster::PopulateCommandList()
         mCommandList.Get(),
         mDeferredRenderTargets,
         mResourceHeap,
-        frame.ConstantBuffer.GetGpuVirtualAddress());
+        frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+        frame.LightingPassConstantBuffer.GetGpuVirtualAddress());
 
     mCompositePass.Render(
         mCommandList.Get(),
         mResourceHeap,
         mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+        frame.CompositePassConstantBuffer.GetGpuVirtualAddress(),
         mRenderTargets[mFrameIndex],
         mRenderTargetViews[mFrameIndex].CpuHandle);
 

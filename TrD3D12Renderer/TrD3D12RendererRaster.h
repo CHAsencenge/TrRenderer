@@ -13,6 +13,7 @@
 #include "TrD3D12DescriptorHeap.h"
 #include "TrD3D12GBufferPass.h"
 #include "TrD3D12Mesh.h"
+#include "TrD3D12RenderConstants.h"
 
 class TrWindowApp;
 
@@ -58,7 +59,13 @@ private:
     struct FrameContext
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
-        TrD3D12ConstantBuffer ConstantBuffer;
+        TrD3D12ConstantBuffer SceneConstantBuffer;
+        TrD3D12ConstantBuffer ViewConstantBuffer;
+        TrD3D12ConstantBuffer GBufferPassConstantBuffer;
+        TrD3D12ConstantBuffer PrimitiveConstantBuffer;
+        TrD3D12ConstantBuffer MaterialConstantBuffer;
+        TrD3D12ConstantBuffer LightingPassConstantBuffer;
+        TrD3D12ConstantBuffer CompositePassConstantBuffer;
         UINT64 FenceValue = 0;
     };
 
@@ -90,4 +97,6 @@ private:
     HANDLE mFenceEvent = nullptr;  // handle to object fence
 
     UINT mFrameIndex;
+    UINT mFrameNumber = 0;
+    DirectX::XMFLOAT4X4 mPreviousViewProjection;
 };

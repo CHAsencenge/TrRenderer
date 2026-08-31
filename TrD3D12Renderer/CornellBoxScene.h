@@ -11,13 +11,6 @@ struct CornellBoxVertex
     DirectX::XMFLOAT3 Albedo;
 };
 
-struct CornellBoxConstants
-{
-    DirectX::XMFLOAT4X4 ModelViewProjection;
-    DirectX::XMFLOAT3 LightDirection;
-    float AmbientStrength;
-};
-
 struct CornellBoxMeshData
 {
     std::vector<CornellBoxVertex> Vertices;

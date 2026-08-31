@@ -43,7 +43,9 @@
 - 持续 Update/Render 主循环；
 - `R32_TYPELESS` Depth Buffer，以及 `D32_FLOAT` DSV、`R32_FLOAT` SRV；
 - Default Heap 静态 Vertex/Index Buffer；
-- 每帧独立、256 字节对齐的 Camera Constant Buffer；
+- UE 风格六层常量域：Scene、View、Pass、Primitive、Material、Draw/Dispatch；
+- 每帧独立、256 字节对齐的 Scene、View、Primitive、Material 和强类型 Pass Constant Buffer；
+- Draw/Dispatch 小常量通过 Root Constants 提交；
 - 使用索引绘制的程序化 Cornell Box（路径追踪常见双球体变体）；
 - 两目标 MRT GBuffer：BaseColor/Roughness 与 WorldNormal/Metallic；
 - 读取 GBuffer/Depth 的全屏 Deferred Lighting Pass；
@@ -55,7 +57,7 @@
 当前主要不足：
 
 - 没有 Resize；
-- 只有固定 View/Projection 和顶点材质，尚无可交互相机、场景对象系统和材质常量；
+- 只有固定 View/Projection 和单个 Primitive/Material，尚无可交互相机及场景对象容器；
 - 没有 Compute Shader 基础；
 - 仍使用 `D3DCompileFromFile` 和 Shader Model 5.0；
 - 没有 DXR 加速结构和 RayQuery；
@@ -81,6 +83,7 @@
 ```text
 TrD3D12Renderer/
   TrD3D12ConstantBuffer.*   256 字节对齐、持久映射、按帧更新
+  TrD3D12RenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
   TrD3D12UploadContext.*    一次性静态资源上传及上传资源生命周期
   TrD3D12Mesh.*             Vertex/Index Buffer、View、Bind 和 Draw
   TrD3D12GraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
@@ -106,6 +109,19 @@ ConstantBuffer ----------------> 每个 FrameContext 一份
                                   |
 Renderer ------------------------+-> 逐帧 Bind / Draw / Present
 ```
+
+常量数据按 UE 风格的逻辑生命周期拆成六层，所有 Shader 使用同一寄存器约定：
+
+```text
+SceneConstants              b0  方向光、环境光等场景公共数据
+ViewConstants               b1  当前/上一帧矩阵、相机、渲染尺寸、Jitter、帧号
+PassConstants               b2  GBuffer、DeferredLighting、Composite 各自的强类型参数
+PrimitiveConstants          b3  World、PreviousWorld、法线矩阵、包围球、PrimitiveId
+MaterialConstants           b4  BaseColorFactor、Roughness、Metallic、EmissiveStrength
+DrawConstants               b5  Primitive/Material 索引、InstanceOffset、Draw Flags
+```
+
+`PassConstants` 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `GBufferPassConstants`、`DeferredLightingPassConstants` 和 `CompositePassConstants`。Scene、View、Pass、Primitive、Material 的 CBV 按 `FrameContext` 分配，CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
 
 延迟渲染迭代 1 已完成：Cornell Box 先渲染到带 RTV/SRV 的离屏纹理，再以 `COPY_SOURCE` 复制到 `COPY_DEST` 状态的 SwapChain Back Buffer。当前逐帧状态链为：
 
@@ -333,6 +349,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 增加 Index Buffer；
 - [x] 将静态几何从 Upload Heap 移入 Default Heap；
 - [x] 增加每帧 Camera Constant Buffer；
+- [x] 将常量拆分为 Scene、View、Pass、Primitive、Material、Draw/Dispatch 六个逻辑层；
 - [x] 将 Constant Buffer、静态上传、Mesh、Graphics PSO 拆成独立组件；
 - [x] 将 Cornell Box CPU 几何生成移出 Renderer；
 - [ ] 用 DXC 替换 `D3DCompileFromFile`；

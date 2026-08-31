@@ -93,6 +93,9 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Mesh.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RenderConstants.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h">
       <Filter>Sources</Filter>
     </ClInclude>
