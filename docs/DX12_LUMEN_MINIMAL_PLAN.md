@@ -30,7 +30,7 @@
 - 双缓冲 SwapChain；
 - RTV、DSV Descriptor Heap；
 - 独立封装的 Root Signature 和 Graphics PSO；
-- HLSL VS/PS 编译；
+- DXC HLSL 编译、Shader Model 6.5 VS/PS 和运行时能力检查；
 - Default Heap Vertex/Index Buffer；
 - 独立的一次性 Upload Context；
 - 记录资源状态的 Texture2D 封装，以及 RTV、DSV、SRV、UAV View 创建；
@@ -59,7 +59,7 @@
 - 没有 Resize；
 - 只有固定 View/Projection 和单个 Primitive/Material，尚无可交互相机及场景对象容器；
 - 没有 Compute Shader 基础；
-- 仍使用 `D3DCompileFromFile` 和 Shader Model 5.0；
+- Graphics Shader 已使用 DXC 和 Shader Model 6.5，Compute Pipeline 尚未接入；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调和逐帧更新为空。
 
@@ -352,7 +352,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 将常量拆分为 Scene、View、Pass、Primitive、Material、Draw/Dispatch 六个逻辑层；
 - [x] 将 Constant Buffer、静态上传、Mesh、Graphics PSO 拆成独立组件；
 - [x] 将 Cornell Box CPU 几何生成移出 Renderer；
-- [ ] 用 DXC 替换 `D3DCompileFromFile`；
+- [x] 用 DXC 替换 `D3DCompileFromFile`，并检查 Shader Model 6.5 支持；
 - [ ] 增加最小 Compute Shader Dispatch；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。

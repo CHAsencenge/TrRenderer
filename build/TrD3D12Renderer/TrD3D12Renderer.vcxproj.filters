@@ -43,6 +43,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ShaderCompiler.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -106,6 +109,9 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ShaderCompiler.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.h">

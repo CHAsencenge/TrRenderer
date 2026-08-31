@@ -27,11 +27,6 @@ public:
     ID3D12PipelineState* GetPipelineState() const { return mPipelineState.Get(); }
 
 private:
-    static Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
-        const std::wstring& filename,
-        const char* entryPoint,
-        const char* target);
-
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 };

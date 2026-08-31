@@ -43,6 +43,7 @@ private:
     // Wait for all work currently submitted to the direct queue. This is used
     // for shutdown or an explicit full-queue synchronization, never per frame.
     void FlushCommandQueue();
+    void ValidateShaderModelSupport() const;
     void ValidateDebugLayer();
 
     // device is singleton to adapter

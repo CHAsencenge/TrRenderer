@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -106,18 +106,32 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
       <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
+    <PostBuildEvent>
+      <Message>Copying DXC runtime libraries</Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxcompiler.dll E:/UGit/TrRenderer/build/bin/Debug
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxil.dll E:/UGit/TrRenderer/build/bin/Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -132,7 +146,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -152,18 +166,32 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
       <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
+    <PostBuildEvent>
+      <Message>Copying DXC runtime libraries</Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxcompiler.dll E:/UGit/TrRenderer/build/bin/Release
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxil.dll E:/UGit/TrRenderer/build/bin/Release
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -178,7 +206,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -198,18 +226,32 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
       <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
+    <PostBuildEvent>
+      <Message>Copying DXC runtime libraries</Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxcompiler.dll E:/UGit/TrRenderer/build/bin/MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxil.dll E:/UGit/TrRenderer/build/bin/MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -224,7 +266,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
@@ -243,18 +285,32 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
       <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
+    <PostBuildEvent>
+      <Message>Copying DXC runtime libraries</Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxcompiler.dll E:/UGit/TrRenderer/build/bin/RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_if_different D:/dxc/bin/x64/dxil.dll E:/UGit/TrRenderer/build/bin/RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>d3dcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>D:\dxc\lib\x64\dxcompiler.lib;d3d12.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -354,6 +410,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ResourceBarrier.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ShaderCompiler.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ShaderCompiler.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Texture.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12UploadContext.cpp" />

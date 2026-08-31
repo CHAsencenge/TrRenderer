@@ -160,6 +160,7 @@ void TrD3D12RendererRaster::LoadPipeline()
                 IID_PPV_ARGS(&mDevice)
             ));
     }
+    ValidateShaderModelSupport();
 
     // describe and create command queue
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};  // aggregate initialization
@@ -389,6 +390,20 @@ void TrD3D12RendererRaster::FlushCommandQueue()
     {
         ThrowIfFailed(mFence->SetEventOnCompletion(fenceValue, mFenceEvent));
         WaitForSingleObject(mFenceEvent, INFINITE);
+    }
+}
+
+void TrD3D12RendererRaster::ValidateShaderModelSupport() const
+{
+    D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = {D3D_SHADER_MODEL_6_5};
+    const HRESULT result = mDevice->CheckFeatureSupport(
+        D3D12_FEATURE_SHADER_MODEL,
+        &shaderModel,
+        sizeof(shaderModel));
+    if(FAILED(result) || shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_5)
+    {
+        throw std::runtime_error(
+            "Shader Model 6.5 is required for the DX12 renderer.");
     }
 }
 
