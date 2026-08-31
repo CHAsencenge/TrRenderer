@@ -6,53 +6,41 @@
 # pragma once
 #include "TrD3D12Util.h"
 #include "TrD3D12RendererBase.h"
-#include "VertexBase.h"
+#include "TrD3D12ConstantBuffer.h"
+#include "TrD3D12GraphicsPipeline.h"
+#include "TrD3D12Mesh.h"
 
 class TrWindowApp;
 
 class TrD3D12RendererRaster : public TrD3D12RendererBase
 {
 public:
-
     TrD3D12RendererRaster(UINT width, UINT height, std::wstring title);
-    /*TrD3D12RendererRaster(const TrD3D12RendererRaster& other) = delete;
-    TrD3D12RendererRaster(const TrD3D12RendererRaster&& other) = delete;
-    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster& other) = delete;
-    TrD3D12RendererRaster& operator=(const TrD3D12RendererRaster&& other) = delete;*/
-   
-public:
-    virtual void OnInitialize() override;
-    virtual void OnUpdate() override;
-    virtual void OnRender() override;
-    virtual void OnDestroy() override;
+    void OnInitialize() override;
+    void OnUpdate() override;
+    void OnRender() override;
+    void OnDestroy() override;
 
-    virtual void OnKeyDown(UINT8 wParam) override;
-    virtual void OnKeyUp(UINT8 wParam) override;
-
+    void OnKeyDown(UINT8 wParam) override;
+    void OnKeyUp(UINT8 wParam) override;
 
 private:
-
-    virtual void LoadPipeline();
-    virtual void LoadAssetsCornellBox(const std::wstring filename);
-    virtual void LoadAssetsTexture(const std::wstring filename);
-    void CreateFrameConstantBuffers();
-    
+    void LoadPipeline();
+    void LoadAssetsCornellBox(const std::wstring& filename);
 
     // populate: add datas to...
-    virtual void PopulateCommandList();
+    void PopulateCommandList();
 
     // Mark the submitted frame, switch to the next back buffer, and wait only
     // when that frame's resources are still in use by the GPU.
     void MoveToNextFrame();
 
-    // Wait for all work currently submitted to the direct queue. This is only
-    // used for one-time uploads and shutdown, not at the end of every frame.
+    // Wait for all work currently submitted to the direct queue. This is used
+    // for shutdown or an explicit full-queue synchronization, never per frame.
     void FlushCommandQueue();
 
     // device is singleton to adapter
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter);
-
-    std::vector<UINT8> GenerateTextureData();
 
 private:
     /* note:
@@ -60,26 +48,11 @@ private:
      * constexpr variable's value is evaluated at compile time. It must be initialized with a constant expression and a value.
      */
     static constexpr UINT SwapFrameCount = 2;
-    static const UINT TextureWidth = 256;
-    static const UINT TextureHeight = 256;
-    static const UINT TexturePixelSize = 4; 
-
-    struct SceneConstants
-    {
-        DirectX::XMFLOAT4X4 ModelViewProjection;
-        DirectX::XMFLOAT3 LightDirection;
-        float AmbientStrength;
-    };
-
-    static constexpr UINT ConstantBufferSize =
-        (sizeof(SceneConstants) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
-        ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 
     struct FrameContext
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
-        Microsoft::WRL::ComPtr<ID3D12Resource> ConstantBuffer;
-        UINT8* ConstantBufferData = nullptr;
+        TrD3D12ConstantBuffer ConstantBuffer;
         UINT64 FenceValue = 0;
     };
 
@@ -90,27 +63,17 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
     FrameContext mFrameContexts[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    TrD3D12GraphicsPipeline mGraphicsPipeline;
     
     Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     UINT mRtvDescriptorSize;
     Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencil;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
-    // UINT mSrvDescriptorSize;
 
     // app resources
-    Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
-    Microsoft::WRL::ComPtr<ID3D12Resource> mIndexBuffer;
-    D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
-    UINT mIndexCount = 0;
-    
-    Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
-    bool mUsesTexture = false;
+    TrD3D12Mesh mSceneMesh;
 
     // synchronization objects
     UINT64 mNextFenceValue = 1;
@@ -118,7 +81,4 @@ private:
     HANDLE mFenceEvent = nullptr;  // handle to object fence
 
     UINT mFrameIndex;
-
-
-    
 };

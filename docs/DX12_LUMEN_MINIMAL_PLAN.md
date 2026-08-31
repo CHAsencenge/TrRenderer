@@ -4,7 +4,7 @@
 
 ## 1. 目标与边界
 
-目标是在当前 DX12 纹理三角形样例上，逐步实现一个轻量的、用于学习和验证核心思路的 Lumen-like 全局光照原型。
+目标是在当前 DX12 Cornell Box 光栅样例上，逐步实现一个轻量的、用于学习和验证核心思路的 Lumen-like 全局光照原型。
 
 第一阶段最终效果定义为：
 
@@ -28,12 +28,12 @@
 - 硬件适配器和 WARP 选择；
 - Device、Direct Command Queue；
 - 双缓冲 SwapChain；
-- RTV、SRV Descriptor Heap；
-- Root Signature 和 Graphics PSO；
+- RTV、DSV Descriptor Heap；
+- 独立封装的 Root Signature 和 Graphics PSO；
 - HLSL VS/PS 编译；
-- Vertex Buffer；
-- 默认堆纹理和 Upload Heap 上传；
-- Command List、Bundle；
+- Default Heap Vertex/Index Buffer；
+- 独立的一次性 Upload Context；
+- Command List；
 - Resource Barrier；
 - 双缓冲 FrameContext 和按帧 Fence/Event 同步；
 - 持续 Update/Render 主循环；
@@ -42,6 +42,8 @@
 - 每帧独立、256 字节对齐的 Camera Constant Buffer；
 - 使用索引绘制的程序化 Cornell Box（路径追踪常见双球体变体）；
 - 顶点法线/反照率和最小环境光 + Lambert 直接光照。
+
+当前资源创建已经拆成单向依赖的轻量流程：场景模块只生成 CPU 数据，Mesh 只持有 GPU 几何资源，Upload Context 只负责上传与上传期同步，Graphics Pipeline 只负责 Root Signature、Shader 和 PSO，Renderer 只编排这些步骤。旧的纹理示例加载分支已从 Renderer 移除。
 
 当前主要不足：
 
@@ -65,9 +67,33 @@
 7. 每个阶段都必须有可视化结果和独立验收条件。
 8. 调试能力与渲染功能同步建设，避免后期补诊断系统。
 
-## 4. 推荐的最小代码结构
+## 4. 最小代码结构
 
-不建立复杂继承体系，仅拆分职责：
+当前已经落地的资源和管线组件：
+
+```text
+TrD3D12Renderer/
+  TrD3D12ConstantBuffer.*   256 字节对齐、持久映射、按帧更新
+  TrD3D12UploadContext.*    一次性静态资源上传及上传资源生命周期
+  TrD3D12Mesh.*             Vertex/Index Buffer、View、Bind 和 Draw
+  TrD3D12GraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
+  CornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
+  TrD3D12RendererRaster.*   初始化与逐帧编排
+```
+
+初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
+
+```text
+CornellBoxScene -> CPU MeshData
+                         |
+UploadContext ----------> Mesh -> GPU Vertex/Index Buffer
+GraphicsPipeline -------------> Root Signature + PSO
+ConstantBuffer ----------------> 每个 FrameContext 一份
+                                  |
+Renderer ------------------------+-> 逐帧 Bind / Draw / Present
+```
+
+后续只在需求出现时继续拆分，不建立复杂继承体系：
 
 ```text
 TrD3D12Renderer/
@@ -75,7 +101,7 @@ TrD3D12Renderer/
   FrameContext.*       每帧 CommandAllocator、FenceValue、上传偏移
   GpuResource.*        Buffer/Texture、资源状态和 Barrier 辅助
   DescriptorHeap.*     RTV、DSV、CBV/SRV/UAV 的简单线性分配
-  UploadContext.*      静态资源上传
+  TrD3D12UploadContext.* 静态资源上传（已完成 Buffer 路径）
   Scene.*              Camera、Mesh、Material、Instance
   Renderer.*           帧流程和 Pass 调度
   Passes/
@@ -277,6 +303,8 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 增加 Index Buffer；
 - [x] 将静态几何从 Upload Heap 移入 Default Heap；
 - [x] 增加每帧 Camera Constant Buffer；
+- [x] 将 Constant Buffer、静态上传、Mesh、Graphics PSO 拆成独立组件；
+- [x] 将 Cornell Box CPU 几何生成移出 Renderer；
 - [ ] 用 DXC 替换 `D3DCompileFromFile`；
 - [ ] 增加最小 Compute Shader Dispatch；
 - [ ] 加入 DRED 和对象调试名称；

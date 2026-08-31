@@ -325,14 +325,24 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\CornellBoxScene.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\CornellBoxScene.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Mesh.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Mesh.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Renderer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererBase.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12RendererRaster.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12UploadContext.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12UploadContext.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Util.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Util.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp" />
