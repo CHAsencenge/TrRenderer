@@ -7,10 +7,22 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredLightingPass.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredRenderTargets.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GBufferPass.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.cpp">
@@ -57,10 +69,22 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredLightingPass.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredRenderTargets.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GBufferPass.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.h">
@@ -102,7 +126,16 @@
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\composite.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\deferred_lighting.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\gbuffer.hlsl">
       <Filter>Shader Sources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">

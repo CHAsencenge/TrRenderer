@@ -6,11 +6,13 @@
 # pragma once
 #include "TrD3D12Util.h"
 #include "TrD3D12RendererBase.h"
+#include "TrD3D12CompositePass.h"
 #include "TrD3D12ConstantBuffer.h"
+#include "TrD3D12DeferredLightingPass.h"
+#include "TrD3D12DeferredRenderTargets.h"
 #include "TrD3D12DescriptorHeap.h"
-#include "TrD3D12GraphicsPipeline.h"
+#include "TrD3D12GBufferPass.h"
 #include "TrD3D12Mesh.h"
-#include "TrD3D12Texture.h"
 
 class TrWindowApp;
 
@@ -28,7 +30,7 @@ public:
 
 private:
     void LoadPipeline();
-    void LoadAssetsCornellBox(const std::wstring& filename);
+    void LoadAssetsCornellBox();
 
     // populate: add datas to...
     void PopulateCommandList();
@@ -40,6 +42,7 @@ private:
     // Wait for all work currently submitted to the direct queue. This is used
     // for shutdown or an explicit full-queue synchronization, never per frame.
     void FlushCommandQueue();
+    void ValidateDebugLayer();
 
     // device is singleton to adapter
     static void GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter);
@@ -67,21 +70,16 @@ private:
     FrameContext mFrameContexts[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
-    TrD3D12GraphicsPipeline mGraphicsPipeline;
+    TrD3D12GBufferPass mGBufferPass;
+    TrD3D12DeferredLightingPass mDeferredLightingPass;
+    TrD3D12CompositePass mCompositePass;
     
     TrD3D12Texture mRenderTargets[SwapFrameCount];
     TrD3D12DescriptorAllocation mRenderTargetViews[SwapFrameCount];
     TrD3D12DescriptorHeap mRtvHeap;
-    TrD3D12Texture mDepthStencil;
-    TrD3D12DescriptorAllocation mDepthStencilView;
     TrD3D12DescriptorHeap mDsvHeap;
     TrD3D12DescriptorHeap mResourceHeap;
-
-    // Temporary iteration-1 validation target. It becomes a real GBuffer/HDR
-    // resource in the next deferred-rendering iteration.
-    TrD3D12Texture mOffscreenTarget;
-    TrD3D12DescriptorAllocation mOffscreenRtv;
-    TrD3D12DescriptorAllocation mOffscreenSrv;
+    TrD3D12DeferredRenderTargets mDeferredRenderTargets;
 
     // app resources
     TrD3D12Mesh mSceneMesh;

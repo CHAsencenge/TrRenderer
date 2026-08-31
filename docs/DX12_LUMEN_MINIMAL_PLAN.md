@@ -41,18 +41,21 @@
 - Resource Barrier；
 - 双缓冲 FrameContext 和按帧 Fence/Event 同步；
 - 持续 Update/Render 主循环；
-- D32_FLOAT Depth Buffer 和 DSV；
+- `R32_TYPELESS` Depth Buffer，以及 `D32_FLOAT` DSV、`R32_FLOAT` SRV；
 - Default Heap 静态 Vertex/Index Buffer；
 - 每帧独立、256 字节对齐的 Camera Constant Buffer；
 - 使用索引绘制的程序化 Cornell Box（路径追踪常见双球体变体）；
-- 顶点法线/反照率和最小环境光 + Lambert 直接光照。
+- 两目标 MRT GBuffer：BaseColor/Roughness 与 WorldNormal/Metallic；
+- 读取 GBuffer/Depth 的全屏 Deferred Lighting Pass；
+- `RGBA16_FLOAT` HDR Lighting Target 和显示颜色转换 Composite Pass；
+- Debug 退出时检查 D3D12 InfoQueue 的 ERROR/CORRUPTION 消息。
 
 当前资源创建已经拆成单向依赖的轻量流程：场景模块只生成 CPU 数据，Mesh 只持有 GPU 几何资源，Upload Context 只负责上传与上传期同步，Graphics Pipeline 只负责 Root Signature、Shader 和 PSO，Renderer 只编排这些步骤。旧的纹理示例加载分支已从 Renderer 移除。
 
 当前主要不足：
 
 - 没有 Resize；
-- 只有固定 View/Projection 和顶点材质，尚无可交互相机、场景对象系统和 GBuffer；
+- 只有固定 View/Projection 和顶点材质，尚无可交互相机、场景对象系统和材质常量；
 - 没有 Compute Shader 基础；
 - 仍使用 `D3DCompileFromFile` 和 Shader Model 5.0；
 - 没有 DXR 加速结构和 RayQuery；
@@ -84,6 +87,10 @@ TrD3D12Renderer/
   TrD3D12Texture.*          Texture2D、View 创建和资源状态跟踪
   TrD3D12DescriptorHeap.*   固定容量描述符堆与线性分配
   TrD3D12ResourceBarrier.*  Transition 和 UAV Barrier
+  TrD3D12DeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
+  TrD3D12GBufferPass.*      MRT GBuffer 管线与 Pass 边界
+  TrD3D12DeferredLightingPass.* GBuffer 读取和方向光照
+  TrD3D12CompositePass.*    HDR 读取、Gamma 转换和 SwapChain 输出
   CornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
   TrD3D12RendererRaster.*   初始化与逐帧编排
 ```
@@ -105,6 +112,15 @@ Renderer ------------------------+-> 逐帧 Bind / Draw / Present
 ```text
 Offscreen: PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> COPY_SOURCE -> PIXEL_SHADER_RESOURCE
 BackBuffer: PRESENT -> COPY_DEST -> PRESENT
+```
+
+延迟渲染迭代 2 已完成：几何 Pass 同时写入 BaseColor/Roughness 和 WorldNormal/Metallic，Depth 可同时作为 DSV 与 SRV。后续已经接入最小 Deferred Lighting 和 Composite，当前窗口不再直接复制 GBuffer0。
+
+```text
+GBuffer0/1: PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> PIXEL_SHADER_RESOURCE
+Depth:      PIXEL_SHADER_RESOURCE -> DEPTH_WRITE -> PIXEL_SHADER_RESOURCE
+HDR:        PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> PIXEL_SHADER_RESOURCE
+BackBuffer: PRESENT -> RENDER_TARGET -> PRESENT
 ```
 
 后续只在需求出现时继续拆分，不建立复杂继承体系：

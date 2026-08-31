@@ -16,7 +16,7 @@ TrD3D12RendererRaster::TrD3D12RendererRaster(UINT width, UINT height, std::wstri
 void TrD3D12RendererRaster::OnInitialize()
 {
     LoadPipeline();
-    LoadAssetsCornellBox(GetAssetFullPath(SHADER_DIR L"DxRaster/cornell_box.hlsl"));
+    LoadAssetsCornellBox();
 }
 
 void TrD3D12RendererRaster::OnUpdate()
@@ -61,6 +61,7 @@ void TrD3D12RendererRaster::OnDestroy()
         CloseHandle(mFenceEvent);
         mFenceEvent = nullptr;
     }
+    ValidateDebugLayer();
 }
 
 void TrD3D12RendererRaster::OnKeyDown(UINT8 wParam)
@@ -133,13 +134,13 @@ void TrD3D12RendererRaster::LoadPipeline()
     mRtvHeap.Initialize(
         mDevice.Get(),
         D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-        SwapFrameCount + 1,
+        SwapFrameCount + TrD3D12DeferredRenderTargets::RtvDescriptorCount,
         false,
         L"Main RTV Heap");
     mDsvHeap.Initialize(
         mDevice.Get(),
         D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-        1,
+        TrD3D12DeferredRenderTargets::DsvDescriptorCount,
         false,
         L"Main DSV Heap");
     mResourceHeap.Initialize(
@@ -165,48 +166,13 @@ void TrD3D12RendererRaster::LoadPipeline()
             mRenderTargetViews[n].CpuHandle);
     }
 
-    D3D12_CLEAR_VALUE depthClearValue = {};
-    depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-    depthClearValue.DepthStencil.Depth = 1.0f;
-    depthClearValue.DepthStencil.Stencil = 0;
-
-    mDepthStencil.Initialize2D(
+    mDeferredRenderTargets.Initialize(
         mDevice.Get(),
         mWidth,
         mHeight,
-        DXGI_FORMAT_D32_FLOAT,
-        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
-        D3D12_RESOURCE_STATE_DEPTH_WRITE,
-        &depthClearValue,
-        L"Main Depth");
-    mDepthStencilView = mDsvHeap.Allocate();
-    mDepthStencil.CreateDepthStencilView(
-        mDevice.Get(),
-        mDepthStencilView.CpuHandle);
-
-    D3D12_CLEAR_VALUE offscreenClearValue = {};
-    offscreenClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    offscreenClearValue.Color[0] = 0.025f;
-    offscreenClearValue.Color[1] = 0.025f;
-    offscreenClearValue.Color[2] = 0.025f;
-    offscreenClearValue.Color[3] = 1.0f;
-    mOffscreenTarget.Initialize2D(
-        mDevice.Get(),
-        mWidth,
-        mHeight,
-        DXGI_FORMAT_R8G8B8A8_UNORM,
-        D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        &offscreenClearValue,
-        L"Iteration 1 Offscreen Target");
-    mOffscreenRtv = mRtvHeap.Allocate();
-    mOffscreenTarget.CreateRenderTargetView(
-        mDevice.Get(),
-        mOffscreenRtv.CpuHandle);
-    mOffscreenSrv = mResourceHeap.Allocate();
-    mOffscreenTarget.CreateShaderResourceView(
-        mDevice.Get(),
-        mOffscreenSrv.CpuHandle);
+        mRtvHeap,
+        mDsvHeap,
+        mResourceHeap);
 
     for(FrameContext& frame : mFrameContexts)
     {
@@ -230,36 +196,17 @@ void TrD3D12RendererRaster::LoadPipeline()
  * default heap: read-only or rarely updated by the cpu, is optimized for gpu read
  * (static vertex buffers, index buffers)
  */
-void TrD3D12RendererRaster::LoadAssetsCornellBox(const std::wstring& filename)
+void TrD3D12RendererRaster::LoadAssetsCornellBox()
 {
-    CD3DX12_ROOT_PARAMETER rootParameter;
-    rootParameter.InitAsConstantBufferView(
-        0,
-        0,
-        D3D12_SHADER_VISIBILITY_ALL);
-
-    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(
-        1,
-        &rootParameter,
-        0,
-        nullptr,
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-    const D3D12_INPUT_ELEMENT_DESC inputElements[] =
-    {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-        {"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-        {"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
-    };
-
-    TrD3D12GraphicsPipelineDesc pipelineDesc;
-    pipelineDesc.ShaderPath = filename;
-    pipelineDesc.RootSignatureDesc = &rootSignatureDesc;
-    pipelineDesc.InputElements = inputElements;
-    pipelineDesc.InputElementCount = _countof(inputElements);
-    pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;
-    mGraphicsPipeline.Initialize(mDevice.Get(), pipelineDesc);
+    mGBufferPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"DxRaster/gbuffer.hlsl"));
+    mDeferredLightingPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"DxRaster/deferred_lighting.hlsl"));
+    mCompositePass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"DxRaster/composite.hlsl"));
 
     const CornellBoxMeshData meshData = CreateCornellBoxSphereScene();
     TrD3D12UploadContext uploadContext;
@@ -285,7 +232,7 @@ void TrD3D12RendererRaster::LoadAssetsCornellBox(const std::wstring& filename)
         0,
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         mFrameContexts[mFrameIndex].CommandAllocator.Get(),
-        mGraphicsPipeline.GetPipelineState(),
+        mGBufferPass.GetPipelineState(),
         IID_PPV_ARGS(&mCommandList)));
     ThrowIfFailed(mCommandList->Close());
 }
@@ -305,56 +252,33 @@ void TrD3D12RendererRaster::PopulateCommandList()
     // after ExecuteCommandList, before re-recording
     ThrowIfFailed(mCommandList->Reset(
         frame.CommandAllocator.Get(),
-        mGraphicsPipeline.GetPipelineState()));
-
-    mCommandList->SetGraphicsRootSignature(mGraphicsPipeline.GetRootSignature());
-
-    mCommandList->SetGraphicsRootConstantBufferView(
-        0,
-        frame.ConstantBuffer.GetGpuVirtualAddress());
+        mGBufferPass.GetPipelineState()));
 
     // need to set viewports and scissor rects each frame
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
-    mOffscreenTarget.Transition(
+    mGBufferPass.Begin(
         mCommandList.Get(),
-        D3D12_RESOURCE_STATE_RENDER_TARGET);
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mOffscreenRtv.CpuHandle;
-    const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDepthStencilView.CpuHandle;
-    mCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-
-    // record commands
-    const float clearColor[] = {0.025f, 0.025f, 0.025f, 1.0f};
-    mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    mCommandList->ClearDepthStencilView(
-        dsvHandle,
-        D3D12_CLEAR_FLAG_DEPTH,
-        1.0f,
-        0,
-        0,
-        nullptr);
+        mDeferredRenderTargets,
+        frame.ConstantBuffer.GetGpuVirtualAddress());
 
     mSceneMesh.Bind(mCommandList.Get());
     mSceneMesh.Draw(mCommandList.Get());
+    mGBufferPass.End(mCommandList.Get(), mDeferredRenderTargets);
 
-    // Until the composite pass exists, copy the offscreen result directly to
-    // the swap-chain buffer. This makes the iteration-1 target observable.
-    mOffscreenTarget.Transition(
+    mDeferredLightingPass.Render(
         mCommandList.Get(),
-        D3D12_RESOURCE_STATE_COPY_SOURCE);
-    mRenderTargets[mFrameIndex].Transition(
+        mDeferredRenderTargets,
+        mResourceHeap,
+        frame.ConstantBuffer.GetGpuVirtualAddress());
+
+    mCompositePass.Render(
         mCommandList.Get(),
-        D3D12_RESOURCE_STATE_COPY_DEST);
-    mCommandList->CopyResource(
-        mRenderTargets[mFrameIndex].Get(),
-        mOffscreenTarget.Get());
-    mRenderTargets[mFrameIndex].Transition(
-        mCommandList.Get(),
-        D3D12_RESOURCE_STATE_PRESENT);
-    mOffscreenTarget.Transition(
-        mCommandList.Get(),
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        mResourceHeap,
+        mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+        mRenderTargets[mFrameIndex],
+        mRenderTargetViews[mFrameIndex].CpuHandle);
 
     ThrowIfFailed(mCommandList->Close());
 }
@@ -386,6 +310,49 @@ void TrD3D12RendererRaster::FlushCommandQueue()
         ThrowIfFailed(mFence->SetEventOnCompletion(fenceValue, mFenceEvent));
         WaitForSingleObject(mFenceEvent, INFINITE);
     }
+}
+
+void TrD3D12RendererRaster::ValidateDebugLayer()
+{
+#if defined(_DEBUG)
+    Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue;
+    if(FAILED(mDevice.As(&infoQueue)))
+    {
+        return;
+    }
+
+    bool hasErrors = false;
+    const UINT64 messageCount = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+    for(UINT64 index = 0; index < messageCount; ++index)
+    {
+        SIZE_T messageSize = 0;
+        if(FAILED(infoQueue->GetMessage(index, nullptr, &messageSize)) || messageSize == 0)
+        {
+            continue;
+        }
+
+        std::vector<UINT8> messageStorage(messageSize);
+        D3D12_MESSAGE* message = reinterpret_cast<D3D12_MESSAGE*>(messageStorage.data());
+        if(FAILED(infoQueue->GetMessage(index, message, &messageSize)))
+        {
+            continue;
+        }
+
+        if(message->Severity == D3D12_MESSAGE_SEVERITY_CORRUPTION ||
+           message->Severity == D3D12_MESSAGE_SEVERITY_ERROR)
+        {
+            OutputDebugStringA(message->pDescription);
+            OutputDebugStringA("\n");
+            hasErrors = true;
+        }
+    }
+
+    infoQueue->ClearStoredMessages();
+    if(hasErrors)
+    {
+        ThrowIfFailed(E_FAIL);
+    }
+#endif
 }
 
 void TrD3D12RendererRaster::GetHardwareAdapter(IDXGIFactory4* pFactory, REFIID riid, void** ppAdapter)

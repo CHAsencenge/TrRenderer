@@ -329,10 +329,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\CornellBoxScene.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12CompositePass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12ConstantBuffer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredLightingPass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredLightingPass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredRenderTargets.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DeferredRenderTargets.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12DescriptorHeap.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GBufferPass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GBufferPass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12GraphicsPipeline.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrD3D12Mesh.cpp" />
@@ -358,7 +366,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\composite.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\deferred_lighting.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\gbuffer.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl" />
   </ItemGroup>
