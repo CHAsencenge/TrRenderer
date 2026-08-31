@@ -1,6 +1,6 @@
 # DX12 最小 Lumen 实现基础建设规划
 
-更新日期：2026-08-28
+更新日期：2026-08-31
 
 ## 1. 目标与边界
 
@@ -40,12 +40,13 @@
 - D32_FLOAT Depth Buffer 和 DSV；
 - Default Heap 静态 Vertex/Index Buffer；
 - 每帧独立、256 字节对齐的 Camera Constant Buffer；
-- 使用索引绘制的两层程序化棋盘纹理四边形。
+- 使用索引绘制的程序化 Cornell Box（路径追踪常见双球体变体）；
+- 顶点法线/反照率和最小环境光 + Lambert 直接光照。
 
 当前主要不足：
 
 - 没有 Resize；
-- 只有固定 View/Projection，尚无可交互相机、场景、材质和 GBuffer；
+- 只有固定 View/Projection 和顶点材质，尚无可交互相机、场景对象系统和 GBuffer；
 - 没有 Compute Shader 基础；
 - 仍使用 `D3DCompileFromFile` 和 Shader Model 5.0；
 - 没有 DXR 加速结构和 RayQuery；
@@ -279,7 +280,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [ ] 用 DXC 替换 `D3DCompileFromFile`；
 - [ ] 增加最小 Compute Shader Dispatch；
 - [ ] 加入 DRED 和对象调试名称；
-- [ ] 建立 Cornell Box 程序化场景。
+- [x] 建立 Cornell Box 程序化场景。
 
 ## 9. 参考资料
 

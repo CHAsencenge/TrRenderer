@@ -54,6 +54,9 @@
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl">
+      <Filter>Shader Sources</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
       <Filter>Shader Sources</Filter>
     </ClInclude>

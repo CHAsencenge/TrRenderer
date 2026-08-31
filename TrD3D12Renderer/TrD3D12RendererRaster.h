@@ -33,8 +33,9 @@ public:
 private:
 
     virtual void LoadPipeline();
-    virtual void LoadAssets(const std::wstring filename);
+    virtual void LoadAssetsCornellBox(const std::wstring filename);
     virtual void LoadAssetsTexture(const std::wstring filename);
+    void CreateFrameConstantBuffers();
     
 
     // populate: add datas to...
@@ -66,6 +67,8 @@ private:
     struct SceneConstants
     {
         DirectX::XMFLOAT4X4 ModelViewProjection;
+        DirectX::XMFLOAT3 LightDirection;
+        float AmbientStrength;
     };
 
     static constexpr UINT ConstantBufferSize =
@@ -86,12 +89,10 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
     FrameContext mFrameContexts[SwapFrameCount];
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mBundleAllocator;  // additionally need a bundle allocator
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mBundle;  // additionally need a bundle
     
     Microsoft::WRL::ComPtr<ID3D12Resource> mRenderTargets[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
@@ -109,6 +110,7 @@ private:
     UINT mIndexCount = 0;
     
     Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
+    bool mUsesTexture = false;
 
     // synchronization objects
     UINT64 mNextFenceValue = 1;

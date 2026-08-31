@@ -135,9 +135,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
     LPSTR cmdLine, int showCmd)
 {
     std::cout << "WinMain" << std::endl;
-    
-    TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Triangle");
-    return TrWindowApp::Run(&Renderer, hInstance, showCmd);
+
+    try
+    {
+        TrD3D12RendererRaster Renderer(1920, 1080, L"Tr Cornell Box");
+        return TrWindowApp::Run(&Renderer, hInstance, showCmd);
+    }
+    catch(const DxException& exception)
+    {
+        const std::wstring message = exception.ToString();
+        OutputDebugStringW(message.c_str());
+        MessageBoxW(nullptr, message.c_str(), L"Direct3D 12 Error", MB_OK | MB_ICONERROR);
+        return EXIT_FAILURE;
+    }
 }
 #endif
 

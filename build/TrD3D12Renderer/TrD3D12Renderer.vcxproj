@@ -342,6 +342,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl" />
   </ItemGroup>
