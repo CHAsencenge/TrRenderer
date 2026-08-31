@@ -23,7 +23,7 @@ void TrGBufferPass::Initialize(
     rootParameters[2].InitAsConstantBufferView(
         TrConstantRegister::Primitive,
         0,
-        D3D12_SHADER_VISIBILITY_VERTEX);
+        D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[3].InitAsConstantBufferView(
         TrConstantRegister::Material,
         0,
@@ -83,13 +83,12 @@ void TrGBufferPass::Begin(
     TrDescriptorHeap& resourceHeap,
     TrDescriptorHeap& samplerHeap,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
-    D3D12_GPU_VIRTUAL_ADDRESS passConstants,
-    D3D12_GPU_VIRTUAL_ADDRESS primitiveConstants)
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        samplerHeap.Get() == nullptr || !resourceHeap.IsShaderVisible() ||
        !samplerHeap.IsShaderVisible() || viewConstants == 0 ||
-       passConstants == 0 || primitiveConstants == 0)
+       passConstants == 0)
     {
         throw std::invalid_argument("GBuffer pass inputs are incomplete.");
     }
@@ -104,23 +103,24 @@ void TrGBufferPass::Begin(
     commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
     commandList->SetGraphicsRootConstantBufferView(0, viewConstants);
     commandList->SetGraphicsRootConstantBufferView(1, passConstants);
-    commandList->SetGraphicsRootConstantBufferView(2, primitiveConstants);
     renderTargets.BeginGBufferPass(commandList);
 }
 
-void TrGBufferPass::SetMaterialAndDrawConstants(
+void TrGBufferPass::SetDrawBindings(
     ID3D12GraphicsCommandList* commandList,
+    D3D12_GPU_VIRTUAL_ADDRESS primitiveConstants,
     D3D12_GPU_VIRTUAL_ADDRESS materialConstants,
     D3D12_GPU_DESCRIPTOR_HANDLE textureTable,
     D3D12_GPU_DESCRIPTOR_HANDLE samplerTable,
     const TrDrawConstants& drawConstants)
 {
-    if(commandList == nullptr || materialConstants == 0 ||
+    if(commandList == nullptr || primitiveConstants == 0 || materialConstants == 0 ||
        textureTable.ptr == 0 || samplerTable.ptr == 0)
     {
-        throw std::invalid_argument("GBuffer material bindings are incomplete.");
+        throw std::invalid_argument("GBuffer draw bindings are incomplete.");
     }
 
+    commandList->SetGraphicsRootConstantBufferView(2, primitiveConstants);
     commandList->SetGraphicsRootConstantBufferView(3, materialConstants);
     commandList->SetGraphicsRoot32BitConstants(
         4,

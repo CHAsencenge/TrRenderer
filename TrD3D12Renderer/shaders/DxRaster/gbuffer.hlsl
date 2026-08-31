@@ -59,7 +59,7 @@ cbuffer GBufferPassConstants : register(b2)
     float g_baseColorScale;
     float g_roughnessScale;
     float g_metallicScale;
-    float g_gBufferPadding;
+    uint g_geometryVisualization;
 };
 
 cbuffer PrimitiveConstants : register(b3)
@@ -69,9 +69,10 @@ cbuffer PrimitiveConstants : register(b3)
     float4x4 g_worldInverseTranspose;
     float3 g_boundsCenter;
     float g_boundsRadius;
-    uint g_primitiveId;
-    uint g_primitiveFlags;
-    float2 g_primitivePadding;
+    uint g_instanceId;
+    uint g_meshId;
+    uint g_parentNodeId;
+    uint g_hierarchyDepth;
 };
 
 cbuffer MaterialConstants : register(b4)
@@ -92,9 +93,9 @@ cbuffer MaterialConstants : register(b4)
 
 cbuffer DrawConstants : register(b5)
 {
-    uint g_drawPrimitiveIndex;
-    uint g_drawMaterialIndex;
-    uint g_drawInstanceOffset;
+    uint g_drawPrimitiveId;
+    uint g_drawMaterialId;
+    uint g_drawLocalPrimitiveIndex;
     uint g_drawFlags;
 };
 
@@ -150,6 +151,25 @@ float3 ApplyNormalMap(float3 worldPosition, float3 geometricNormal, float2 uv)
         geometricNormal * mappedNormal.z);
 }
 
+uint HashId(uint value)
+{
+    value ^= value >> 16u;
+    value *= 0x7feb352du;
+    value ^= value >> 15u;
+    value *= 0x846ca68bu;
+    value ^= value >> 16u;
+    return value;
+}
+
+float3 IdColor(uint value)
+{
+    const float hue = frac(float(HashId(value) & 0xffffu) / 65535.0f);
+    const float3 hueOffsets = float3(0.0f, 2.0f / 3.0f, 1.0f / 3.0f);
+    const float3 rgb = saturate(
+        abs(frac(hue + hueOffsets) * 6.0f - 3.0f) - 1.0f);
+    return lerp(0.18f.xxx, rgb, 0.82f);
+}
+
 PSInput VSMain(VSInput input)
 {
     PSInput result;
@@ -202,17 +222,42 @@ GBufferOutput PSMain(PSInput input)
         input.worldPosition,
         geometricNormal,
         normalUv);
-    const float3 baseColor = input.color * g_baseColorFactor.rgb *
+    float3 baseColor = input.color * g_baseColorFactor.rgb *
         baseColorSample.rgb * g_baseColorScale;
-    const float roughness = g_roughness * metallicRoughnessSample.g *
+    float roughness = g_roughness * metallicRoughnessSample.g *
         g_roughnessScale;
-    const float metallic = g_metallic * metallicRoughnessSample.b *
+    float metallic = g_metallic * metallicRoughnessSample.b *
         g_metallicScale;
     const float occlusion = lerp(
         1.0f,
         occlusionSample,
         saturate(g_occlusionTextureTransform.strength));
-    const float3 emissive = g_emissiveFactor * g_emissiveStrength * emissiveSample;
+    float3 emissive = g_emissiveFactor * g_emissiveStrength * emissiveSample;
+
+    if(g_geometryVisualization == 1u)
+    {
+        const uint parentKey = g_parentNodeId == 0xffffffffu
+            ? g_instanceId
+            : g_parentNodeId;
+        const float3 parentColor = IdColor(parentKey);
+        const float3 nodeColor = IdColor(g_instanceId + 0x9e3779b9u);
+        const float depthScale = 0.72f + 0.12f * float(g_hierarchyDepth % 3u);
+        baseColor = saturate(lerp(parentColor, nodeColor, 0.28f) * depthScale);
+        roughness = 0.78f;
+        metallic = 0.0f;
+        emissive = baseColor * 0.12f;
+    }
+    else if(g_geometryVisualization == 2u)
+    {
+        const uint drawKey = HashId(
+            g_drawPrimitiveId ^
+            (g_instanceId * 0x9e3779b9u) ^
+            (g_drawLocalPrimitiveIndex * 0x85ebca6bu));
+        baseColor = IdColor(drawKey);
+        roughness = 0.82f;
+        metallic = 0.0f;
+        emissive = baseColor * 0.12f;
+    }
 
     GBufferOutput result;
     result.baseColorRoughness = float4(saturate(baseColor), saturate(roughness));

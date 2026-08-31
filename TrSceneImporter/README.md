@@ -8,9 +8,11 @@ The import is deliberately split into two layers:
 
 1. `TrGlbImporter` decodes the GLB into the renderer-independent `TrScene` CPU
    representation.
-2. `TrScene::BuildStaticRenderMesh` creates the flattened vertex/index data
-   used by the current DX12 GBuffer preview. The structured `TrScene` remains
-   available for later material, instance, DXR, and Lumen work.
+2. `TrRuntimeScene` uploads every referenced source mesh once and keeps active
+   nodes as instances. Mesh/primitive/instance/material IDs have stable source
+   contracts; mesh and primitive local AABBs, instance world AABBs, the full
+   hierarchy, and current/previous world transforms are retained. Node
+   transforms are not baked into duplicated vertices.
 
 ## Build and convert
 
@@ -21,8 +23,9 @@ build/bin/Debug/TrSceneImporter.exe D:/Scenes/Example.glb D:/Scenes/Example.trsc
 ```
 
 The output path is optional; it defaults to the input name with a `.trscene`
-extension. The converter immediately reads the result back and builds a preview
-mesh, so a successful exit verifies both serialization directions.
+extension. The converter immediately reads the result back, validates the active
+hierarchy, and calculates world bounds, so a successful exit verifies both
+serialization directions without flattening the scene.
 
 ## Load in the DX12 renderer
 
@@ -33,8 +36,9 @@ build/bin/Debug/TrD3D12Renderer.exe -scene D:/Scenes/Example.glb
 build/bin/Debug/TrD3D12Renderer.exe -scene D:/Scenes/Example.trscene
 ```
 
-Paths containing spaces may be quoted. With no `-scene` option, the existing
-procedural Cornell Box remains the default.
+Paths containing spaces may be quoted. With no `-scene` option, a procedural
+runtime-scene validation case is used: a six-primitive room mesh plus shared
+sphere/cube meshes instanced under nested, animated parent nodes.
 
 ## Imported data
 
@@ -47,10 +51,10 @@ procedural Cornell Box remains the default.
 - glTF right-handed to renderer left-handed conversion, including winding
 - A versioned `.trscene` binary cache with bounds and corruption checks
 
-The current DX12 preview bakes node transforms and scalar material properties
-into one static render mesh. Embedded textures are retained in `TrScene`, but
-GPU texture creation and sampling are intentionally not part of this first
-import step. Alpha blend/mask is also rendered as opaque for now.
+The DX12 renderer preserves mesh/primitive/instance relationships, uploads
+embedded WIC-decodable textures, and samples base-color, metallic-roughness,
+normal, occlusion, and emissive maps. Alpha mask is supported; alpha blend is
+still rendered through the opaque path.
 
 Draco/meshopt meshes, skins, animation, morph targets, and GPU-instancing
 extensions are not expanded. Unsupported static-scene features produce warnings

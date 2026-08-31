@@ -2,7 +2,10 @@
 
 #include <DirectXMath.h>
 #include <cstdint>
+#include <string>
 #include <vector>
+
+class TrScene;
 
 struct TrCornellBoxVertex
 {
@@ -17,8 +20,19 @@ static_assert(sizeof(TrCornellBoxVertex) == sizeof(float) * 13);
 
 struct TrCornellBoxMeshData
 {
+    struct Part
+    {
+        std::string Name;
+        std::uint32_t FirstVertex = 0;
+        std::uint32_t VertexCount = 0;
+        std::uint32_t FirstIndex = 0;
+        std::uint32_t IndexCount = 0;
+    };
+
     std::vector<TrCornellBoxVertex> Vertices;
     std::vector<std::uint16_t> Indices;
+    std::vector<Part> Parts;
 };
 
 TrCornellBoxMeshData CreateCornellBoxSphereScene();
+TrScene CreateCornellBoxScene();

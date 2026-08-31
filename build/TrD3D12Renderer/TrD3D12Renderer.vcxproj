@@ -422,6 +422,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRendererBase.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrTexture.cpp" />

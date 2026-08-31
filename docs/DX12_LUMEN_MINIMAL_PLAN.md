@@ -1,6 +1,6 @@
 # DX12 最小 Lumen 实现基础建设规划
 
-更新日期：2026-08-31
+更新日期：2026-09-01
 
 ## 1. 目标与边界
 
@@ -46,22 +46,23 @@
 - `R32_TYPELESS` Depth Buffer，以及 `D32_FLOAT` DSV、`R32_FLOAT` SRV；
 - Default Heap 静态 Vertex/Index Buffer；
 - UE 风格六层常量域：Scene、View、Pass、Primitive、Material、Draw/Dispatch；
-- 每帧独立、256 字节对齐的 Scene、View、Primitive、Material 和强类型 Pass Constant Buffer；
+- 每帧独立、256 字节对齐的 Scene、View、逐 Instance Primitive 和强类型 Pass Constant Buffer；
 - Draw/Dispatch 小常量通过 Root Constants 提交；
-- 使用索引绘制的程序化 Cornell Box（路径追踪常见双球体变体）；
-- 两目标 MRT GBuffer：BaseColor/Roughness 与 WorldNormal/Metallic；
+- 用于运行时场景验证的程序化 Cornell Box：一个六 Primitive 房间 Mesh、共享球/立方体 Mesh 的多实例、嵌套父子节点和多材质；
+- 三目标 MRT GBuffer：BaseColor/Roughness、WorldNormal/Metallic 与 Emissive/Occlusion；
 - 读取 GBuffer/Depth 的全屏 Deferred Lighting Pass；
 - `RGBA16_FLOAT` HDR Lighting Target 和显示颜色转换 Composite Pass；
-- 可注册任意 SRV 的 `TrGpuDebug` 中间结果查看器，支持 Final、BaseColor、Normal、Roughness、Metallic 和线性 Depth；
-- 独立接入 Dear ImGui（不依赖 nvpro_core），GPU 调试面板通过按钮选择视图，并提供 Exposure、Depth Range 文本输入；
+- 可注册任意 SRV 的 `TrGpuDebug` 中间结果查看器，支持 Final、BaseColor、Normal、Roughness、Metallic、Emissive、AO 和线性 Depth；
+- 独立接入 Dear ImGui（不依赖 nvpro_core），GPU 调试面板通过按钮选择视图，并提供 Exposure、Depth Range 文本输入；面板同时显示 Runtime Scene 节点树和每个节点的 Instance/Mesh/Primitive/Material ID；
+- Final Lighting 支持 Hierarchy 调试着色（父节点主色、节点辅色、深度亮度）和 Primitive Draw 调试着色（PrimitiveID + InstanceID），无需新增 ID Render Target；
 - Debug 退出时检查 D3D12 InfoQueue 的 ERROR/CORRUPTION 消息。
 
-当前资源创建已经拆成单向依赖的轻量流程：场景模块只生成 CPU 数据，Mesh 只持有 GPU 几何资源，Upload Context 只负责上传与上传期同步，Graphics Pipeline 只负责 Root Signature、Shader 和 PSO，Renderer 只编排这些步骤。旧的纹理示例加载分支已从 Renderer 移除。
+当前资源创建已经拆成单向依赖的轻量流程：`TrScene` 保存 CPU 场景层级，`TrRuntimeScene` 为每个被引用的源 Mesh 创建一份 GPU 几何，并以 Node 作为 Instance；Mesh 只持有 GPU 几何资源，Upload Context 只负责上传与上传期同步，Graphics Pipeline 只负责 Root Signature、Shader 和 PSO，Renderer 只编排这些步骤。运行时不再把节点变换烘焙到一个展平 Mesh。MeshID、PrimitiveID、InstanceID、MaterialID 都有明确且与绘制顺序无关的契约；Runtime Mesh/Primitive 保存 Local AABB，Instance 保存 Current/Previous World Transform 和 World AABB。CPU 侧支持 `BeginFrame -> SetNodeLocalTransform -> UpdateWorldTransforms` 的层级更新，GPU Scene 暂不接入。
 
 当前主要不足：
 
 - 历史纹理生命周期已具备，但尚未接入实际时间累积、Motion Vector 和 History Rejection；
-- 只有固定 View/Projection 和单个 Primitive/Material，尚无可交互相机及场景对象容器；
+- 已有多 Mesh、多 Primitive、多 Instance、CPU 动态层级更新和时序 Transform，但尚无可交互相机、动画资产系统和 GPU Scene StructuredBuffer；
 - Compute 基础已接入，尚未实现 HZB 和屏幕空间追踪；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调和逐帧更新为空。
@@ -92,6 +93,8 @@ TrD3D12Renderer/
   TrRenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
   TrUploadContext.*    一次性静态资源上传及上传资源生命周期
   TrMesh.*             Vertex/Index Buffer、View、Bind 和 Draw
+  TrRuntimeScene.*     保留 Mesh/Primitive/Node Instance 的 GPU 场景资源
+  TrMaterialResources.* 材质常量、纹理 SRV 与 Sampler 表
   TrGraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
   TrComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
   TrTexture.*          Texture2D、分 Mip View 和按 Mip 资源状态跟踪
@@ -111,9 +114,9 @@ TrD3D12Renderer/
 初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
 
 ```text
-TrCornellBoxScene -> TrCornellBoxMeshData
-                         |
-TrUploadContext -> TrBuffer -> TrMesh -> GPU Vertex/Index Buffer
+TrCornellBoxScene / TrSceneImporter -> TrScene Mesh + Node hierarchy
+                                           |
+TrUploadContext -> TrRuntimeScene -> TrMesh -> per-mesh GPU Vertex/Index Buffer
 TrGraphicsPipeline -----------> Root Signature + PSO
 TrBuffer -------> TrConstantBuffer -> 每个 TrFrameContext 一份
                                   |
@@ -126,12 +129,12 @@ TrDeferredRenderer --------------+-> 逐帧 Bind / Draw / Present
 TrSceneConstants            b0  方向光、环境光等场景公共数据
 TrViewConstants             b1  当前/上一帧矩阵、相机、渲染尺寸、Jitter、帧号
 Tr*PassConstants            b2  GBuffer、DeferredLighting、Composite 各自的强类型参数
-TrPrimitiveConstants        b3  World、PreviousWorld、法线矩阵、包围球、PrimitiveId
+TrPrimitiveConstants        b3  World、PreviousWorld、法线矩阵、包围球、InstanceId、MeshId
 TrMaterialConstants         b4  BaseColorFactor、Roughness、Metallic、EmissiveStrength
-TrDrawConstants             b5  Primitive/Material 索引、InstanceOffset、Draw Flags
+TrDrawConstants             b5  PrimitiveId、MaterialId、LocalPrimitiveIndex、Draw Flags
 ```
 
-`b2` Pass Constants 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `TrGBufferPassConstants`、`TrDeferredLightingPassConstants` 和 `TrCompositePassConstants`。Scene、View、Pass、Primitive、Material 的 CBV 按 `TrFrameContext` 分配，CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
+`b2` Pass Constants 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `TrGBufferPassConstants`、`TrDeferredLightingPassConstants` 和 `TrCompositePassConstants`。Scene、View 和 Pass CBV 按 `TrFrameContext` 分配；Primitive CBV 按 Frame × Instance 分配；静态 Material CBV 由材质资源持有。CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
 
 延迟渲染迭代 1 已完成：Cornell Box 先渲染到带 RTV/SRV 的离屏纹理，再以 `COPY_SOURCE` 复制到 `COPY_DEST` 状态的 SwapChain Back Buffer。当前逐帧状态链为：
 
@@ -368,6 +371,9 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
 - [x] 建立可扩展的 GPU 中间结果调试视图。
+- [x] 建立保留 Mesh、Primitive、Node 层级和实例变换的 `TrRuntimeScene`，运行时不再展平场景。
+- [x] 补齐稳定 Mesh/Primitive/Instance/Material ID、Mesh/Primitive/Instance AABB 和 Current/Previous Transform。
+- [x] 建立 CPU 层级变换传播，并用共享 Mesh、多实例、多 Primitive、多材质的程序化场景验证。
 
 ## 9. 参考资料
 

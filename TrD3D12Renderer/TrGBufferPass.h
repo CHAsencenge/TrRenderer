@@ -15,10 +15,10 @@ public:
         TrDescriptorHeap& resourceHeap,
         TrDescriptorHeap& samplerHeap,
         D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
-        D3D12_GPU_VIRTUAL_ADDRESS passConstants,
-        D3D12_GPU_VIRTUAL_ADDRESS primitiveConstants);
-    void SetMaterialAndDrawConstants(
+        D3D12_GPU_VIRTUAL_ADDRESS passConstants);
+    void SetDrawBindings(
         ID3D12GraphicsCommandList* commandList,
+        D3D12_GPU_VIRTUAL_ADDRESS primitiveConstants,
         D3D12_GPU_VIRTUAL_ADDRESS materialConstants,
         D3D12_GPU_DESCRIPTOR_HANDLE textureTable,
         D3D12_GPU_DESCRIPTOR_HANDLE samplerTable,

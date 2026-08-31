@@ -1,5 +1,9 @@
 #include "TrGpuDebugPanel.h"
 
+#include "TrRenderConstants.h"
+#include "TrRuntimeScene.h"
+
+#include <algorithm>
 #include <cerrno>
 #include <cmath>
 #include <cstdio>
@@ -10,6 +14,126 @@
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
+
+namespace
+{
+    const char* GetGeometryVisualizationName(TrGeometryVisualization visualization)
+    {
+        switch(visualization)
+        {
+        case TrGeometryVisualization::Shaded:
+            return "Shaded";
+        case TrGeometryVisualization::Hierarchy:
+            return "Hierarchy";
+        case TrGeometryVisualization::PrimitiveDraw:
+            return "Primitive Draw";
+        }
+        return "Unknown";
+    }
+
+    bool DrawGeometryVisualizationButton(
+        const char* label,
+        TrGeometryVisualization value,
+        TrGeometryVisualization& selected)
+    {
+        const bool isSelected = value == selected;
+        if(isSelected)
+        {
+            ImGui::PushStyleColor(
+                ImGuiCol_Button,
+                ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+        }
+        const bool clicked = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+        if(isSelected)
+        {
+            ImGui::PopStyleColor();
+        }
+        if(clicked)
+        {
+            selected = value;
+        }
+        return clicked && !isSelected;
+    }
+
+    void DrawRuntimeNode(
+        const TrRuntimeScene& runtimeScene,
+        TrNodeId nodeId)
+    {
+        const TrRuntimeNode& node = runtimeScene.GetNode(nodeId);
+        if(!node.Active)
+        {
+            return;
+        }
+
+        const TrRuntimeInstance* instance = runtimeScene.FindInstanceByNode(nodeId);
+        std::size_t activeChildCount = 0;
+        for(const TrNodeId childId : node.Children)
+        {
+            activeChildCount += runtimeScene.GetNode(childId).Active ? 1u : 0u;
+        }
+        const bool hasDetails = instance != nullptr || activeChildCount != 0;
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+        if(node.HierarchyDepth < 3)
+        {
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
+        }
+        if(!hasDetails)
+        {
+            flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        }
+
+        const std::string visibleName = node.Name.empty() ? "Unnamed Node" : node.Name;
+        const std::string label = visibleName + "  [N:" +
+            std::to_string(node.NodeId) + " D:" +
+            std::to_string(node.HierarchyDepth) + "]";
+        const bool open = ImGui::TreeNodeEx(
+            reinterpret_cast<const void*>(static_cast<std::uintptr_t>(nodeId) + 1u),
+            flags,
+            "%s",
+            label.c_str());
+        if(!open || !hasDetails)
+        {
+            return;
+        }
+
+        if(instance != nullptr)
+        {
+            const std::string parentLabel = node.ParentNodeId == TrInvalidRuntimeId
+                ? "Root"
+                : std::to_string(node.ParentNodeId);
+            ImGui::TextDisabled(
+                "Instance %u | Mesh %u | Parent %s",
+                instance->InstanceId,
+                instance->MeshId,
+                parentLabel.c_str());
+            const TrRuntimeMesh& mesh = runtimeScene.GetMesh(instance->MeshId);
+            for(const TrRuntimePrimitive& primitive : mesh.Primitives)
+            {
+                if(primitive.MaterialId == TrInvalidRuntimeId)
+                {
+                    ImGui::BulletText(
+                        "Draw P:%u Local:%u Material:none",
+                        primitive.PrimitiveId,
+                        primitive.LocalPrimitiveIndex);
+                }
+                else
+                {
+                    ImGui::BulletText(
+                        "Draw P:%u Local:%u Material:%u",
+                        primitive.PrimitiveId,
+                        primitive.LocalPrimitiveIndex,
+                        primitive.MaterialId);
+                }
+            }
+        }
+        for(const TrNodeId childId : node.Children)
+        {
+            DrawRuntimeNode(runtimeScene, childId);
+        }
+        ImGui::TreePop();
+    }
+}
 
 void TrGpuDebugPanel::Initialize(
     HWND parent,
@@ -77,6 +201,8 @@ void TrGpuDebugPanel::Shutdown()
 
 bool TrGpuDebugPanel::BuildFrame(
     TrGpuDebug& gpuDebug,
+    const TrRuntimeScene& runtimeScene,
+    TrGeometryVisualization& geometryVisualization,
     float& exposure,
     float& depthVisualizationRange)
 {
@@ -90,12 +216,14 @@ bool TrGpuDebugPanel::BuildFrame(
     ImGui::NewFrame();
 
     ImGuiIO& io = ImGui::GetIO();
-    constexpr float panelWidth = 260.0f;
+    constexpr float panelWidth = 340.0f;
     constexpr float panelMargin = 12.0f;
     ImGui::SetNextWindowPos(
         ImVec2(io.DisplaySize.x - panelWidth - panelMargin, panelMargin),
         ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(panelWidth, 0.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(
+        ImVec2(panelWidth, std::max(io.DisplaySize.y - panelMargin * 2.0f, 320.0f)),
+        ImGuiCond_Always);
 
     bool selectedViewChanged = false;
     const ImGuiWindowFlags windowFlags =
@@ -105,7 +233,44 @@ bool TrGpuDebugPanel::BuildFrame(
         ImGuiWindowFlags_NoSavedSettings;
     if(ImGui::Begin("GPU Debug", nullptr, windowFlags))
     {
+        ImGui::TextUnformatted("Final Geometry View");
+        bool geometryViewChanged = DrawGeometryVisualizationButton(
+            "Shaded",
+            TrGeometryVisualization::Shaded,
+            geometryVisualization);
+        geometryViewChanged |= DrawGeometryVisualizationButton(
+            "Hierarchy (parent + depth)",
+            TrGeometryVisualization::Hierarchy,
+            geometryVisualization);
+        geometryViewChanged |= DrawGeometryVisualizationButton(
+            "Primitive Draw (primitive + instance)",
+            TrGeometryVisualization::PrimitiveDraw,
+            geometryVisualization);
+        selectedViewChanged |= geometryViewChanged;
+        if(geometryViewChanged)
+        {
+            mStatus = GetGeometryVisualizationName(geometryVisualization);
+            mInputValid = true;
+        }
+        if(geometryVisualization != TrGeometryVisualization::Shaded)
+        {
+            selectedViewChanged |= gpuDebug.SelectView(0);
+        }
+        ImGui::TextWrapped(
+            geometryVisualization == TrGeometryVisualization::Hierarchy
+                ? "Similar hues share a parent; brightness encodes hierarchy depth."
+                : geometryVisualization == TrGeometryVisualization::PrimitiveDraw
+                    ? "Every PrimitiveID + InstanceID draw receives a distinct color."
+                    : "Materials and lighting are shown normally.");
+
+        ImGui::Separator();
         ImGui::TextUnformatted("Visualization");
+        const bool geometryViewLocksFinalLighting =
+            geometryVisualization != TrGeometryVisualization::Shaded;
+        if(geometryViewLocksFinalLighting)
+        {
+            ImGui::BeginDisabled();
+        }
         for(UINT index = 0; index < gpuDebug.GetViewCount(); ++index)
         {
             const bool selected = index == gpuDebug.GetSelectedIndex();
@@ -127,6 +292,10 @@ bool TrGpuDebugPanel::BuildFrame(
             {
                 ImGui::PopStyleColor();
             }
+        }
+        if(geometryViewLocksFinalLighting)
+        {
+            ImGui::EndDisabled();
         }
 
         ImGui::Separator();
@@ -166,6 +335,15 @@ bool TrGpuDebugPanel::BuildFrame(
         {
             ImGui::PopStyleColor();
         }
+
+        ImGui::Separator();
+        ImGui::Text("Runtime Hierarchy | %s", GetGeometryVisualizationName(geometryVisualization));
+        ImGui::BeginChild("RuntimeHierarchy", ImVec2(0.0f, 250.0f), true);
+        for(const TrNodeId rootNodeId : runtimeScene.GetSourceScene().RootNodes)
+        {
+            DrawRuntimeNode(runtimeScene, rootNodeId);
+        }
+        ImGui::EndChild();
     }
     ImGui::End();
     ImGui::Render();

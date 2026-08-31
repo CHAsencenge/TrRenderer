@@ -7,6 +7,7 @@
 #include "TrWindowApp.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cwctype>
 #include <filesystem>
 #include <limits>
@@ -49,37 +50,91 @@ void TrDeferredRenderer::OnUpdate()
 {
     using namespace DirectX;
 
+    mRuntimeScene.BeginFrame();
+    if(mProceduralAnimationNodeId != TrInvalidRuntimeId)
+    {
+        const float angle = XMConvertToRadians(4.0f) +
+            std::sin(static_cast<float>(mFrameNumber) * 0.0125f) *
+            XMConvertToRadians(5.0f);
+        const XMMATRIX rigTransform =
+            XMMatrixTranslation(0.0f, 0.0f, -1.0f) *
+            XMMatrixRotationY(angle) *
+            XMMatrixTranslation(0.0f, 0.0f, 1.0f);
+        XMFLOAT4X4 localTransform;
+        XMStoreFloat4x4(&localTransform, rigTransform);
+        mRuntimeScene.SetNodeLocalTransform(
+            mProceduralAnimationNodeId,
+            localTransform);
+        mRuntimeScene.UpdateWorldTransforms();
+        if(mFrameNumber == 1)
+        {
+            std::size_t changedInstanceCount = 0;
+            for(const TrRuntimeInstance& instance : mRuntimeScene.GetInstances())
+            {
+                const float* current = &instance.CurrentWorldTransform._11;
+                const float* previous = &instance.PreviousWorldTransform._11;
+                bool changed = false;
+                for(std::size_t element = 0; element < 16; ++element)
+                {
+                    changed = changed || std::abs(current[element] - previous[element]) > 1.0e-6f;
+                }
+                if(changed)
+                {
+                    if(instance.DirtyFlags != TrRuntimeNodeDirtyFlags::Transform)
+                    {
+                        throw std::logic_error(
+                            "Runtime Scene changed an instance without marking it dirty.");
+                    }
+                    ++changedInstanceCount;
+                }
+            }
+            if(changedInstanceCount < 2)
+            {
+                throw std::logic_error(
+                    "Runtime Scene hierarchy validation did not propagate the parent transform.");
+            }
+            TrLog::Info(
+                "Runtime Scene temporal hierarchy validation passed: " +
+                std::to_string(changedInstanceCount) +
+                " descendant instances retain distinct Current/Previous transforms.");
+        }
+    }
+
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
+           mRuntimeScene,
+           mGeometryVisualization,
            mExposure,
            mDepthVisualizationRange))
     {
         UpdateWindowTitle();
     }
 
-    const XMMATRIX model = XMMatrixIdentity();
+    const TrAxisAlignedBounds& sceneBounds = mRuntimeScene.GetWorldBounds();
+    const XMFLOAT3 sceneBoundsCenter = sceneBounds.GetCenter();
+    const float sceneBoundsRadius = std::max(sceneBounds.GetRadius(), 0.001f);
     const float cameraDistance = mUsingImportedScene
-        ? std::max(mSceneBoundsRadius * 3.2f, 0.1f)
+        ? std::max(sceneBoundsRadius * 3.2f, 0.1f)
         : 0.0f;
     const XMVECTOR cameraPosition = mUsingImportedScene
         ? XMVectorSet(
-            mSceneBoundsCenter.x,
-            mSceneBoundsCenter.y + mSceneBoundsRadius * 0.15f,
-            mSceneBoundsCenter.z - cameraDistance,
+            sceneBoundsCenter.x,
+            sceneBoundsCenter.y + sceneBoundsRadius * 0.15f,
+            sceneBoundsCenter.z - cameraDistance,
             1.0f)
         : XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
     const XMVECTOR cameraTarget = mUsingImportedScene
-        ? XMLoadFloat3(&mSceneBoundsCenter)
+        ? XMLoadFloat3(&sceneBoundsCenter)
         : XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f);
     const XMMATRIX view = XMMatrixLookAtLH(
         cameraPosition,
         cameraTarget,
         XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
     const float nearPlane = mUsingImportedScene
-        ? std::max(mSceneBoundsRadius * 0.001f, 0.001f)
+        ? std::max(sceneBoundsRadius * 0.001f, 0.001f)
         : 0.1f;
     const float farPlane = mUsingImportedScene
-        ? std::max(mSceneBoundsRadius * 10.0f, 100.0f)
+        ? std::max(sceneBoundsRadius * 10.0f, 100.0f)
         : 100.0f;
     const XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,
@@ -88,9 +143,6 @@ void TrDeferredRenderer::OnUpdate()
         farPlane);
     const XMMATRIX viewProjection = view * projection;
     const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
-    const XMMATRIX worldInverseTranspose = XMMatrixTranspose(
-        XMMatrixInverse(nullptr, model));
-
     TrSceneConstants sceneConstants = {};
     XMStoreFloat3(
         &sceneConstants.LightDirection,
@@ -120,16 +172,8 @@ void TrDeferredRenderer::OnUpdate()
         1.0f / static_cast<float>(mHeight));
     viewConstants.FrameNumber = mFrameNumber;
 
-    const TrGBufferPassConstants gBufferPassConstants = {};
-
-    TrPrimitiveConstants primitiveConstants = {};
-    XMStoreFloat4x4(&primitiveConstants.World, XMMatrixTranspose(model));
-    XMStoreFloat4x4(&primitiveConstants.PreviousWorld, XMMatrixTranspose(model));
-    XMStoreFloat4x4(
-        &primitiveConstants.WorldInverseTranspose,
-        XMMatrixTranspose(worldInverseTranspose));
-    primitiveConstants.BoundsCenter = mSceneBoundsCenter;
-    primitiveConstants.BoundsRadius = mSceneBoundsRadius;
+    TrGBufferPassConstants gBufferPassConstants = {};
+    gBufferPassConstants.Visualization = mGeometryVisualization;
 
     const TrDeferredLightingPassConstants lightingPassConstants = {};
     TrCompositePassConstants compositePassConstants = {};
@@ -144,7 +188,38 @@ void TrDeferredRenderer::OnUpdate()
     frame.SceneConstantBuffer.Update(sceneConstants);
     frame.ViewConstantBuffer.Update(viewConstants);
     frame.GBufferPassConstantBuffer.Update(gBufferPassConstants);
-    frame.PrimitiveConstantBuffer.Update(primitiveConstants);
+    const std::vector<TrRuntimeInstance>& instances = mRuntimeScene.GetInstances();
+    if(frame.PrimitiveConstantBuffers.size() != instances.size())
+    {
+        throw std::logic_error("Frame instance constant buffers do not match the Runtime Scene.");
+    }
+    for(std::size_t instanceIndex = 0; instanceIndex < instances.size(); ++instanceIndex)
+    {
+        const TrRuntimeInstance& instance = instances[instanceIndex];
+        const XMMATRIX world = XMLoadFloat4x4(&instance.CurrentWorldTransform);
+        const XMMATRIX previousWorld = XMLoadFloat4x4(&instance.PreviousWorldTransform);
+        const XMMATRIX worldInverseTranspose = XMMatrixTranspose(
+            XMMatrixInverse(nullptr, world));
+
+        TrPrimitiveConstants primitiveConstants = {};
+        XMStoreFloat4x4(
+            &primitiveConstants.World,
+            XMMatrixTranspose(world));
+        XMStoreFloat4x4(
+            &primitiveConstants.PreviousWorld,
+            XMMatrixTranspose(previousWorld));
+        XMStoreFloat4x4(
+            &primitiveConstants.WorldInverseTranspose,
+            XMMatrixTranspose(worldInverseTranspose));
+        primitiveConstants.BoundsCenter = instance.CurrentWorldBounds.GetCenter();
+        primitiveConstants.BoundsRadius = instance.CurrentWorldBounds.GetRadius();
+        primitiveConstants.InstanceId = instance.InstanceId;
+        primitiveConstants.MeshId = instance.MeshId;
+        const TrRuntimeNode& node = mRuntimeScene.GetNode(instance.NodeId);
+        primitiveConstants.ParentNodeId = node.ParentNodeId;
+        primitiveConstants.HierarchyDepth = node.HierarchyDepth;
+        frame.PrimitiveConstantBuffers[instanceIndex]->Update(primitiveConstants);
+    }
     frame.LightingPassConstantBuffer.Update(lightingPassConstants);
     frame.CompositePassConstantBuffer.Update(compositePassConstants);
 
@@ -439,8 +514,18 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
 void TrDeferredRenderer::UpdateWindowTitle() const
 {
     const TrGpuDebugView& debugView = mGpuDebug.GetSelectedView();
+    const wchar_t* geometryView = L"Shaded";
+    if(mGeometryVisualization == TrGeometryVisualization::Hierarchy)
+    {
+        geometryView = L"Hierarchy";
+    }
+    else if(mGeometryVisualization == TrGeometryVisualization::PrimitiveDraw)
+    {
+        geometryView = L"Primitive Draw";
+    }
     const std::wstring title = mTitle + L" | GPU Debug [" +
-        std::to_wstring(mGpuDebug.GetSelectedIndex()) + L"] " + debugView.Name;
+        std::to_wstring(mGpuDebug.GetSelectedIndex()) + L"] " + debugView.Name +
+        L" | Geometry " + geometryView;
     SetWindowTextW(TrWindowApp::GetHwnd(), title.c_str());
 }
 
@@ -467,27 +552,21 @@ void TrDeferredRenderer::LoadAssets()
 
     if(GetScenePath().empty())
     {
-        const TrCornellBoxMeshData meshData = CreateCornellBoxSphereScene();
-        mSceneMesh.Initialize(
-            uploadContext,
-            meshData.Vertices.data(),
-            static_cast<UINT>(meshData.Vertices.size()),
-            sizeof(TrCornellBoxVertex),
-            meshData.Indices.data(),
-            static_cast<UINT>(meshData.Indices.size()),
-            DXGI_FORMAT_R16_UINT);
-        mSceneDraws =
+        mLoadedScene = CreateCornellBoxScene();
+        for(std::size_t nodeIndex = 0;
+            nodeIndex < mLoadedScene.Nodes.size();
+            ++nodeIndex)
         {
+            if(mLoadedScene.Nodes[nodeIndex].Name == "Sculpture Rig")
             {
-                0,
-                static_cast<std::uint32_t>(meshData.Indices.size()),
-                TrInvalidSceneIndex
+                mProceduralAnimationNodeId = static_cast<TrNodeId>(nodeIndex);
+                break;
             }
-        };
-        TrLog::Info(
-            "Loaded procedural Cornell scene: " +
-            std::to_string(meshData.Vertices.size()) + " vertices, " +
-            std::to_string(meshData.Indices.size()) + " indices.");
+        }
+        if(mProceduralAnimationNodeId == TrInvalidRuntimeId)
+        {
+            throw std::logic_error("Procedural validation scene is missing its animated rig.");
+        }
     }
     else
     {
@@ -513,41 +592,31 @@ void TrDeferredRenderer::LoadAssets()
             throw std::invalid_argument("-scene accepts only .glb or .trscene files.");
         }
 
-        const TrSceneRenderMesh meshData = mLoadedScene.BuildStaticRenderMesh();
-        if(meshData.Vertices.size() > std::numeric_limits<UINT>::max() ||
-           meshData.Indices.size() > std::numeric_limits<UINT>::max())
-        {
-            throw std::overflow_error("Imported Scene exceeds the DX12 mesh count limit.");
-        }
-        mSceneMesh.Initialize(
-            uploadContext,
-            meshData.Vertices.data(),
-            static_cast<UINT>(meshData.Vertices.size()),
-            sizeof(TrSceneRenderVertex),
-            meshData.Indices.data(),
-            static_cast<UINT>(meshData.Indices.size()),
-            DXGI_FORMAT_R32_UINT);
-        mSceneDraws = meshData.Draws;
-        mSceneBoundsCenter = DirectX::XMFLOAT3(
-            meshData.BoundsCenter[0],
-            meshData.BoundsCenter[1],
-            meshData.BoundsCenter[2]);
-        mSceneBoundsRadius = meshData.BoundsRadius;
         mUsingImportedScene = true;
         mTitle = L"Tr Scene - " + scenePath.filename().wstring();
-        TrLog::Info(
-            "Loaded TrScene '" + mLoadedScene.Name + "': " +
-            std::to_string(mLoadedScene.Meshes.size()) + " meshes, " +
-            std::to_string(mLoadedScene.Nodes.size()) + " nodes, " +
-            std::to_string(meshData.Vertices.size()) + " render vertices, " +
-            std::to_string(meshData.Indices.size()) + " render indices.");
     }
+    mRuntimeScene.Initialize(uploadContext, mLoadedScene);
+    const TrAxisAlignedBounds& runtimeBounds = mRuntimeScene.GetWorldBounds();
+    TrLog::Info(
+        "Loaded Runtime Scene '" + mLoadedScene.Name + "': " +
+        std::to_string(mRuntimeScene.GetUploadedMeshCount()) + " GPU meshes, " +
+        std::to_string(mLoadedScene.Nodes.size()) + " hierarchy nodes, " +
+        std::to_string(mRuntimeScene.GetInstances().size()) + " mesh instances, " +
+        std::to_string(mRuntimeScene.GetDrawCount()) + " primitive draws.");
+    TrLog::Info(
+        "Runtime Scene ID/AABB validation passed. World AABB min (" +
+        std::to_string(runtimeBounds.Minimum.x) + ", " +
+        std::to_string(runtimeBounds.Minimum.y) + ", " +
+        std::to_string(runtimeBounds.Minimum.z) + "), max (" +
+        std::to_string(runtimeBounds.Maximum.x) + ", " +
+        std::to_string(runtimeBounds.Maximum.y) + ", " +
+        std::to_string(runtimeBounds.Maximum.z) + ").");
     mMaterialResources.Initialize(
         mDevice.Get(),
         uploadContext,
         mResourceHeap,
         mSamplerHeap,
-        mUsingImportedScene ? &mLoadedScene : nullptr);
+        &mLoadedScene);
     uploadContext.ExecuteAndWait(mCommandQueue.Get());
 
     for(TrFrameContext& frame : mFrameContexts)
@@ -561,9 +630,18 @@ void TrDeferredRenderer::LoadAssets()
         frame.GBufferPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrGBufferPassConstants)));
-        frame.PrimitiveConstantBuffer.Initialize(
-            mDevice.Get(),
-            static_cast<UINT>(sizeof(TrPrimitiveConstants)));
+        frame.PrimitiveConstantBuffers.reserve(
+            mRuntimeScene.GetInstances().size());
+        for(std::size_t instanceIndex = 0;
+            instanceIndex < mRuntimeScene.GetInstances().size();
+            ++instanceIndex)
+        {
+            auto constantBuffer = std::make_unique<TrConstantBuffer>();
+            constantBuffer->Initialize(
+                mDevice.Get(),
+                static_cast<UINT>(sizeof(TrPrimitiveConstants)));
+            frame.PrimitiveConstantBuffers.push_back(std::move(constantBuffer));
+        }
         frame.LightingPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrDeferredLightingPassConstants)));
@@ -608,29 +686,37 @@ void TrDeferredRenderer::PopulateCommandList()
         mResourceHeap,
         mSamplerHeap,
         frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
-        frame.PrimitiveConstantBuffer.GetGpuVirtualAddress());
+        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress());
 
-    mSceneMesh.Bind(mCommandList.Get());
-    for(std::size_t drawIndex = 0; drawIndex < mSceneDraws.size(); ++drawIndex)
+    const std::vector<TrRuntimeInstance>& instances = mRuntimeScene.GetInstances();
+    for(std::size_t instanceIndex = 0; instanceIndex < instances.size(); ++instanceIndex)
     {
-        const TrSceneRenderDraw& draw = mSceneDraws[drawIndex];
-        const TrMaterialGpuBinding& material = mMaterialResources.Get(draw.MaterialIndex);
-        TrDrawConstants drawConstants = {};
-        drawConstants.PrimitiveIndex = static_cast<std::uint32_t>(drawIndex);
-        drawConstants.MaterialIndex = draw.MaterialIndex == TrInvalidSceneIndex
-            ? 0
-            : draw.MaterialIndex;
-        mGBufferPass.SetMaterialAndDrawConstants(
-            mCommandList.Get(),
-            material.Constants,
-            material.TextureTable,
-            material.SamplerTable,
-            drawConstants);
-        mSceneMesh.DrawRange(
-            mCommandList.Get(),
-            draw.IndexCount,
-            draw.FirstIndex);
+        const TrRuntimeInstance& instance = instances[instanceIndex];
+        const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
+        mesh.Geometry->Bind(mCommandList.Get());
+        for(std::size_t primitiveIndex = 0;
+            primitiveIndex < mesh.Primitives.size();
+            ++primitiveIndex)
+        {
+            const TrRuntimePrimitive& primitive = mesh.Primitives[primitiveIndex];
+            const TrMaterialGpuBinding& material =
+                mMaterialResources.Get(primitive.MaterialId);
+            TrDrawConstants drawConstants = {};
+            drawConstants.PrimitiveId = primitive.PrimitiveId;
+            drawConstants.MaterialId = primitive.MaterialId;
+            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
+            mGBufferPass.SetDrawBindings(
+                mCommandList.Get(),
+                frame.PrimitiveConstantBuffers[instanceIndex]->GetGpuVirtualAddress(),
+                material.Constants,
+                material.TextureTable,
+                material.SamplerTable,
+                drawConstants);
+            mesh.Geometry->DrawRange(
+                mCommandList.Get(),
+                primitive.IndexCount,
+                primitive.FirstIndex);
+        }
     }
     mGBufferPass.End(mCommandList.Get(), mDeferredRenderTargets);
 

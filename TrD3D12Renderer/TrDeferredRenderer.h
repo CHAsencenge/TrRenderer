@@ -16,9 +16,12 @@
 #include "TrGpuDebugPanel.h"
 #include "TrHistoryTexture.h"
 #include "TrMaterialResources.h"
-#include "TrMesh.h"
 #include "TrRenderConstants.h"
+#include "TrRuntimeScene.h"
 #include "TrScene.h"
+
+#include <memory>
+#include <vector>
 
 class TrWindowApp;
 
@@ -73,7 +76,7 @@ private:
         TrConstantBuffer SceneConstantBuffer;
         TrConstantBuffer ViewConstantBuffer;
         TrConstantBuffer GBufferPassConstantBuffer;
-        TrConstantBuffer PrimitiveConstantBuffer;
+        std::vector<std::unique_ptr<TrConstantBuffer>> PrimitiveConstantBuffers;
         TrConstantBuffer LightingPassConstantBuffer;
         TrConstantBuffer CompositePassConstantBuffer;
         UINT64 FenceValue = 0;
@@ -103,13 +106,12 @@ private:
     TrGpuDebugPanel mGpuDebugPanel;
 
     // app resources
-    TrMesh mSceneMesh;
     TrScene mLoadedScene;
+    TrRuntimeScene mRuntimeScene;
     TrMaterialResources mMaterialResources;
-    std::vector<TrSceneRenderDraw> mSceneDraws;
-    DirectX::XMFLOAT3 mSceneBoundsCenter = {0.0f, 1.0f, 1.0f};
-    float mSceneBoundsRadius = 2.5f;
     bool mUsingImportedScene = false;
+    TrNodeId mProceduralAnimationNodeId = TrInvalidRuntimeId;
+    TrGeometryVisualization mGeometryVisualization = TrGeometryVisualization::Shaded;
 
     // synchronization objects
     UINT64 mNextFenceValue = 1;

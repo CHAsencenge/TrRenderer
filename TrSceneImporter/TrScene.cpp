@@ -394,50 +394,25 @@ namespace
         };
     }
 
-    std::array<float, 3> TransformNormal(
-        const std::array<float, 3>& value,
-        const std::array<float, 16>& matrix)
+    std::array<float, 16> MultiplyMatrix(
+        const std::array<float, 16>& left,
+        const std::array<float, 16>& right)
     {
-        const float a00 = matrix[0], a01 = matrix[1], a02 = matrix[2];
-        const float a10 = matrix[4], a11 = matrix[5], a12 = matrix[6];
-        const float a20 = matrix[8], a21 = matrix[9], a22 = matrix[10];
-        const float determinant =
-            a00 * (a11 * a22 - a12 * a21) -
-            a01 * (a10 * a22 - a12 * a20) +
-            a02 * (a10 * a21 - a11 * a20);
-
-        std::array<float, 3> result = value;
-        if(std::abs(determinant) > 1.0e-12f)
+        std::array<float, 16> result = {};
+        for(std::size_t row = 0; row < 4; ++row)
         {
-            const float inverseDeterminant = 1.0f / determinant;
-            const float i00 = (a11 * a22 - a12 * a21) * inverseDeterminant;
-            const float i01 = (a02 * a21 - a01 * a22) * inverseDeterminant;
-            const float i02 = (a01 * a12 - a02 * a11) * inverseDeterminant;
-            const float i10 = (a12 * a20 - a10 * a22) * inverseDeterminant;
-            const float i11 = (a00 * a22 - a02 * a20) * inverseDeterminant;
-            const float i12 = (a02 * a10 - a00 * a12) * inverseDeterminant;
-            const float i20 = (a10 * a21 - a11 * a20) * inverseDeterminant;
-            const float i21 = (a01 * a20 - a00 * a21) * inverseDeterminant;
-            const float i22 = (a00 * a11 - a01 * a10) * inverseDeterminant;
-            result =
+            for(std::size_t column = 0; column < 4; ++column)
             {
-                value[0] * i00 + value[1] * i01 + value[2] * i02,
-                value[0] * i10 + value[1] * i11 + value[2] * i12,
-                value[0] * i20 + value[1] * i21 + value[2] * i22
-            };
-        }
-
-        const float lengthSquared =
-            result[0] * result[0] + result[1] * result[1] + result[2] * result[2];
-        if(lengthSquared > 1.0e-20f)
-        {
-            const float inverseLength = 1.0f / std::sqrt(lengthSquared);
-            result[0] *= inverseLength;
-            result[1] *= inverseLength;
-            result[2] *= inverseLength;
+                for(std::size_t inner = 0; inner < 4; ++inner)
+                {
+                    result[row * 4 + column] +=
+                        left[row * 4 + inner] * right[inner * 4 + column];
+                }
+            }
         }
         return result;
     }
+
 }
 
 void TrScene::Validate() const
@@ -499,9 +474,24 @@ void TrScene::Validate() const
         {
             if(static_cast<std::uint64_t>(primitive.FirstVertex) + primitive.VertexCount > mesh.Vertices.size() ||
                static_cast<std::uint64_t>(primitive.FirstIndex) + primitive.IndexCount > mesh.Indices.size() ||
+               primitive.VertexCount == 0 || primitive.IndexCount == 0 ||
                primitive.IndexCount % 3 != 0)
             {
                 throw std::runtime_error("Scene primitive range is invalid.");
+            }
+            for(std::uint32_t indexOffset = 0;
+                indexOffset < primitive.IndexCount;
+                ++indexOffset)
+            {
+                const std::uint64_t vertexIndex =
+                    mesh.Indices[primitive.FirstIndex + indexOffset];
+                if(vertexIndex < primitive.FirstVertex ||
+                   vertexIndex >= static_cast<std::uint64_t>(primitive.FirstVertex) +
+                       primitive.VertexCount)
+                {
+                    throw std::runtime_error(
+                        "Scene primitive index escapes its vertex range.");
+                }
             }
             validateIndex(primitive.MaterialIndex, Materials.size(), "Scene primitive material is invalid.");
         }
@@ -531,6 +521,13 @@ void TrScene::Validate() const
                 throw std::runtime_error("Scene node contains a non-finite world transform.");
             }
         }
+        std::vector<std::uint32_t> uniqueChildren = node.Children;
+        std::sort(uniqueChildren.begin(), uniqueChildren.end());
+        if(std::adjacent_find(uniqueChildren.begin(), uniqueChildren.end()) !=
+           uniqueChildren.end())
+        {
+            throw std::runtime_error("Scene node lists the same child more than once.");
+        }
         for(std::uint32_t child : node.Children)
         {
             if(child == TrInvalidSceneIndex || child >= Nodes.size())
@@ -543,11 +540,57 @@ void TrScene::Validate() const
             }
         }
     }
+
+    for(std::size_t nodeIndex = 0; nodeIndex < Nodes.size(); ++nodeIndex)
+    {
+        const std::uint32_t parentIndex = Nodes[nodeIndex].ParentIndex;
+        if(parentIndex == TrInvalidSceneIndex)
+        {
+            continue;
+        }
+        const std::vector<std::uint32_t>& siblings = Nodes[parentIndex].Children;
+        if(std::count(siblings.begin(), siblings.end(), static_cast<std::uint32_t>(nodeIndex)) != 1)
+        {
+            throw std::runtime_error("Scene child is missing from its declared parent.");
+        }
+    }
+
+    std::vector<std::uint8_t> hierarchyState(Nodes.size(), 0);
+    for(std::size_t startNode = 0; startNode < Nodes.size(); ++startNode)
+    {
+        std::uint32_t nodeIndex = static_cast<std::uint32_t>(startNode);
+        std::vector<std::uint32_t> chain;
+        while(nodeIndex != TrInvalidSceneIndex && hierarchyState[nodeIndex] == 0)
+        {
+            hierarchyState[nodeIndex] = 1;
+            chain.push_back(nodeIndex);
+            nodeIndex = Nodes[nodeIndex].ParentIndex;
+        }
+        if(nodeIndex != TrInvalidSceneIndex && hierarchyState[nodeIndex] == 1)
+        {
+            throw std::runtime_error("Scene node hierarchy contains a cycle.");
+        }
+        for(const std::uint32_t chainNode : chain)
+        {
+            hierarchyState[chainNode] = 2;
+        }
+    }
+
+    std::vector<std::uint32_t> uniqueRoots = RootNodes;
+    std::sort(uniqueRoots.begin(), uniqueRoots.end());
+    if(std::adjacent_find(uniqueRoots.begin(), uniqueRoots.end()) != uniqueRoots.end())
+    {
+        throw std::runtime_error("Scene root node is listed more than once.");
+    }
     for(std::uint32_t root : RootNodes)
     {
         if(root == TrInvalidSceneIndex || root >= Nodes.size())
         {
             throw std::runtime_error("Scene root node is invalid.");
+        }
+        if(Nodes[root].ParentIndex != TrInvalidSceneIndex)
+        {
+            throw std::runtime_error("Scene root node cannot have a parent.");
         }
     }
 }
@@ -602,10 +645,9 @@ TrScene TrScene::Load(const std::filesystem::path& path)
     return scene;
 }
 
-TrSceneRenderMesh TrScene::BuildStaticRenderMesh() const
+std::vector<std::uint32_t> TrScene::GetActiveNodeIndices() const
 {
     Validate();
-    TrSceneRenderMesh output;
     std::vector<std::uint8_t> activeNodes(Nodes.size(), 0);
     std::vector<std::uint32_t> pendingNodes = RootNodes;
     while(!pendingNodes.empty())
@@ -623,6 +665,39 @@ TrSceneRenderMesh TrScene::BuildStaticRenderMesh() const
             node.Children.begin(),
             node.Children.end());
     }
+
+    std::vector<std::uint32_t> result;
+    result.reserve(Nodes.size());
+    for(std::uint32_t nodeIndex = 0; nodeIndex < Nodes.size(); ++nodeIndex)
+    {
+        if(activeNodes[nodeIndex] != 0)
+        {
+            result.push_back(nodeIndex);
+        }
+    }
+    return result;
+}
+
+TrSceneBounds TrScene::CalculateWorldBounds() const
+{
+    const std::vector<std::uint32_t> activeNodes = GetActiveNodeIndices();
+    std::vector<std::array<float, 16>> calculatedWorldTransforms(Nodes.size());
+    std::vector<std::uint32_t> pendingNodes = RootNodes;
+    while(!pendingNodes.empty())
+    {
+        const std::uint32_t nodeIndex = pendingNodes.back();
+        pendingNodes.pop_back();
+        const TrSceneNode& node = Nodes[nodeIndex];
+        calculatedWorldTransforms[nodeIndex] = node.ParentIndex == TrInvalidSceneIndex
+            ? node.LocalTransform
+            : MultiplyMatrix(
+                node.LocalTransform,
+                calculatedWorldTransforms[node.ParentIndex]);
+        pendingNodes.insert(
+            pendingNodes.end(),
+            node.Children.begin(),
+            node.Children.end());
+    }
     std::array<float, 3> minimum =
     {
         std::numeric_limits<float>::max(),
@@ -635,13 +710,10 @@ TrSceneRenderMesh TrScene::BuildStaticRenderMesh() const
         std::numeric_limits<float>::lowest(),
         std::numeric_limits<float>::lowest()
     };
+    bool hasGeometry = false;
 
-    for(std::size_t nodeIndex = 0; nodeIndex < Nodes.size(); ++nodeIndex)
+    for(const std::uint32_t nodeIndex : activeNodes)
     {
-        if(activeNodes[nodeIndex] == 0)
-        {
-            continue;
-        }
         const TrSceneNode& node = Nodes[nodeIndex];
         if(node.MeshIndex == TrInvalidSceneIndex)
         {
@@ -650,75 +722,63 @@ TrSceneRenderMesh TrScene::BuildStaticRenderMesh() const
         const TrSceneMesh& mesh = Meshes[node.MeshIndex];
         for(const TrScenePrimitive& primitive : mesh.Primitives)
         {
-            if(output.Vertices.size() + primitive.VertexCount > std::numeric_limits<std::uint32_t>::max())
+            for(std::uint32_t localVertex = 0;
+                localVertex < primitive.VertexCount;
+                ++localVertex)
             {
-                throw std::overflow_error("Flattened Scene exceeds 32-bit vertex indices.");
-            }
-            if(output.Indices.size() + primitive.IndexCount > std::numeric_limits<std::uint32_t>::max())
-            {
-                throw std::overflow_error("Flattened Scene exceeds the DX12 index count limit.");
-            }
-            const std::uint32_t outputVertexStart = static_cast<std::uint32_t>(output.Vertices.size());
-            const std::uint32_t outputIndexStart = static_cast<std::uint32_t>(output.Indices.size());
-
-            for(std::uint32_t localVertex = 0; localVertex < primitive.VertexCount; ++localVertex)
-            {
-                const TrSceneVertex& source = mesh.Vertices[primitive.FirstVertex + localVertex];
-                TrSceneRenderVertex destination;
-                destination.Position = TransformPosition(source.Position, node.WorldTransform);
-                destination.Normal = TransformNormal(source.Normal, node.WorldTransform);
-                destination.BaseColor =
-                {
-                    source.Color[0],
-                    source.Color[1],
-                    source.Color[2]
-                };
-                destination.TexCoord0 = source.TexCoord0;
-                destination.TexCoord1 = source.TexCoord1;
-                output.Vertices.push_back(destination);
+                const TrSceneVertex& vertex =
+                    mesh.Vertices[primitive.FirstVertex + localVertex];
+                const std::array<float, 3> worldPosition = TransformPosition(
+                    vertex.Position,
+                    calculatedWorldTransforms[nodeIndex]);
                 for(std::size_t axis = 0; axis < 3; ++axis)
                 {
-                    minimum[axis] = std::min(minimum[axis], destination.Position[axis]);
-                    maximum[axis] = std::max(maximum[axis], destination.Position[axis]);
+                    minimum[axis] = std::min(minimum[axis], worldPosition[axis]);
+                    maximum[axis] = std::max(maximum[axis], worldPosition[axis]);
                 }
+                hasGeometry = true;
             }
-
-            for(std::uint32_t indexOffset = 0; indexOffset < primitive.IndexCount; ++indexOffset)
-            {
-                const std::uint32_t sourceIndex = mesh.Indices[primitive.FirstIndex + indexOffset];
-                if(sourceIndex < primitive.FirstVertex ||
-                   sourceIndex >= primitive.FirstVertex + primitive.VertexCount)
-                {
-                    throw std::runtime_error("Scene primitive index escapes its vertex range.");
-                }
-                output.Indices.push_back(
-                    outputVertexStart + sourceIndex - primitive.FirstVertex);
-            }
-
-            TrSceneRenderDraw draw;
-            draw.FirstIndex = outputIndexStart;
-            draw.IndexCount = primitive.IndexCount;
-            draw.MaterialIndex = primitive.MaterialIndex;
-            output.Draws.push_back(draw);
         }
     }
 
-    if(output.Vertices.empty() || output.Indices.empty())
+    if(!hasGeometry)
     {
         throw std::runtime_error("Scene has no renderable static triangle geometry.");
     }
+
+    TrSceneBounds result;
     for(std::size_t axis = 0; axis < 3; ++axis)
     {
-        output.BoundsCenter[axis] = (minimum[axis] + maximum[axis]) * 0.5f;
+        result.Minimum[axis] = minimum[axis];
+        result.Maximum[axis] = maximum[axis];
+        result.BoundsCenter[axis] = (minimum[axis] + maximum[axis]) * 0.5f;
     }
+
     float radiusSquared = 0.0f;
-    for(const TrSceneRenderVertex& vertex : output.Vertices)
+    for(const std::uint32_t nodeIndex : activeNodes)
     {
-        const float x = vertex.Position[0] - output.BoundsCenter[0];
-        const float y = vertex.Position[1] - output.BoundsCenter[1];
-        const float z = vertex.Position[2] - output.BoundsCenter[2];
-        radiusSquared = std::max(radiusSquared, x * x + y * y + z * z);
+        const TrSceneNode& node = Nodes[nodeIndex];
+        if(node.MeshIndex == TrInvalidSceneIndex)
+        {
+            continue;
+        }
+        const TrSceneMesh& mesh = Meshes[node.MeshIndex];
+        for(const TrScenePrimitive& primitive : mesh.Primitives)
+        {
+            for(std::uint32_t localVertex = 0;
+                localVertex < primitive.VertexCount;
+                ++localVertex)
+            {
+                const std::array<float, 3> worldPosition = TransformPosition(
+                    mesh.Vertices[primitive.FirstVertex + localVertex].Position,
+                    calculatedWorldTransforms[nodeIndex]);
+                const float x = worldPosition[0] - result.BoundsCenter[0];
+                const float y = worldPosition[1] - result.BoundsCenter[1];
+                const float z = worldPosition[2] - result.BoundsCenter[2];
+                radiusSquared = std::max(radiusSquared, x * x + y * y + z * z);
+            }
+        }
     }
-    output.BoundsRadius = std::max(std::sqrt(radiusSquared), 0.001f);
-    return output;
+    result.BoundsRadius = std::max(std::sqrt(radiusSquared), 0.001f);
+    return result;
 }

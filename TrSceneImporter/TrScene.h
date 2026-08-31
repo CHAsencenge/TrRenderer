@@ -150,31 +150,10 @@ struct TrSceneNode
     std::array<float, 16> WorldTransform = LocalTransform;
 };
 
-// Vertex layout consumed by the current DX12 GBuffer preview path. Material
-// indices remain on draw ranges so the renderer can bind textures per primitive.
-struct TrSceneRenderVertex
+struct TrSceneBounds
 {
-    std::array<float, 3> Position = {};
-    std::array<float, 3> Normal = {0.0f, 1.0f, 0.0f};
-    std::array<float, 3> BaseColor = {1.0f, 1.0f, 1.0f};
-    std::array<float, 2> TexCoord0 = {};
-    std::array<float, 2> TexCoord1 = {};
-};
-
-static_assert(sizeof(TrSceneRenderVertex) == sizeof(float) * 13);
-
-struct TrSceneRenderDraw
-{
-    std::uint32_t FirstIndex = 0;
-    std::uint32_t IndexCount = 0;
-    std::uint32_t MaterialIndex = TrInvalidSceneIndex;
-};
-
-struct TrSceneRenderMesh
-{
-    std::vector<TrSceneRenderVertex> Vertices;
-    std::vector<std::uint32_t> Indices;
-    std::vector<TrSceneRenderDraw> Draws;
+    std::array<float, 3> Minimum = {};
+    std::array<float, 3> Maximum = {};
     std::array<float, 3> BoundsCenter = {};
     float BoundsRadius = 1.0f;
 };
@@ -199,5 +178,6 @@ public:
     void Validate() const;
     void Save(const std::filesystem::path& path) const;
     static TrScene Load(const std::filesystem::path& path);
-    TrSceneRenderMesh BuildStaticRenderMesh() const;
+    std::vector<std::uint32_t> GetActiveNodeIndices() const;
+    TrSceneBounds CalculateWorldBounds() const;
 };

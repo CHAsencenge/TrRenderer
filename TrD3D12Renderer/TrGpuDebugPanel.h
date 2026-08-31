@@ -4,7 +4,11 @@
 #include "TrGpuDebug.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
+
+enum class TrGeometryVisualization : std::uint32_t;
+class TrRuntimeScene;
 
 class TrGpuDebugPanel
 {
@@ -23,6 +27,8 @@ public:
     // changed and the native window title should be refreshed.
     bool BuildFrame(
         TrGpuDebug& gpuDebug,
+        const TrRuntimeScene& runtimeScene,
+        TrGeometryVisualization& geometryVisualization,
         float& exposure,
         float& depthVisualizationRange);
     void Render(

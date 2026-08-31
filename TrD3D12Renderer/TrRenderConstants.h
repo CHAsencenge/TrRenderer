@@ -15,6 +15,14 @@ namespace TrConstantRegister
     constexpr std::uint32_t Draw = 5;
 }
 
+// Controls material-independent geometry diagnostics in the GBuffer pass.
+enum class TrGeometryVisualization : std::uint32_t
+{
+    Shaded = 0,
+    Hierarchy = 1,
+    PrimitiveDraw = 2
+};
+
 struct alignas(16) TrSceneConstants
 {
     DirectX::XMFLOAT3 LightDirection = {0.0f, 1.0f, 0.0f};
@@ -46,7 +54,7 @@ struct alignas(16) TrGBufferPassConstants
     float BaseColorScale = 1.0f;
     float RoughnessScale = 1.0f;
     float MetallicScale = 1.0f;
-    float Padding = 0.0f;
+    TrGeometryVisualization Visualization = TrGeometryVisualization::Shaded;
 };
 
 struct alignas(16) TrPrimitiveConstants
@@ -56,9 +64,10 @@ struct alignas(16) TrPrimitiveConstants
     DirectX::XMFLOAT4X4 WorldInverseTranspose;
     DirectX::XMFLOAT3 BoundsCenter = {0.0f, 0.0f, 0.0f};
     float BoundsRadius = 0.0f;
-    std::uint32_t PrimitiveId = 0;
-    std::uint32_t PrimitiveFlags = 0;
-    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    std::uint32_t InstanceId = 0;
+    std::uint32_t MeshId = 0;
+    std::uint32_t ParentNodeId = UINT32_MAX;
+    std::uint32_t HierarchyDepth = 0;
 };
 
 struct alignas(16) TrMaterialConstants
@@ -108,9 +117,9 @@ struct alignas(16) TrCompositePassConstants
 
 struct alignas(16) TrDrawConstants
 {
-    std::uint32_t PrimitiveIndex = 0;
-    std::uint32_t MaterialIndex = 0;
-    std::uint32_t InstanceOffset = 0;
+    std::uint32_t PrimitiveId = 0;
+    std::uint32_t MaterialId = 0;
+    std::uint32_t LocalPrimitiveIndex = 0;
     std::uint32_t Flags = 0;
 };
 
