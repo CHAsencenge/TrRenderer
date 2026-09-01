@@ -1,3 +1,5 @@
+#include "../Common/depth.header.hlsl"
+
 struct FullscreenVertex
 {
     float4 position : SV_POSITION;
@@ -54,15 +56,15 @@ float4 PSMain(FullscreenVertex input) : SV_Target
     if(g_visualizationMode == 7u)
     {
         const float deviceDepth = source.r;
-        if(deviceDepth >= 1.0f)
+        if(TrIsBackgroundDepth(deviceDepth))
         {
             return float4(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
-        const float denominator = max(
-            g_farPlane - deviceDepth * (g_farPlane - g_nearPlane),
-            0.0001f);
-        const float linearDepth = g_nearPlane * g_farPlane / denominator;
+        const float linearDepth = TrDeviceDepthToViewDepth(
+            deviceDepth,
+            g_nearPlane,
+            g_farPlane);
         const float normalizedDepth = saturate(
             linearDepth / max(g_depthVisualizationRange, g_nearPlane));
         return float4(normalizedDepth.xxx, 1.0f);

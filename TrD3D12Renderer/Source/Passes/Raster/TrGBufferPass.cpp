@@ -1,4 +1,5 @@
 #include "TrGBufferPass.h"
+#include "Renderer/TrRenderConfig.h"
 
 #include <stdexcept>
 
@@ -74,6 +75,8 @@ void TrGBufferPass::Initialize(
     pipelineDesc.DepthStencilFormat =
         TrDeferredRenderTargets::DepthViewFormat;
     pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;
+    pipelineDesc.DepthFunc = TrRenderConfig::DepthComparison;
+    pipelineDesc.ShaderDefines = TrRenderConfig::GetDepthShaderDefines();
     mPipeline.Initialize(device, pipelineDesc);
 }
 

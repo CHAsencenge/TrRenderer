@@ -46,7 +46,8 @@ void TrComputePipeline::Initialize(
         TrShaderCompiler::Compile(
             desc.ShaderPath,
             desc.EntryPoint.c_str(),
-            L"cs_6_5");
+            L"cs_6_5",
+            desc.ShaderDefines);
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineDesc = {};
     pipelineDesc.pRootSignature = mRootSignature.Get();

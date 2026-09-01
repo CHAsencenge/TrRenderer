@@ -7,6 +7,8 @@ project(${PROJNAME} LANGUAGES C CXX)
 message(STATUS "-------------------------------")
 message(STATUS "Processing Project ${PROJNAME}:")
 
+option(TR_USE_REVERSED_Z "Use Reversed-Z depth in the D3D12 renderer" ON)
+
 # DXC is distributed separately from the Windows SDK on some machines. Prefer
 # an explicit root, then DXC_ROOT, then derive the root from dxc.exe on PATH.
 set(TR_DXC_ROOT "" CACHE PATH "DirectX Shader Compiler distribution root")
@@ -67,6 +69,7 @@ set(TR_APP_FILES
 set(TR_RENDERER_FILES
   Source/Renderer/TrDeferredRenderer.cpp
   Source/Renderer/TrDeferredRenderer.h
+  Source/Renderer/TrRenderConfig.h
   Source/Renderer/TrRenderConstants.h)
 
 set(TR_RASTER_PASS_FILES
@@ -76,6 +79,12 @@ set(TR_RASTER_PASS_FILES
   Source/Passes/Raster/TrDeferredLightingPass.h
   Source/Passes/Raster/TrGBufferPass.cpp
   Source/Passes/Raster/TrGBufferPass.h)
+
+set(TR_COMPUTE_PASS_FILES
+  Source/Passes/Compute/TrHzbPass.cpp
+  Source/Passes/Compute/TrHzbPass.h
+  Source/Passes/Compute/TrScreenTracePass.cpp
+  Source/Passes/Compute/TrScreenTracePass.h)
 
 set(TR_RESOURCE_FILES
   Source/Resources/TrBuffer.cpp
@@ -88,6 +97,8 @@ set(TR_RESOURCE_FILES
   Source/Resources/TrDescriptorHeap.h
   Source/Resources/TrHistoryTexture.cpp
   Source/Resources/TrHistoryTexture.h
+  Source/Resources/TrHierarchicalDepth.cpp
+  Source/Resources/TrHierarchicalDepth.h
   Source/Resources/TrMaterialResources.cpp
   Source/Resources/TrMaterialResources.h
   Source/Resources/TrMesh.cpp
@@ -136,6 +147,7 @@ set(TR_SOURCE_FILES
   ${TR_APP_FILES}
   ${TR_RENDERER_FILES}
   ${TR_RASTER_PASS_FILES}
+  ${TR_COMPUTE_PASS_FILES}
   ${TR_RESOURCE_FILES}
   ${TR_BACKEND_FILES}
   ${TR_SCENE_FILES}
@@ -167,12 +179,19 @@ set(HLSL_SOURCE_FILES
   shaders/Raster/composite.hlsl
   shaders/Raster/deferred_lighting.hlsl
   shaders/Raster/gbuffer.hlsl)
+set(COMPUTE_HLSL_SOURCE_FILES
+  shaders/Compute/hzb.hlsl
+  shaders/Compute/screen_trace.hlsl)
+set(COMMON_HLSL_SOURCE_FILES
+  shaders/Common/depth.header.hlsl)
 set(LEGACY_HLSL_SOURCE_FILES
   shaders/Legacy/cornell_box.hlsl
   shaders/Legacy/shaders.hlsl
   shaders/Legacy/shaders_texture.hlsl)
 set_source_files_properties(
   ${HLSL_SOURCE_FILES}
+  ${COMPUTE_HLSL_SOURCE_FILES}
+  ${COMMON_HLSL_SOURCE_FILES}
   ${LEGACY_HLSL_SOURCE_FILES}
   ${TR_LEGACY_FILES}
   PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -183,6 +202,11 @@ add_definitions(-DIS_TR_D3D_RENDERER)
 add_definitions(-DUNICODE)
 add_definitions(-DSLN_ROOT_DIR="${TR_RENDERER_DIR}/")
 add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/shaders/")
+if(TR_USE_REVERSED_Z)
+  target_compile_definitions(${PROJNAME} PRIVATE TR_REVERSED_Z=1)
+else()
+  target_compile_definitions(${PROJNAME} PRIVATE TR_REVERSED_Z=0)
+endif()
 
 #--------------------------------------------------------------------------------------------------
 # Sources and include roots
@@ -193,6 +217,8 @@ target_sources(${PROJNAME} PRIVATE
   ${COMMON_SOURCE_FILES}
   ${IMGUI_SOURCE_FILES}
   ${HLSL_SOURCE_FILES}
+  ${COMPUTE_HLSL_SOURCE_FILES}
+  ${COMMON_HLSL_SOURCE_FILES}
   ${LEGACY_HLSL_SOURCE_FILES})
 
 target_include_directories(${PROJNAME} PRIVATE
@@ -209,7 +235,11 @@ target_include_directories(${PROJNAME} PRIVATE
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/Source" PREFIX ""
   FILES ${TR_SOURCE_FILES} ${TR_LEGACY_FILES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "Shaders"
-  FILES ${HLSL_SOURCE_FILES} ${LEGACY_HLSL_SOURCE_FILES})
+  FILES
+    ${HLSL_SOURCE_FILES}
+    ${COMPUTE_HLSL_SOURCE_FILES}
+    ${COMMON_HLSL_SOURCE_FILES}
+    ${LEGACY_HLSL_SOURCE_FILES})
 source_group("Shared\\Common" FILES ${COMMON_SOURCE_FILES})
 source_group("ThirdParty" FILES ${TR_THIRD_PARTY_FILES})
 source_group("ThirdParty\\Dear ImGui" FILES ${IMGUI_SOURCE_FILES})

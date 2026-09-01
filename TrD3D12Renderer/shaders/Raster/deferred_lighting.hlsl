@@ -1,3 +1,5 @@
+#include "../Common/depth.header.hlsl"
+
 struct FullscreenVertex
 {
     float4 position : SV_POSITION;
@@ -61,7 +63,7 @@ float4 PSMain(FullscreenVertex input) : SV_Target
         int2(input.position.xy),
         int2(g_renderSize) - 1);
     const float depth = g_depth.Load(int3(pixel, 0));
-    if(depth >= 1.0f)
+    if(TrIsBackgroundDepth(depth))
     {
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     }

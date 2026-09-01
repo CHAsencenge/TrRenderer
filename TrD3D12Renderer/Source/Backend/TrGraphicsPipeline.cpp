@@ -45,9 +45,17 @@ void TrGraphicsPipeline::Initialize(
         IID_PPV_ARGS(&mRootSignature)));
 
     const Microsoft::WRL::ComPtr<IDxcBlob> vertexShader =
-        TrShaderCompiler::Compile(desc.ShaderPath, L"VSMain", L"vs_6_5");
+        TrShaderCompiler::Compile(
+            desc.ShaderPath,
+            L"VSMain",
+            L"vs_6_5",
+            desc.ShaderDefines);
     const Microsoft::WRL::ComPtr<IDxcBlob> pixelShader =
-        TrShaderCompiler::Compile(desc.ShaderPath, L"PSMain", L"ps_6_5");
+        TrShaderCompiler::Compile(
+            desc.ShaderPath,
+            L"PSMain",
+            L"ps_6_5",
+            desc.ShaderDefines);
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
     pipelineDesc.InputLayout = {desc.InputElements, desc.InputElementCount};
@@ -64,6 +72,7 @@ void TrGraphicsPipeline::Initialize(
     pipelineDesc.RasterizerState.CullMode = desc.CullMode;
     pipelineDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pipelineDesc.DepthStencilState.DepthEnable = desc.DepthEnabled;
+    pipelineDesc.DepthStencilState.DepthFunc = desc.DepthFunc;
     pipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineDesc.NumRenderTargets = desc.RenderTargetCount;
     for(UINT index = 0; index < desc.RenderTargetCount; ++index)

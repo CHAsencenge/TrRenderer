@@ -1,4 +1,5 @@
 #include "TrCompositePass.h"
+#include "Renderer/TrRenderConfig.h"
 
 #include <stdexcept>
 
@@ -35,6 +36,7 @@ void TrCompositePass::Initialize(
     pipelineDesc.DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     pipelineDesc.DepthEnabled = false;
     pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;
+    pipelineDesc.ShaderDefines = TrRenderConfig::GetDepthShaderDefines();
     mPipeline.Initialize(device, pipelineDesc);
 }
 

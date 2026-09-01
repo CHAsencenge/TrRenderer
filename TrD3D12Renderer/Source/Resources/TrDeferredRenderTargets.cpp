@@ -8,8 +8,14 @@ void TrDeferredRenderTargets::Initialize(
     UINT height,
     TrDescriptorHeap& rtvHeap,
     TrDescriptorHeap& dsvHeap,
-    TrDescriptorHeap& resourceHeap)
+    TrDescriptorHeap& resourceHeap,
+    float depthClearValue)
 {
+    if(depthClearValue < 0.0f || depthClearValue > 1.0f)
+    {
+        throw std::invalid_argument("Depth clear value must be within [0, 1].");
+    }
+    mDepthClearValue = depthClearValue;
     mBaseColorRtv = rtvHeap.Allocate();
     mNormalRtv = rtvHeap.Allocate();
     mEmissiveRtv = rtvHeap.Allocate();
@@ -95,7 +101,7 @@ void TrDeferredRenderTargets::CreateResources(
 
     D3D12_CLEAR_VALUE depthClear = {};
     depthClear.Format = DepthViewFormat;
-    depthClear.DepthStencil.Depth = 1.0f;
+    depthClear.DepthStencil.Depth = mDepthClearValue;
     mDepth.Initialize2D(
         device,
         width,
@@ -173,7 +179,7 @@ void TrDeferredRenderTargets::BeginGBufferPass(
     commandList->ClearDepthStencilView(
         mDepthDsv.CpuHandle,
         D3D12_CLEAR_FLAG_DEPTH,
-        1.0f,
+        mDepthClearValue,
         0,
         0,
         nullptr);

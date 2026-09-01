@@ -22,6 +22,12 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.cpp">
       <Filter>Passes\Raster</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.cpp">
+      <Filter>Passes\Compute</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.cpp">
+      <Filter>Passes\Compute</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -35,6 +41,9 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHierarchicalDepth.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.cpp">
@@ -111,6 +120,9 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConfig.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -122,6 +134,12 @@
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.h">
       <Filter>Passes\Raster</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.h">
+      <Filter>Passes\Compute</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.h">
+      <Filter>Passes\Compute</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.h">
       <Filter>Resources</Filter>
@@ -136,6 +154,9 @@
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHierarchicalDepth.h">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.h">
@@ -207,6 +228,15 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\gbuffer.hlsl">
       <Filter>Shaders\Raster</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\hzb.hlsl">
+      <Filter>Shaders\Compute</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\screen_trace.hlsl">
+      <Filter>Shaders\Compute</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl">
+      <Filter>Shaders\Common</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl">
       <Filter>Shaders\Legacy</Filter>
     </ClInclude>
@@ -236,6 +266,9 @@
     <Filter Include="Passes">
       <UniqueIdentifier>{A467429A-27EA-3D7C-9299-B1B5CB12B7B0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Passes\Compute">
+      <UniqueIdentifier>{220D74D7-7028-33C3-987A-C1F0CE43B476}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Passes\Raster">
       <UniqueIdentifier>{8F3E8D09-CB95-3874-B08F-9BBDCDDAC34D}</UniqueIdentifier>
     </Filter>
@@ -250,6 +283,12 @@
     </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{82F13915-753A-3606-857D-B6EFD2496AD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common">
+      <UniqueIdentifier>{4C4E9FA2-1BE5-32A9-88F4-CDDF78A7D565}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Compute">
+      <UniqueIdentifier>{A88270C4-D23C-38EE-B2A0-0ABE98C431DE}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Legacy">
       <UniqueIdentifier>{F06B4889-C5B2-3480-8A5E-CB40F589801C}</UniqueIdentifier>

@@ -24,7 +24,8 @@ public:
         UINT height,
         TrDescriptorHeap& rtvHeap,
         TrDescriptorHeap& dsvHeap,
-        TrDescriptorHeap& resourceHeap);
+        TrDescriptorHeap& resourceHeap,
+        float depthClearValue);
     void Resize(ID3D12Device* device, UINT width, UINT height);
 
     void BeginGBufferPass(ID3D12GraphicsCommandList* commandList);
@@ -65,4 +66,5 @@ private:
     TrDescriptorAllocation mDepthSrv;
     TrDescriptorAllocation mEmissiveSrv;
     TrDescriptorAllocation mHdrLightingSrv;
+    float mDepthClearValue = 1.0f;
 };

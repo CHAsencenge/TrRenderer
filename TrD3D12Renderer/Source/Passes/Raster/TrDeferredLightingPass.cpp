@@ -1,4 +1,5 @@
 #include "TrDeferredLightingPass.h"
+#include "Renderer/TrRenderConfig.h"
 
 #include <stdexcept>
 
@@ -44,6 +45,7 @@ void TrDeferredLightingPass::Initialize(
     pipelineDesc.DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     pipelineDesc.DepthEnabled = false;
     pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;
+    pipelineDesc.ShaderDefines = TrRenderConfig::GetDepthShaderDefines();
     mPipeline.Initialize(device, pipelineDesc);
 }
 

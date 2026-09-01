@@ -92,7 +92,7 @@ TrD3D12Renderer/
     App/                Win32 入口、窗口和 Renderer 生命周期接口
     Renderer/           TrDeferredRenderer 与六层常量契约
     Passes/Raster/      GBuffer、Deferred Lighting、Composite
-    Passes/Compute/     HZB、Screen Trace 等后续 Compute Pass
+    Passes/Compute/     HZB、Screen Trace 的类型与数据流边界
     Passes/RayTracing/  Inline RayQuery 等后续光追 Pass
     Resources/          Buffer、Texture、Mesh、Descriptor、Render Target、Material
     Backend/            Graphics/Compute PSO、DXC、Upload、Barrier
@@ -102,13 +102,17 @@ TrD3D12Renderer/
     Legacy/             已确认不参与编译的旧实验代码
   shaders/
     Raster/             当前光栅与全屏 Pass Shader
-    Compute/            后续 HZB、Screen Trace Shader
+    Compute/            HZB、Screen Trace Shader 文件边界
     RayTracing/         后续 Inline RayQuery Shader
     Legacy/             已确认未使用的旧 Shader
   ThirdParty/           d3dx12.h；Dear ImGui 仍从 Includes 独立引用
 ```
 
 磁盘目录、CMake `source_group(TREE ...)` 和 Visual Studio Filter 保持一致；不再手工维护生成的 `.vcxproj`。Visual Studio 解决方案将可执行程序放在 `Applications`，`TrSceneCore` 放在 `Libraries`，导入器放在 `Tools`。D3D12 使用独立的 `Source/App/Main.cpp`，不再通过 `Common/TrRenderer.cpp` 的条件宏提供入口。
+
+HZB 与 Screen Trace 已建立最小文件和类型骨架：`TrHierarchicalDepth` 负责 HZB 纹理及视图的资源归属，`TrHzbPass` 和 `TrScreenTracePass` 只声明稳定的数据依赖。当前尚未接入 Renderer，也没有确定深度归约方式、线程组、射线布局、步进算法和命中结果编码，避免在讨论前固化实现细节。
+
+深度约定由 CMake 开关 `TR_USE_REVERSED_Z` 统一控制，默认开启。C++ 侧据此选择投影矩阵、Depth Clear 和 PSO 比较函数；DXC 通过通用 Shader Define 接口收到同值的 `TR_REVERSED_Z=0/1`。当前深度可视化和背景判断均已兼容两种模式，后续 HZB 与 Screen Trace Shader 继续复用该 Define。
 
 初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
 

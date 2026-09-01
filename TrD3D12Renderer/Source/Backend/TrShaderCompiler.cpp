@@ -8,16 +8,26 @@
 Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
     const std::wstring& filename,
     const wchar_t* entryPoint,
-    const wchar_t* targetProfile)
+    const wchar_t* targetProfile,
+    const std::vector<TrShaderDefine>& defines)
 {
     if(filename.empty() || entryPoint == nullptr || entryPoint[0] == L'\0' ||
        targetProfile == nullptr || targetProfile[0] == L'\0')
     {
         throw std::invalid_argument("DXC shader description is incomplete.");
     }
-    TrLog::Debug(
-        std::wstring(L"Compiling shader: ") + filename + L" [" +
-        entryPoint + L", " + targetProfile + L"]");
+    std::wstring compileMessage = std::wstring(L"Compiling shader: ") +
+        filename + L" [" + entryPoint + L", " + targetProfile + L"]";
+    for(const TrShaderDefine& define : defines)
+    {
+        compileMessage += L" [-D" + define.Name;
+        if(!define.Value.empty())
+        {
+            compileMessage += L"=" + define.Value;
+        }
+        compileMessage += L"]";
+    }
+    TrLog::Debug(compileMessage);
 
     Microsoft::WRL::ComPtr<IDxcUtils> utils;
     Microsoft::WRL::ComPtr<IDxcCompiler3> compiler;
@@ -45,6 +55,25 @@ Microsoft::WRL::ComPtr<IDxcBlob> TrShaderCompiler::Compile(
         L"-Ges",
         L"-I", includeDirectory.c_str()
     };
+
+    std::vector<std::wstring> defineArguments;
+    defineArguments.reserve(defines.size());
+    for(const TrShaderDefine& define : defines)
+    {
+        if(define.Name.empty())
+        {
+            throw std::invalid_argument("DXC shader define name is empty.");
+        }
+        defineArguments.push_back(
+            define.Value.empty()
+                ? define.Name
+                : define.Name + L"=" + define.Value);
+    }
+    for(const std::wstring& defineArgument : defineArguments)
+    {
+        arguments.push_back(L"-D");
+        arguments.push_back(defineArgument.c_str());
+    }
 
 #if defined(_DEBUG)
     arguments.push_back(L"-Zi");

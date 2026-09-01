@@ -1,5 +1,6 @@
 
 #include "TrDeferredRenderer.h"
+#include "TrRenderConfig.h"
 #include "Scene/TrCornellBoxScene.h"
 #include "TrGlbImporter.h"
 #include "TrLog.h"
@@ -30,6 +31,10 @@ void TrDeferredRenderer::OnInitialize()
     TrLog::Info(
         "DX12 renderer initialization started (" +
         std::to_string(mWidth) + "x" + std::to_string(mHeight) + ").");
+    TrLog::Info(
+        TrRenderConfig::UseReversedZ
+            ? "Depth convention: Reversed-Z (clear 0, compare greater-equal)."
+            : "Depth convention: Forward-Z (clear 1, compare less-equal).");
     LoadPipeline();
     RegisterGpuDebugViews();
     LoadAssets();
@@ -136,7 +141,7 @@ void TrDeferredRenderer::OnUpdate()
     const float farPlane = mUsingImportedScene
         ? std::max(sceneBoundsRadius * 10.0f, 100.0f)
         : 100.0f;
-    const XMMATRIX projection = XMMatrixPerspectiveFovLH(
+    const XMMATRIX projection = TrRenderConfig::CreatePerspectiveFovLH(
         XM_PIDIV4,
         mAspectRatio,
         nearPlane,
@@ -426,7 +431,8 @@ void TrDeferredRenderer::LoadPipeline()
         mHeight,
         mRtvHeap,
         mDsvHeap,
-        mResourceHeap);
+        mResourceHeap,
+        TrRenderConfig::DepthClearValue);
     mLightingHistory.Initialize(
         mDevice.Get(),
         mWidth,

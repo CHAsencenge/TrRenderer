@@ -235,6 +235,9 @@ TR_NVPRO_CORE_ROOT:PATH=
 //Fail configuration when nvpro_core is unavailable
 TR_REQUIRE_NVPRO_CORE:BOOL=OFF
 
+//Use Reversed-Z depth in the D3D12 renderer
+TR_USE_REVERSED_Z:BOOL=ON
+
 //Value Computed by CMake
 TrD3D12Renderer_BINARY_DIR:STATIC=E:/UGit/TrRenderer/build/TrD3D12Renderer
 

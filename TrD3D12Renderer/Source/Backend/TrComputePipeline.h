@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Utilities/TrUtil.h"
+#include "TrShaderCompiler.h"
 
 struct TrComputePipelineDesc
 {
     std::wstring ShaderPath;
     std::wstring EntryPoint = L"CSMain";
     const D3D12_ROOT_SIGNATURE_DESC* RootSignatureDesc = nullptr;
+    std::vector<TrShaderDefine> ShaderDefines;
 };
 
 class TrComputePipeline
