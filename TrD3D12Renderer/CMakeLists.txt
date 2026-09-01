@@ -8,6 +8,21 @@ message(STATUS "-------------------------------")
 message(STATUS "Processing Project ${PROJNAME}:")
 
 option(TR_USE_REVERSED_Z "Use Reversed-Z depth in the D3D12 renderer" ON)
+set(TR_PREPASS_MODE "OpaqueAndMasked" CACHE STRING
+  "Depth/Normal prepass mode: Disabled, OpaqueOnly, or OpaqueAndMasked")
+set_property(CACHE TR_PREPASS_MODE PROPERTY STRINGS
+  Disabled OpaqueOnly OpaqueAndMasked)
+if(TR_PREPASS_MODE STREQUAL "Disabled")
+  set(TR_PREPASS_MODE_VALUE 0)
+elseif(TR_PREPASS_MODE STREQUAL "OpaqueOnly")
+  set(TR_PREPASS_MODE_VALUE 1)
+elseif(TR_PREPASS_MODE STREQUAL "OpaqueAndMasked")
+  set(TR_PREPASS_MODE_VALUE 2)
+else()
+  message(FATAL_ERROR
+    "TR_PREPASS_MODE must be Disabled, OpaqueOnly, or OpaqueAndMasked")
+endif()
+message(STATUS "Depth/Normal prepass mode: ${TR_PREPASS_MODE}")
 
 # DXC is distributed separately from the Windows SDK on some machines. Prefer
 # an explicit root, then DXC_ROOT, then derive the root from dxc.exe on PATH.
@@ -77,6 +92,10 @@ set(TR_RASTER_PASS_FILES
   Source/Passes/Raster/TrCompositePass.h
   Source/Passes/Raster/TrDeferredLightingPass.cpp
   Source/Passes/Raster/TrDeferredLightingPass.h
+  Source/Passes/Raster/TrDepthNormalPass.cpp
+  Source/Passes/Raster/TrDepthNormalPass.h
+  Source/Passes/Raster/TrForwardTransparentPass.cpp
+  Source/Passes/Raster/TrForwardTransparentPass.h
   Source/Passes/Raster/TrGBufferPass.cpp
   Source/Passes/Raster/TrGBufferPass.h)
 
@@ -93,6 +112,8 @@ set(TR_RESOURCE_FILES
   Source/Resources/TrConstantBuffer.h
   Source/Resources/TrDeferredRenderTargets.cpp
   Source/Resources/TrDeferredRenderTargets.h
+  Source/Resources/TrDepthNormalView.cpp
+  Source/Resources/TrDepthNormalView.h
   Source/Resources/TrDescriptorHeap.cpp
   Source/Resources/TrDescriptorHeap.h
   Source/Resources/TrHistoryTexture.cpp
@@ -178,12 +199,15 @@ endif()
 set(HLSL_SOURCE_FILES
   shaders/Raster/composite.hlsl
   shaders/Raster/deferred_lighting.hlsl
+  shaders/Raster/depth_normal.hlsl
+  shaders/Raster/forward_transparent.hlsl
   shaders/Raster/gbuffer.hlsl)
 set(COMPUTE_HLSL_SOURCE_FILES
   shaders/Compute/hzb.hlsl
   shaders/Compute/screen_trace.hlsl)
 set(COMMON_HLSL_SOURCE_FILES
-  shaders/Common/depth.header.hlsl)
+  shaders/Common/depth.header.hlsl
+  shaders/Common/material_flags.header.hlsl)
 set(LEGACY_HLSL_SOURCE_FILES
   shaders/Legacy/cornell_box.hlsl
   shaders/Legacy/shaders.hlsl
@@ -207,6 +231,8 @@ if(TR_USE_REVERSED_Z)
 else()
   target_compile_definitions(${PROJNAME} PRIVATE TR_REVERSED_Z=0)
 endif()
+target_compile_definitions(${PROJNAME} PRIVATE
+  TR_PREPASS_MODE=${TR_PREPASS_MODE_VALUE})
 
 #--------------------------------------------------------------------------------------------------
 # Sources and include roots

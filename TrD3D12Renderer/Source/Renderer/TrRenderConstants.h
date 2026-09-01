@@ -15,6 +15,14 @@ namespace TrConstantRegister
     constexpr std::uint32_t Draw = 5;
 }
 
+namespace TrMaterialFlag
+{
+    constexpr std::uint32_t Unlit = 1u << 0;
+    constexpr std::uint32_t DoubleSided = 1u << 1;
+    constexpr std::uint32_t AlphaMask = 1u << 2;
+    constexpr std::uint32_t AlphaBlend = 1u << 3;
+}
+
 // Controls material-independent geometry diagnostics in the GBuffer pass.
 enum class TrGeometryVisualization : std::uint32_t
 {
@@ -104,6 +112,13 @@ struct alignas(16) TrDeferredLightingPassConstants
     DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
 };
 
+struct alignas(16) TrForwardTransparentPassConstants
+{
+    float DirectLightingScale = 1.0f;
+    float AmbientLightingScale = 1.0f;
+    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+};
+
 struct alignas(16) TrCompositePassConstants
 {
     float Exposure = 1.0f;
@@ -130,5 +145,6 @@ static_assert(sizeof(TrPrimitiveConstants) == 224);
 static_assert(sizeof(TrMaterialConstants::TextureTransform) == 32);
 static_assert(sizeof(TrMaterialConstants) == 208);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 16);
+static_assert(sizeof(TrForwardTransparentPassConstants) == 16);
 static_assert(sizeof(TrCompositePassConstants) == 32);
 static_assert(sizeof(TrDrawConstants) == 16);

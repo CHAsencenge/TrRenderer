@@ -232,6 +232,9 @@ TR_DXIL_DLL:FILEPATH=D:/dxc/bin/x64/dxil.dll
 //Directory that contains the external nvpro_core checkout
 TR_NVPRO_CORE_ROOT:PATH=
 
+//Depth/Normal prepass mode: Disabled, OpaqueOnly, or OpaqueAndMasked
+TR_PREPASS_MODE:STRING=OpaqueAndMasked
+
 //Fail configuration when nvpro_core is unavailable
 TR_REQUIRE_NVPRO_CORE:BOOL=OFF
 
@@ -396,4 +399,6 @@ CMAKE_STATIC_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//STRINGS property for variable: TR_PREPASS_MODE
+TR_PREPASS_MODE-STRINGS:INTERNAL=Disabled;OpaqueOnly;OpaqueAndMasked
 

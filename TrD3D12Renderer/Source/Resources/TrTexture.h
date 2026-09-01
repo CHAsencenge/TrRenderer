@@ -37,7 +37,8 @@ public:
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
         DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
-        UINT mipSlice = 0) const;
+        UINT mipSlice = 0,
+        D3D12_DSV_FLAGS flags = D3D12_DSV_FLAG_NONE) const;
 
     // A mipCount of zero exposes every mip from mostDetailedMip onward.
     void CreateShaderResourceView(
@@ -45,7 +46,8 @@ public:
         D3D12_CPU_DESCRIPTOR_HANDLE handle,
         DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN,
         UINT mostDetailedMip = 0,
-        UINT mipCount = 0) const;
+        UINT mipCount = 0,
+        UINT planeSlice = 0) const;
     void CreateUnorderedAccessView(
         ID3D12Device* device,
         D3D12_CPU_DESCRIPTOR_HANDLE handle,

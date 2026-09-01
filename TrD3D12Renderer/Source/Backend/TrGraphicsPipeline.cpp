@@ -67,12 +67,28 @@ void TrGraphicsPipeline::Initialize(
         pixelShader->GetBufferPointer(),
         pixelShader->GetBufferSize());
     pipelineDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    if(desc.AlphaBlendEnabled)
+    {
+        D3D12_RENDER_TARGET_BLEND_DESC& blend =
+            pipelineDesc.BlendState.RenderTarget[0];
+        blend.BlendEnable = TRUE;
+        blend.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+        blend.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+        blend.BlendOp = D3D12_BLEND_OP_ADD;
+        blend.SrcBlendAlpha = D3D12_BLEND_ONE;
+        blend.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+        blend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+        blend.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    }
     pipelineDesc.SampleMask = UINT_MAX;
     pipelineDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     pipelineDesc.RasterizerState.CullMode = desc.CullMode;
     pipelineDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pipelineDesc.DepthStencilState.DepthEnable = desc.DepthEnabled;
     pipelineDesc.DepthStencilState.DepthFunc = desc.DepthFunc;
+    pipelineDesc.DepthStencilState.DepthWriteMask = desc.DepthWriteEnabled
+        ? D3D12_DEPTH_WRITE_MASK_ALL
+        : D3D12_DEPTH_WRITE_MASK_ZERO;
     pipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineDesc.NumRenderTargets = desc.RenderTargetCount;
     for(UINT index = 0; index < desc.RenderTargetCount; ++index)

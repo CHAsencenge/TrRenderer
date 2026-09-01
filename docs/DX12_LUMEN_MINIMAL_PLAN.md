@@ -43,14 +43,18 @@
 - Resource Barrier；
 - 双缓冲 TrFrameContext 和按帧 Fence/Event 同步；
 - 持续 Update/Render 主循环；
-- `R32_TYPELESS` Depth Buffer，以及 `D32_FLOAT` DSV、`R32_FLOAT` SRV；
+- `R32G8X24_TYPELESS` Depth-Stencil Buffer、`D32_FLOAT_S8X24_UINT` DSV，以及独立的 Depth/Stencil SRV；
 - Default Heap 静态 Vertex/Index Buffer；
 - UE 风格六层常量域：Scene、View、Pass、Primitive、Material、Draw/Dispatch；
 - 每帧独立、256 字节对齐的 Scene、View、逐 Instance Primitive 和强类型 Pass Constant Buffer；
 - Draw/Dispatch 小常量通过 Root Constants 提交；
 - 用于运行时场景验证的程序化 Cornell Box：一个六 Primitive 房间 Mesh、共享球/立方体 Mesh 的多实例、嵌套父子节点和多材质；
 - 三目标 MRT GBuffer：BaseColor/Roughness、WorldNormal/Metallic 与 Emissive/Occlusion；
+- 独立可配置的 Depth/Normal Prepass；默认绘制 Opaque 和 Alpha Mask，写 Device Depth 和世界空间 Shading Normal；
+- C++/HLSL 对齐的具名 Material Flag：Unlit、DoubleSided、AlphaMask、AlphaBlend；
+- AlphaMask 在 GBuffer Pixel Shader 中按 `AlphaCutoff` 执行覆盖率裁剪；
 - 读取 GBuffer/Depth 的全屏 Deferred Lighting Pass；
+- Deferred Lighting 后执行的 Forward Transparent Pass：透明 Primitive 不写 GBuffer，CPU 按世界包围盒中心由远到近排序，使用只读 Depth-Stencil 和标准非预乘 Alpha Blend 写入 HDR Lighting；
 - `RGBA16_FLOAT` HDR Lighting Target 和显示颜色转换 Composite Pass；
 - 可注册任意 SRV 的 `TrGpuDebug` 中间结果查看器，支持 Final、BaseColor、Normal、Roughness、Metallic、Emissive、AO 和线性 Depth；
 - 独立接入 Dear ImGui（不依赖 nvpro_core），GPU 调试面板通过按钮选择视图，并提供 Exposure、Depth Range 文本输入；面板同时显示 Runtime Scene 节点树和每个节点的 Instance/Mesh/Primitive/Material ID；
@@ -65,7 +69,7 @@
 - 已有多 Mesh、多 Primitive、多 Instance、CPU 动态层级更新和时序 Transform，但尚无可交互相机、动画资产系统和 GPU Scene StructuredBuffer；
 - Compute 基础已接入，尚未实现 HZB 和屏幕空间追踪；
 - 没有 DXR 加速结构和 RayQuery；
-- 键盘回调和逐帧更新为空。
+- 键盘回调当前保留为空，逐帧更新已负责场景层级动画、常量更新和透明排序。
 
 `nvpro_core` 保持为可选外部依赖。DX12 基础建设不得依赖它；缺少该依赖时，DX12 和 Software 目标仍需独立配置、构建和运行。
 
@@ -91,7 +95,7 @@ TrD3D12Renderer/
   Source/
     App/                Win32 入口、窗口和 Renderer 生命周期接口
     Renderer/           TrDeferredRenderer 与六层常量契约
-    Passes/Raster/      GBuffer、Deferred Lighting、Composite
+    Passes/Raster/      Depth/Normal、GBuffer、Deferred Lighting、Forward Transparent、Composite
     Passes/Compute/     HZB、Screen Trace 的类型与数据流边界
     Passes/RayTracing/  Inline RayQuery 等后续光追 Pass
     Resources/          Buffer、Texture、Mesh、Descriptor、Render Target、Material
@@ -114,6 +118,21 @@ HZB 与 Screen Trace 已建立最小文件和类型骨架：`TrHierarchicalDepth
 
 深度约定由 CMake 开关 `TR_USE_REVERSED_Z` 统一控制，默认开启。C++ 侧据此选择投影矩阵、Depth Clear 和 PSO 比较函数；DXC 通过通用 Shader Define 接口收到同值的 `TR_REVERSED_Z=0/1`。当前深度可视化和背景判断均已兼容两种模式，后续 HZB 与 Screen Trace Shader 继续复用该 Define。
 
+Depth/Normal 已拆为独立 Prepass：它先写硬件 Device Depth 和应用法线贴图后的世界空间 Shading Normal。后续 GBuffer 复用相同目标；已进入 Prepass 的 Draw 使用 `EQUAL + DepthWriteMask=ZERO`，未进入 Prepass 的 Draw 继续使用当前 Forward/Reversed-Z 比较函数并写深度。GBuffer 结束后，`TrDepthNormalView` 将最终 Depth/Normal 及其 SRV 组合成非持有型输出契约，并验证尺寸、Mip、描述符和 Compute 可读状态，HZB 与 Screen Trace 直接消费该契约。
+
+PC 渲染的 Prepass 材质策略保持显式且可裁剪：
+
+| 材质类型 | 默认进入 Prepass | 原因 |
+| --- | --- | --- |
+| Opaque（包括 Unlit、双面不透明） | 是 | 不依赖像素透明度，深度稳定，最适合 Early-Z |
+| Alpha Mask / Alpha Test | 是 | Prepass 和 GBuffer 使用相同 AlphaCutoff；会重复采样 Alpha，但能覆盖植被等高 Overdraw 场景 |
+| Alpha Blend / Transparent | 否 | 不应写最近表面深度，走 Forward Transparent |
+| 会改变深度或轮廓的材质 | 否，除非两 Pass 完全复现 | Pixel Depth Offset、位移或不一致的顶点动画会破坏 GBuffer `EQUAL` |
+
+CMake 缓存项 `TR_PREPASS_MODE` 提供三档：`Disabled`、`OpaqueOnly`、`OpaqueAndMasked`（默认）。例如 `cmake -S . -B build -DTR_PREPASS_MODE=OpaqueOnly` 可只预绘制不透明材质。Mask 模式在 Depth/Normal Shader 中复用 BaseColor UV Transform、纹理 Alpha 和 `AlphaCutoff`，确保与 GBuffer 的覆盖率判定一致；Blend 永远不会进入 Prepass。
+
+Depth 资源现使用 `R32G8X24_TYPELESS`，DSV 为 `D32_FLOAT_S8X24_UINT`，在保留 Reversed-Z 所需 32 位浮点深度精度的同时提供 8 位 Stencil。Depth 和 Stencil 分别通过 `R32_FLOAT_X8X24_TYPELESS`、`X32_TYPELESS_G8X24_UINT` SRV 暴露；每帧开始同时清理 Depth 与 Stencil，当前 Stencil 保留为后续分类用途，尚未定义写入位布局。
+
 初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
 
 ```text
@@ -131,13 +150,13 @@ TrDeferredRenderer --------------+-> 逐帧 Bind / Draw / Present
 ```text
 TrSceneConstants            b0  方向光、环境光等场景公共数据
 TrViewConstants             b1  当前/上一帧矩阵、相机、渲染尺寸、Jitter、帧号
-Tr*PassConstants            b2  GBuffer、DeferredLighting、Composite 各自的强类型参数
+Tr*PassConstants            b2  GBuffer、DeferredLighting、ForwardTransparent、Composite 各自的强类型参数
 TrPrimitiveConstants        b3  World、PreviousWorld、法线矩阵、包围球、InstanceId、MeshId
 TrMaterialConstants         b4  BaseColorFactor、Roughness、Metallic、EmissiveStrength
 TrDrawConstants             b5  PrimitiveId、MaterialId、LocalPrimitiveIndex、Draw Flags
 ```
 
-`b2` Pass Constants 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `TrGBufferPassConstants`、`TrDeferredLightingPassConstants` 和 `TrCompositePassConstants`。Scene、View 和 Pass CBV 按 `TrFrameContext` 分配；Primitive CBV 按 Frame × Instance 分配；静态 Material CBV 由材质资源持有。CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
+`b2` Pass Constants 是逻辑层，不使用一个通用的大结构。每个 Pass 定义自己的强类型结构，当前包括 `TrGBufferPassConstants`、`TrDeferredLightingPassConstants`、`TrForwardTransparentPassConstants` 和 `TrCompositePassConstants`。Scene、View 和 Pass CBV 按 `TrFrameContext` 分配；Primitive CBV 按 Frame × Instance 分配；静态 Material CBV 由材质资源持有。CPU 只更新当前可安全复用的帧资源。Draw/Dispatch 数据只有 16 字节，使用映射到 `b5` 的 Root Constants，避免为每次 Draw 额外分配 256 字节 CBV。以后对象、材质或光源数量增大时，再把对应数组迁移到 StructuredBuffer/GPU Scene 风格索引访问。
 
 延迟渲染迭代 1 已完成：Cornell Box 先渲染到带 RTV/SRV 的离屏纹理，再以 `COPY_SOURCE` 复制到 `COPY_DEST` 状态的 SwapChain Back Buffer。当前逐帧状态链为：
 
@@ -149,11 +168,18 @@ BackBuffer: PRESENT -> COPY_DEST -> PRESENT
 延迟渲染迭代 2 已完成：几何 Pass 同时写入 BaseColor/Roughness 和 WorldNormal/Metallic，Depth 可同时作为 DSV 与 SRV。后续已经接入最小 Deferred Lighting 和 Composite，当前窗口不再直接复制 GBuffer0。
 
 ```text
-GBuffer0/1: PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> PIXEL_SHADER_RESOURCE
-Depth:      PIXEL_SHADER_RESOURCE -> DEPTH_WRITE -> PIXEL_SHADER_RESOURCE
-HDR:        PIXEL_SHADER_RESOURCE -> RENDER_TARGET -> PIXEL_SHADER_RESOURCE
+Normal:     ALL_SHADER_RESOURCE -> RENDER_TARGET (Depth/Normal + GBuffer)
+            -> ALL_SHADER_RESOURCE
+Depth:      ALL_SHADER_RESOURCE -> DEPTH_WRITE (Depth/Normal + GBuffer)
+            -> ALL_SHADER_RESOURCE -> DEPTH_READ (Forward Transparent)
+            -> ALL_SHADER_RESOURCE
+HDR:        PIXEL_SHADER_RESOURCE -> RENDER_TARGET (Deferred Lighting)
+            -> PIXEL_SHADER_RESOURCE -> RENDER_TARGET (Forward Transparent)
+            -> PIXEL_SHADER_RESOURCE
 BackBuffer: PRESENT -> RENDER_TARGET -> PRESENT
 ```
+
+材质阶段由 `TrSceneAlphaMode` 明确分类：Opaque 和 Mask 进入 GBuffer，Blend 只进入 Forward Transparent。GBuffer Shader 对 Blend Flag 额外执行防御性丢弃；透明 Shader 只接受 AlphaBlend Flag。当前透明方案是轻量的传统有序混合，排序粒度为 Primitive，不处理相交透明几何、每三角形排序或 OIT。
 
 后续只在需求出现时继续拆分，不建立复杂继承体系：
 
@@ -237,7 +263,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - GBuffer 建议：
   - `RGBA8_UNORM`：BaseColor + Roughness；
   - `RGBA16_FLOAT`：World Normal + Metallic；
-  - `D32_FLOAT`：Depth；
+  - `D32_FLOAT_S8X24_UINT`：Depth + Stencil；
   - `RGBA16_FLOAT`：HDR Lighting；
 - 一个方向光和最简单的直接光照 Pass；
 - 全屏三角形 Composite Pass；
@@ -377,6 +403,8 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 建立保留 Mesh、Primitive、Node 层级和实例变换的 `TrRuntimeScene`，运行时不再展平场景。
 - [x] 补齐稳定 Mesh/Primitive/Instance/Material ID、Mesh/Primitive/Instance AABB 和 Current/Previous Transform。
 - [x] 建立 CPU 层级变换传播，并用共享 Mesh、多实例、多 Primitive、多材质的程序化场景验证。
+- [x] 建立具名 Material Flag、Alpha Test 和按 Primitive 排序的 Forward Transparent Pass，并用程序化透明面板验证混合与深度遮挡。
+- [x] 建立可配置 Depth/Normal Prepass；Opaque 和 Mask 默认进入，Blend 排除；GBuffer 对已预写深度使用 `EQUAL` 且关闭深度写入。
 
 ## 9. 参考资料
 

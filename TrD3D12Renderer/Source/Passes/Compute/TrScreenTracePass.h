@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Resources/TrDepthNormalView.h"
 #include "Resources/TrHierarchicalDepth.h"
 
 struct TrScreenTracePassInputs
 {
     const TrHierarchicalDepth* HierarchicalDepth = nullptr;
-    const TrTexture* SceneDepth = nullptr;
-    const TrTexture* SceneNormal = nullptr;
+    TrDepthNormalView DepthNormal;
 };
 
 // Kept deliberately generic until the ray layout and hit encoding are chosen.

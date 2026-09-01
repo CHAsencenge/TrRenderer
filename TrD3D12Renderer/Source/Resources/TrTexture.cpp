@@ -99,7 +99,8 @@ void TrTexture::CreateDepthStencilView(
     ID3D12Device* device,
     D3D12_CPU_DESCRIPTOR_HANDLE handle,
     DXGI_FORMAT viewFormat,
-    UINT mipSlice) const
+    UINT mipSlice,
+    D3D12_DSV_FLAGS flags) const
 {
     ValidateResource();
     ValidateMipSlice(mipSlice);
@@ -111,6 +112,7 @@ void TrTexture::CreateDepthStencilView(
     D3D12_DEPTH_STENCIL_VIEW_DESC viewDesc = {};
     viewDesc.Format = ResolveViewFormat(viewFormat);
     viewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    viewDesc.Flags = flags;
     viewDesc.Texture2D.MipSlice = mipSlice;
     device->CreateDepthStencilView(mResource.Get(), &viewDesc, handle);
 }
@@ -120,13 +122,19 @@ void TrTexture::CreateShaderResourceView(
     D3D12_CPU_DESCRIPTOR_HANDLE handle,
     DXGI_FORMAT viewFormat,
     UINT mostDetailedMip,
-    UINT mipCount) const
+    UINT mipCount,
+    UINT planeSlice) const
 {
     ValidateResource();
     const UINT resolvedMipCount = ResolveMipCount(mostDetailedMip, mipCount);
     if(device == nullptr || (mDescription.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE))
     {
         throw std::invalid_argument("Texture cannot be exposed as an SRV.");
+    }
+    const UINT planeCount = D3D12GetFormatPlaneCount(device, mDescription.Format);
+    if(planeSlice >= planeCount)
+    {
+        throw std::out_of_range("Texture SRV plane slice exceeds the resource.");
     }
 
     D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
@@ -135,7 +143,7 @@ void TrTexture::CreateShaderResourceView(
     viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     viewDesc.Texture2D.MostDetailedMip = mostDetailedMip;
     viewDesc.Texture2D.MipLevels = resolvedMipCount;
-    viewDesc.Texture2D.PlaneSlice = 0;
+    viewDesc.Texture2D.PlaneSlice = planeSlice;
     viewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
     device->CreateShaderResourceView(mResource.Get(), &viewDesc, handle);
 }

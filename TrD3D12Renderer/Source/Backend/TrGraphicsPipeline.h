@@ -13,11 +13,13 @@ struct TrGraphicsPipelineDesc
         DXGI_FORMAT_R8G8B8A8_UNORM
     };
     UINT RenderTargetCount = 1;
-    DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+    DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
     D3D12_CULL_MODE CullMode = D3D12_CULL_MODE_BACK;
     D3D12_COMPARISON_FUNC DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
     std::vector<TrShaderDefine> ShaderDefines;
     bool DepthEnabled = true;
+    bool DepthWriteEnabled = true;
+    bool AlphaBlendEnabled = false;
 };
 
 class TrGraphicsPipeline

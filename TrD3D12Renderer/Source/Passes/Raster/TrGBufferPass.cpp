@@ -73,11 +73,17 @@ void TrGBufferPass::Initialize(
         TrDeferredRenderTargets::EmissiveOcclusionFormat;
     pipelineDesc.RenderTargetCount = 3;
     pipelineDesc.DepthStencilFormat =
-        TrDeferredRenderTargets::DepthViewFormat;
+        TrDeferredRenderTargets::DepthStencilViewFormat;
     pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;
     pipelineDesc.DepthFunc = TrRenderConfig::DepthComparison;
     pipelineDesc.ShaderDefines = TrRenderConfig::GetDepthShaderDefines();
-    mPipeline.Initialize(device, pipelineDesc);
+    mDepthWritePipeline.Initialize(device, pipelineDesc);
+
+    // Geometry already rasterized by the prepass must reproduce exactly the
+    // same depth and may not update it during material evaluation.
+    pipelineDesc.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
+    pipelineDesc.DepthWriteEnabled = false;
+    mDepthEqualPipeline.Initialize(device, pipelineDesc);
 }
 
 void TrGBufferPass::Begin(
@@ -86,7 +92,8 @@ void TrGBufferPass::Begin(
     TrDescriptorHeap& resourceHeap,
     TrDescriptorHeap& samplerHeap,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
-    D3D12_GPU_VIRTUAL_ADDRESS passConstants)
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants,
+    bool preserveDepthNormal)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        samplerHeap.Get() == nullptr || !resourceHeap.IsShaderVisible() ||
@@ -102,11 +109,28 @@ void TrGBufferPass::Begin(
         samplerHeap.Get()
     };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-    commandList->SetPipelineState(mPipeline.GetPipelineState());
-    commandList->SetGraphicsRootSignature(mPipeline.GetRootSignature());
+    commandList->SetPipelineState(mDepthWritePipeline.GetPipelineState());
+    commandList->SetGraphicsRootSignature(mDepthWritePipeline.GetRootSignature());
     commandList->SetGraphicsRootConstantBufferView(0, viewConstants);
     commandList->SetGraphicsRootConstantBufferView(1, passConstants);
-    renderTargets.BeginGBufferPass(commandList);
+    renderTargets.BeginGBufferPass(commandList, preserveDepthNormal);
+}
+
+void TrGBufferPass::BeginPrepassedDraws(
+    ID3D12GraphicsCommandList* commandList,
+    D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants)
+{
+    if(commandList == nullptr || viewConstants == 0 || passConstants == 0)
+    {
+        throw std::invalid_argument(
+            "Prepassed GBuffer draw inputs are incomplete.");
+    }
+
+    commandList->SetPipelineState(mDepthEqualPipeline.GetPipelineState());
+    commandList->SetGraphicsRootSignature(mDepthEqualPipeline.GetRootSignature());
+    commandList->SetGraphicsRootConstantBufferView(0, viewConstants);
+    commandList->SetGraphicsRootConstantBufferView(1, passConstants);
 }
 
 void TrGBufferPass::SetDrawBindings(
@@ -134,9 +158,12 @@ void TrGBufferPass::SetDrawBindings(
     commandList->SetGraphicsRootDescriptorTable(6, samplerTable);
 }
 
-void TrGBufferPass::End(
+TrDepthNormalView TrGBufferPass::End(
     ID3D12GraphicsCommandList* commandList,
     TrDeferredRenderTargets& renderTargets)
 {
     renderTargets.EndGBufferPass(commandList);
+    TrDepthNormalView output = renderTargets.GetDepthNormalView();
+    output.ValidateForCompute();
+    return output;
 }

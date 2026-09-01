@@ -10,12 +10,24 @@
 #define TR_REVERSED_Z 1
 #endif
 
+#ifndef TR_PREPASS_MODE
+#define TR_PREPASS_MODE 2
+#endif
+
 static_assert(TR_REVERSED_Z == 0 || TR_REVERSED_Z == 1);
+static_assert(TR_PREPASS_MODE >= 0 && TR_PREPASS_MODE <= 2);
 
 enum class TrDepthConvention
 {
     Forward,
     Reversed
+};
+
+enum class TrPrepassMode
+{
+    Disabled = 0,
+    OpaqueOnly = 1,
+    OpaqueAndMasked = 2
 };
 
 namespace TrRenderConfig
@@ -29,6 +41,25 @@ namespace TrRenderConfig
     inline constexpr D3D12_COMPARISON_FUNC DepthComparison = UseReversedZ
         ? D3D12_COMPARISON_FUNC_GREATER_EQUAL
         : D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    inline constexpr TrPrepassMode PrepassMode =
+        static_cast<TrPrepassMode>(TR_PREPASS_MODE);
+    inline constexpr bool IsDepthNormalPrepassEnabled =
+        PrepassMode != TrPrepassMode::Disabled;
+    inline constexpr bool IncludeMaskedInDepthNormalPrepass =
+        PrepassMode == TrPrepassMode::OpaqueAndMasked;
+
+    inline constexpr const char* GetPrepassModeName()
+    {
+        switch(PrepassMode)
+        {
+        case TrPrepassMode::Disabled:
+            return "Disabled";
+        case TrPrepassMode::OpaqueAndMasked:
+            return "OpaqueAndMasked";
+        default:
+            return "OpaqueOnly";
+        }
+    }
 
     inline DirectX::XMMATRIX CreatePerspectiveFovLH(
         float fovY,

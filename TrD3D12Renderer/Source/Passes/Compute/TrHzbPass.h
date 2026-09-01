@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Resources/TrDepthNormalView.h"
 #include "Resources/TrHierarchicalDepth.h"
 
 struct TrHzbPassInputs
 {
-    const TrTexture* SceneDepth = nullptr;
-    TrDescriptorAllocation SceneDepthSrv;
+    TrDepthNormalView DepthNormal;
 };
 
 struct TrHzbPassOutputs

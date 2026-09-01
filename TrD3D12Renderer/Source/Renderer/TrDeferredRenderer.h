@@ -9,6 +9,8 @@
 #include "Passes/Raster/TrCompositePass.h"
 #include "Resources/TrConstantBuffer.h"
 #include "Passes/Raster/TrDeferredLightingPass.h"
+#include "Passes/Raster/TrDepthNormalPass.h"
+#include "Passes/Raster/TrForwardTransparentPass.h"
 #include "Resources/TrDeferredRenderTargets.h"
 #include "Resources/TrDescriptorHeap.h"
 #include "Passes/Raster/TrGBufferPass.h"
@@ -78,6 +80,7 @@ private:
         TrConstantBuffer GBufferPassConstantBuffer;
         std::vector<std::unique_ptr<TrConstantBuffer>> PrimitiveConstantBuffers;
         TrConstantBuffer LightingPassConstantBuffer;
+        TrConstantBuffer ForwardTransparentPassConstantBuffer;
         TrConstantBuffer CompositePassConstantBuffer;
         UINT64 FenceValue = 0;
     };
@@ -90,8 +93,10 @@ private:
     TrFrameContext mFrameContexts[SwapFrameCount];
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    TrDepthNormalPass mDepthNormalPass;
     TrGBufferPass mGBufferPass;
     TrDeferredLightingPass mDeferredLightingPass;
+    TrForwardTransparentPass mForwardTransparentPass;
     TrCompositePass mCompositePass;
     
     TrTexture mRenderTargets[SwapFrameCount];
@@ -101,6 +106,7 @@ private:
     TrDescriptorHeap mResourceHeap;
     TrDescriptorHeap mSamplerHeap;
     TrDeferredRenderTargets mDeferredRenderTargets;
+    TrDepthNormalView mDepthNormalView;
     TrHistoryTexture mLightingHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;
@@ -120,6 +126,7 @@ private:
 
     UINT mFrameIndex;
     UINT mFrameNumber = 0;
+    DirectX::XMFLOAT3 mCameraPosition = {0.0f, 0.0f, 0.0f};
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
     float mExposure = 1.0f;
     float mDepthVisualizationRange = 10.0f;

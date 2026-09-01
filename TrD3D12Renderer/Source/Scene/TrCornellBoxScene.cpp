@@ -223,6 +223,11 @@ TrScene CreateCornellBoxScene()
         "Brushed Gold", {0.82f, 0.58f, 0.24f, 1.0f}, 0.24f, 0.72f));
     result.Materials.push_back(MakeMaterial(
         "Blue Ceramic", {0.12f, 0.30f, 0.72f, 1.0f}, 0.20f));
+    TrSceneMaterial transparentCyan = MakeMaterial(
+        "Transparent Cyan", {0.08f, 0.72f, 0.92f, 0.32f}, 0.16f);
+    transparentCyan.AlphaMode = TrSceneAlphaMode::Blend;
+    transparentCyan.DoubleSided = true;
+    result.Materials.push_back(transparentCyan);
 
     // One mesh with six material primitives verifies that Primitive is a draw
     // range/material section rather than a scene object.
@@ -351,6 +356,31 @@ TrScene CreateCornellBoxScene()
     cubeMesh.Primitives.push_back(cubePrimitive);
     result.Meshes.push_back(std::move(cubeMesh));
 
+    TrSceneMesh transparentPanelMesh;
+    transparentPanelMesh.Name = "Transparent Validation Panel";
+    constexpr std::array<std::array<float, 3>, 4> panelPositions =
+    {{
+        {-0.5f, -0.5f, 0.0f},
+        {-0.5f,  0.5f, 0.0f},
+        { 0.5f,  0.5f, 0.0f},
+        { 0.5f, -0.5f, 0.0f}
+    }};
+    for(const std::array<float, 3>& position : panelPositions)
+    {
+        TrSceneVertex vertex;
+        vertex.Position = position;
+        vertex.Normal = {0.0f, 0.0f, -1.0f};
+        vertex.Color = {1.0f, 1.0f, 1.0f, 1.0f};
+        transparentPanelMesh.Vertices.push_back(vertex);
+    }
+    transparentPanelMesh.Indices = {0, 1, 2, 0, 2, 3};
+    TrScenePrimitive transparentPanelPrimitive;
+    transparentPanelPrimitive.VertexCount = 4;
+    transparentPanelPrimitive.IndexCount = 6;
+    transparentPanelPrimitive.MaterialIndex = 6;
+    transparentPanelMesh.Primitives.push_back(transparentPanelPrimitive);
+    result.Meshes.push_back(std::move(transparentPanelMesh));
+
     using namespace DirectX;
     const std::uint32_t root = AddNode(
         result, "Cornell Box Root", TrInvalidSceneIndex, TrInvalidSceneIndex,
@@ -393,6 +423,9 @@ TrScene CreateCornellBoxScene()
     AddNode(result, "Floor Orb", rig, 1,
         XMMatrixScaling(0.17f, 0.17f, 0.17f) *
         XMMatrixTranslation(0.08f, 0.17f, 0.24f));
+    AddNode(result, "Transparent Validation Panel", root, 3,
+        XMMatrixScaling(1.15f, 0.92f, 1.0f) *
+        XMMatrixTranslation(0.0f, 0.82f, 0.52f));
 
     result.Validate();
     return result;

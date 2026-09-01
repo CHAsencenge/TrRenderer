@@ -17,6 +17,7 @@ struct TrMaterialGpuBinding
     D3D12_GPU_VIRTUAL_ADDRESS Constants = 0;
     D3D12_GPU_DESCRIPTOR_HANDLE TextureTable = {};
     D3D12_GPU_DESCRIPTOR_HANDLE SamplerTable = {};
+    TrSceneAlphaMode AlphaMode = TrSceneAlphaMode::Opaque;
 };
 
 class TrMaterialResources

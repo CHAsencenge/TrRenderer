@@ -21,12 +21,14 @@ void TrDeferredRenderTargets::Initialize(
     mEmissiveRtv = rtvHeap.Allocate();
     mHdrLightingRtv = rtvHeap.Allocate();
     mDepthDsv = dsvHeap.Allocate();
+    mReadOnlyDepthDsv = dsvHeap.Allocate();
 
     mBaseColorSrv = resourceHeap.Allocate();
     mNormalSrv = resourceHeap.Allocate();
     mDepthSrv = resourceHeap.Allocate();
     mEmissiveSrv = resourceHeap.Allocate();
     mHdrLightingSrv = resourceHeap.Allocate();
+    mStencilSrv = resourceHeap.Allocate();
 
     if(mNormalSrv.Index != mBaseColorSrv.Index + 1 ||
        mDepthSrv.Index != mBaseColorSrv.Index + 2 ||
@@ -100,8 +102,9 @@ void TrDeferredRenderTargets::CreateResources(
         L"GBuffer Emissive Occlusion");
 
     D3D12_CLEAR_VALUE depthClear = {};
-    depthClear.Format = DepthViewFormat;
+    depthClear.Format = DepthStencilViewFormat;
     depthClear.DepthStencil.Depth = mDepthClearValue;
+    depthClear.DepthStencil.Stencil = 0;
     mDepth.Initialize2D(
         device,
         width,
@@ -129,17 +132,73 @@ void TrDeferredRenderTargets::CreateResources(
     mNormalMetallic.CreateRenderTargetView(device, mNormalRtv.CpuHandle);
     mEmissiveOcclusion.CreateRenderTargetView(device, mEmissiveRtv.CpuHandle);
     mHdrLighting.CreateRenderTargetView(device, mHdrLightingRtv.CpuHandle);
-    mDepth.CreateDepthStencilView(device, mDepthDsv.CpuHandle, DepthViewFormat);
+    mDepth.CreateDepthStencilView(
+        device,
+        mDepthDsv.CpuHandle,
+        DepthStencilViewFormat);
+    mDepth.CreateDepthStencilView(
+        device,
+        mReadOnlyDepthDsv.CpuHandle,
+        DepthStencilViewFormat,
+        0,
+        D3D12_DSV_FLAG_READ_ONLY_DEPTH |
+            D3D12_DSV_FLAG_READ_ONLY_STENCIL);
 
     mBaseColorRoughness.CreateShaderResourceView(device, mBaseColorSrv.CpuHandle);
     mNormalMetallic.CreateShaderResourceView(device, mNormalSrv.CpuHandle);
     mDepth.CreateShaderResourceView(device, mDepthSrv.CpuHandle, DepthSrvFormat);
+    mDepth.CreateShaderResourceView(
+        device,
+        mStencilSrv.CpuHandle,
+        StencilSrvFormat,
+        0,
+        1,
+        1);
     mEmissiveOcclusion.CreateShaderResourceView(device, mEmissiveSrv.CpuHandle);
     mHdrLighting.CreateShaderResourceView(device, mHdrLightingSrv.CpuHandle);
 }
 
-void TrDeferredRenderTargets::BeginGBufferPass(
+void TrDeferredRenderTargets::BeginDepthNormalPass(
     ID3D12GraphicsCommandList* commandList)
+{
+    mNormalMetallic.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    mDepth.Transition(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+    commandList->OMSetRenderTargets(
+        1,
+        &mNormalRtv.CpuHandle,
+        FALSE,
+        &mDepthDsv.CpuHandle);
+
+    const float normalClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    commandList->ClearRenderTargetView(
+        mNormalRtv.CpuHandle,
+        normalClear,
+        0,
+        nullptr);
+    commandList->ClearDepthStencilView(
+        mDepthDsv.CpuHandle,
+        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+        mDepthClearValue,
+        0,
+        0,
+        nullptr);
+}
+
+void TrDeferredRenderTargets::EndDepthNormalPass(
+    ID3D12GraphicsCommandList* commandList)
+{
+    if(commandList == nullptr)
+    {
+        throw std::invalid_argument("Depth/Normal command list is null.");
+    }
+    // GBuffer consumes the same depth and normal targets immediately, so both
+    // intentionally remain in DEPTH_WRITE / RENDER_TARGET state.
+}
+
+void TrDeferredRenderTargets::BeginGBufferPass(
+    ID3D12GraphicsCommandList* commandList,
+    bool preserveDepthNormal)
 {
     mBaseColorRoughness.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
     mNormalMetallic.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -159,7 +218,6 @@ void TrDeferredRenderTargets::BeginGBufferPass(
         &mDepthDsv.CpuHandle);
 
     const float baseColorClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    const float normalClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float emissiveClear[] = {0.0f, 0.0f, 0.0f, 1.0f};
     commandList->ClearRenderTargetView(
         mBaseColorRtv.CpuHandle,
@@ -167,22 +225,26 @@ void TrDeferredRenderTargets::BeginGBufferPass(
         0,
         nullptr);
     commandList->ClearRenderTargetView(
-        mNormalRtv.CpuHandle,
-        normalClear,
-        0,
-        nullptr);
-    commandList->ClearRenderTargetView(
         mEmissiveRtv.CpuHandle,
         emissiveClear,
         0,
         nullptr);
-    commandList->ClearDepthStencilView(
-        mDepthDsv.CpuHandle,
-        D3D12_CLEAR_FLAG_DEPTH,
-        mDepthClearValue,
-        0,
-        0,
-        nullptr);
+    if(!preserveDepthNormal)
+    {
+        const float normalClear[] = {0.0f, 0.0f, 0.0f, 0.0f};
+        commandList->ClearRenderTargetView(
+            mNormalRtv.CpuHandle,
+            normalClear,
+            0,
+            nullptr);
+        commandList->ClearDepthStencilView(
+            mDepthDsv.CpuHandle,
+            D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+            mDepthClearValue,
+            0,
+            0,
+            nullptr);
+    }
 }
 
 void TrDeferredRenderTargets::EndGBufferPass(
@@ -193,13 +255,22 @@ void TrDeferredRenderTargets::EndGBufferPass(
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     mNormalMetallic.Transition(
         commandList,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     mEmissiveOcclusion.Transition(
         commandList,
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     mDepth.Transition(
         commandList,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+}
+
+TrDepthNormalView TrDeferredRenderTargets::GetDepthNormalView() const
+{
+    return TrDepthNormalView(
+        mDepth,
+        mDepthSrv,
+        mNormalMetallic,
+        mNormalSrv);
 }
 
 void TrDeferredRenderTargets::BeginDeferredLightingPass(
@@ -226,4 +297,27 @@ void TrDeferredRenderTargets::EndDeferredLightingPass(
     mHdrLighting.Transition(
         commandList,
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void TrDeferredRenderTargets::BeginForwardTransparentPass(
+    ID3D12GraphicsCommandList* commandList)
+{
+    mHdrLighting.Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    mDepth.Transition(commandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+    commandList->OMSetRenderTargets(
+        1,
+        &mHdrLightingRtv.CpuHandle,
+        FALSE,
+        &mReadOnlyDepthDsv.CpuHandle);
+}
+
+void TrDeferredRenderTargets::EndForwardTransparentPass(
+    ID3D12GraphicsCommandList* commandList)
+{
+    mHdrLighting.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    mDepth.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 }

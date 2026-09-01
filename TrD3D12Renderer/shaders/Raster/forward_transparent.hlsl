@@ -19,13 +19,6 @@ struct PSInput
     float2 texCoord1 : TEXCOORD1;
 };
 
-struct GBufferOutput
-{
-    float4 baseColorRoughness : SV_Target0;
-    float4 normalMetallic : SV_Target1;
-    float4 emissiveOcclusion : SV_Target2;
-};
-
 struct TextureTransformConstants
 {
     float2 offset;
@@ -36,8 +29,14 @@ struct TextureTransformConstants
     float padding;
 };
 
-// Register contract shared by the renderer:
-// b0 Scene, b1 View, b2 Pass, b3 Primitive, b4 Material, b5 Draw.
+cbuffer SceneConstants : register(b0)
+{
+    float3 g_lightDirection;
+    float g_lightIntensity;
+    float3 g_lightColor;
+    float g_ambientStrength;
+};
+
 cbuffer ViewConstants : register(b1)
 {
     float4x4 g_view;
@@ -56,12 +55,11 @@ cbuffer ViewConstants : register(b1)
     float2 g_viewPadding;
 };
 
-cbuffer GBufferPassConstants : register(b2)
+cbuffer ForwardTransparentPassConstants : register(b2)
 {
-    float g_baseColorScale;
-    float g_roughnessScale;
-    float g_metallicScale;
-    uint g_geometryVisualization;
+    float g_directLightingScale;
+    float g_ambientLightingScale;
+    float2 g_transparentPadding;
 };
 
 cbuffer PrimitiveConstants : register(b3)
@@ -131,7 +129,8 @@ float2 TransformTexCoord(PSInput input, TextureTransformConstants transform)
 
 float3 ApplyNormalMap(float3 worldPosition, float3 geometricNormal, float2 uv)
 {
-    float3 mappedNormal = g_normalTexture.Sample(g_normalSampler, uv).xyz * 2.0f - 1.0f;
+    float3 mappedNormal =
+        g_normalTexture.Sample(g_normalSampler, uv).xyz * 2.0f - 1.0f;
     mappedNormal.xy *= g_normalTextureTransform.strength;
 
     const float3 positionDx = ddx(worldPosition);
@@ -153,25 +152,6 @@ float3 ApplyNormalMap(float3 worldPosition, float3 geometricNormal, float2 uv)
         geometricNormal * mappedNormal.z);
 }
 
-uint HashId(uint value)
-{
-    value ^= value >> 16u;
-    value *= 0x7feb352du;
-    value ^= value >> 15u;
-    value *= 0x846ca68bu;
-    value ^= value >> 16u;
-    return value;
-}
-
-float3 IdColor(uint value)
-{
-    const float hue = frac(float(HashId(value) & 0xffffu) / 65535.0f);
-    const float3 hueOffsets = float3(0.0f, 2.0f / 3.0f, 1.0f / 3.0f);
-    const float3 rgb = saturate(
-        abs(frac(hue + hueOffsets) * 6.0f - 3.0f) - 1.0f);
-    return lerp(0.18f.xxx, rgb, 0.82f);
-}
-
 PSInput VSMain(VSInput input)
 {
     PSInput result;
@@ -181,92 +161,74 @@ PSInput VSMain(VSInput input)
     result.worldNormal = mul(
         float4(input.normal, 0.0f),
         g_worldInverseTranspose).xyz;
-    if((g_drawFlags & 1u) != 0u)
-    {
-        result.worldNormal = -result.worldNormal;
-    }
     result.color = input.color;
     result.texCoord0 = input.texCoord0;
     result.texCoord1 = input.texCoord1;
     return result;
 }
 
-GBufferOutput PSMain(PSInput input)
+float4 PSMain(PSInput input) : SV_Target
 {
-    const float2 baseColorUv = TransformTexCoord(input, g_baseColorTextureTransform);
-    const float2 metallicRoughnessUv = TransformTexCoord(
+    const float2 baseColorUv = TransformTexCoord(
         input,
-        g_metallicRoughnessTextureTransform);
-    const float2 normalUv = TransformTexCoord(input, g_normalTextureTransform);
-    const float2 occlusionUv = TransformTexCoord(input, g_occlusionTextureTransform);
-    const float2 emissiveUv = TransformTexCoord(input, g_emissiveTextureTransform);
+        g_baseColorTextureTransform);
+    const float2 normalUv = TransformTexCoord(
+        input,
+        g_normalTextureTransform);
+    const float2 occlusionUv = TransformTexCoord(
+        input,
+        g_occlusionTextureTransform);
+    const float2 emissiveUv = TransformTexCoord(
+        input,
+        g_emissiveTextureTransform);
 
     const float4 baseColorSample = g_baseColorTexture.Sample(
         g_baseColorSampler,
         baseColorUv);
-    if(TrMaterialHasFlag(g_materialFlags, TR_MATERIAL_FLAG_ALPHA_BLEND))
+    if(!TrMaterialHasFlag(g_materialFlags, TR_MATERIAL_FLAG_ALPHA_BLEND))
     {
         discard;
     }
+    const float alpha = saturate(baseColorSample.a * g_baseColorFactor.a);
     if(TrMaterialHasFlag(g_materialFlags, TR_MATERIAL_FLAG_ALPHA_MASK))
     {
-        clip(baseColorSample.a * g_baseColorFactor.a - g_alphaCutoff);
+        clip(alpha - g_alphaCutoff);
     }
-    const float4 metallicRoughnessSample = g_metallicRoughnessTexture.Sample(
-        g_metallicRoughnessSampler,
-        metallicRoughnessUv);
-    const float occlusionSample = g_occlusionTexture.Sample(
-        g_occlusionSampler,
-        occlusionUv).r;
-    const float3 emissiveSample = g_emissiveTexture.Sample(
-        g_emissiveSampler,
-        emissiveUv).rgb;
+    clip(alpha - (1.0f / 255.0f));
 
+    const float3 baseColor =
+        input.color * g_baseColorFactor.rgb * baseColorSample.rgb;
     const float3 geometricNormal = normalize(input.worldNormal);
     const float3 worldNormal = ApplyNormalMap(
         input.worldPosition,
         geometricNormal,
         normalUv);
-    float3 baseColor = input.color * g_baseColorFactor.rgb *
-        baseColorSample.rgb * g_baseColorScale;
-    float roughness = g_roughness * metallicRoughnessSample.g *
-        g_roughnessScale;
-    float metallic = g_metallic * metallicRoughnessSample.b *
-        g_metallicScale;
+    const float occlusionSample = g_occlusionTexture.Sample(
+        g_occlusionSampler,
+        occlusionUv).r;
     const float occlusion = lerp(
         1.0f,
         occlusionSample,
         saturate(g_occlusionTextureTransform.strength));
-    float3 emissive = g_emissiveFactor * g_emissiveStrength * emissiveSample;
+    const float3 emissive = g_emissiveFactor * g_emissiveStrength *
+        g_emissiveTexture.Sample(g_emissiveSampler, emissiveUv).rgb;
 
-    if(g_geometryVisualization == 1u)
+    float3 color;
+    if(TrMaterialHasFlag(g_materialFlags, TR_MATERIAL_FLAG_UNLIT))
     {
-        const uint parentKey = g_parentNodeId == 0xffffffffu
-            ? g_instanceId
-            : g_parentNodeId;
-        const float3 parentColor = IdColor(parentKey);
-        const float3 nodeColor = IdColor(g_instanceId + 0x9e3779b9u);
-        const float depthScale = 0.72f + 0.12f * float(g_hierarchyDepth % 3u);
-        baseColor = saturate(lerp(parentColor, nodeColor, 0.28f) * depthScale);
-        roughness = 0.78f;
-        metallic = 0.0f;
-        emissive = baseColor * 0.12f;
+        color = baseColor + emissive;
     }
-    else if(g_geometryVisualization == 2u)
+    else
     {
-        const uint drawKey = HashId(
-            g_drawPrimitiveId ^
-            (g_instanceId * 0x9e3779b9u) ^
-            (g_drawLocalPrimitiveIndex * 0x85ebca6bu));
-        baseColor = IdColor(drawKey);
-        roughness = 0.82f;
-        metallic = 0.0f;
-        emissive = baseColor * 0.12f;
+        const float diffuse = saturate(dot(
+            worldNormal,
+            normalize(g_lightDirection)));
+        const float lighting = g_ambientStrength *
+            g_ambientLightingScale * occlusion +
+            (1.0f - g_ambientStrength) * g_lightIntensity *
+            g_directLightingScale * diffuse;
+        color = baseColor * g_lightColor * lighting + emissive;
     }
 
-    GBufferOutput result;
-    result.baseColorRoughness = float4(saturate(baseColor), saturate(roughness));
-    result.normalMetallic = float4(worldNormal, saturate(metallic));
-    result.emissiveOcclusion = float4(emissive, occlusion);
-    return result;
+    return float4(color, alpha);
 }

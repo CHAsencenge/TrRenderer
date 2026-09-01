@@ -19,6 +19,12 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.cpp">
       <Filter>Passes\Raster</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDepthNormalPass.cpp">
+      <Filter>Passes\Raster</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrForwardTransparentPass.cpp">
+      <Filter>Passes\Raster</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.cpp">
       <Filter>Passes\Raster</Filter>
     </ClCompile>
@@ -35,6 +41,9 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDepthNormalView.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.cpp">
@@ -132,6 +141,12 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.h">
       <Filter>Passes\Raster</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDepthNormalPass.h">
+      <Filter>Passes\Raster</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrForwardTransparentPass.h">
+      <Filter>Passes\Raster</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.h">
       <Filter>Passes\Raster</Filter>
     </ClInclude>
@@ -148,6 +163,9 @@
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDepthNormalView.h">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.h">
@@ -225,6 +243,12 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\deferred_lighting.hlsl">
       <Filter>Shaders\Raster</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\depth_normal.hlsl">
+      <Filter>Shaders\Raster</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\forward_transparent.hlsl">
+      <Filter>Shaders\Raster</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\gbuffer.hlsl">
       <Filter>Shaders\Raster</Filter>
     </ClInclude>
@@ -235,6 +259,9 @@
       <Filter>Shaders\Compute</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl">
+      <Filter>Shaders\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\material_flags.header.hlsl">
       <Filter>Shaders\Common</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl">

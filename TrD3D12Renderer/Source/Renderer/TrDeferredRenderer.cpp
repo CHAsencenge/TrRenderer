@@ -14,6 +14,21 @@
 #include <limits>
 #include <stdexcept>
 
+namespace
+{
+    bool ShouldRenderInDepthNormalPrepass(TrSceneAlphaMode alphaMode)
+    {
+        if(!TrRenderConfig::IsDepthNormalPrepassEnabled ||
+           alphaMode == TrSceneAlphaMode::Blend)
+        {
+            return false;
+        }
+        return alphaMode == TrSceneAlphaMode::Opaque ||
+            (alphaMode == TrSceneAlphaMode::Mask &&
+             TrRenderConfig::IncludeMaskedInDepthNormalPrepass);
+    }
+}
+
 
 TrDeferredRenderer::TrDeferredRenderer(UINT width, UINT height, std::wstring title) :
     TrRendererBase(width, height, title),
@@ -35,6 +50,9 @@ void TrDeferredRenderer::OnInitialize()
         TrRenderConfig::UseReversedZ
             ? "Depth convention: Reversed-Z (clear 0, compare greater-equal)."
             : "Depth convention: Forward-Z (clear 1, compare less-equal).");
+    TrLog::Info(
+        std::string("Depth/Normal prepass mode: ") +
+        TrRenderConfig::GetPrepassModeName() + ".");
     LoadPipeline();
     RegisterGpuDebugViews();
     LoadAssets();
@@ -131,6 +149,7 @@ void TrDeferredRenderer::OnUpdate()
     const XMVECTOR cameraTarget = mUsingImportedScene
         ? XMLoadFloat3(&sceneBoundsCenter)
         : XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f);
+    XMStoreFloat3(&mCameraPosition, cameraPosition);
     const XMMATRIX view = XMMatrixLookAtLH(
         cameraPosition,
         cameraTarget,
@@ -181,6 +200,7 @@ void TrDeferredRenderer::OnUpdate()
     gBufferPassConstants.Visualization = mGeometryVisualization;
 
     const TrDeferredLightingPassConstants lightingPassConstants = {};
+    const TrForwardTransparentPassConstants transparentPassConstants = {};
     TrCompositePassConstants compositePassConstants = {};
     compositePassConstants.Exposure = mExposure;
     compositePassConstants.VisualizationMode = static_cast<std::uint32_t>(
@@ -226,6 +246,7 @@ void TrDeferredRenderer::OnUpdate()
         frame.PrimitiveConstantBuffers[instanceIndex]->Update(primitiveConstants);
     }
     frame.LightingPassConstantBuffer.Update(lightingPassConstants);
+    frame.ForwardTransparentPassConstantBuffer.Update(transparentPassConstants);
     frame.CompositePassConstantBuffer.Update(compositePassConstants);
 
     XMStoreFloat4x4(&mPreviousViewProjection, viewProjection);
@@ -543,12 +564,21 @@ void TrDeferredRenderer::UpdateWindowTitle() const
  */
 void TrDeferredRenderer::LoadAssets()
 {
+    if(TrRenderConfig::IsDepthNormalPrepassEnabled)
+    {
+        mDepthNormalPass.Initialize(
+            mDevice.Get(),
+            GetAssetFullPath(SHADER_DIR L"Raster/depth_normal.hlsl"));
+    }
     mGBufferPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/gbuffer.hlsl"));
     mDeferredLightingPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/deferred_lighting.hlsl"));
+    mForwardTransparentPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Raster/forward_transparent.hlsl"));
     mCompositePass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/composite.hlsl"));
@@ -623,6 +653,43 @@ void TrDeferredRenderer::LoadAssets()
         mResourceHeap,
         mSamplerHeap,
         &mLoadedScene);
+    std::size_t opaqueDrawCount = 0;
+    std::size_t alphaMaskDrawCount = 0;
+    std::size_t alphaBlendDrawCount = 0;
+    std::size_t prepassDrawCount = 0;
+    for(const TrRuntimeInstance& instance : mRuntimeScene.GetInstances())
+    {
+        const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
+        for(const TrRuntimePrimitive& primitive : mesh.Primitives)
+        {
+            const TrSceneAlphaMode alphaMode =
+                mMaterialResources.Get(primitive.MaterialId).AlphaMode;
+            if(ShouldRenderInDepthNormalPrepass(alphaMode))
+            {
+                ++prepassDrawCount;
+            }
+            switch(alphaMode)
+            {
+            case TrSceneAlphaMode::Mask:
+                ++alphaMaskDrawCount;
+                break;
+            case TrSceneAlphaMode::Blend:
+                ++alphaBlendDrawCount;
+                break;
+            default:
+                ++opaqueDrawCount;
+                break;
+            }
+        }
+    }
+    TrLog::Info(
+        "Material draw classification: " +
+        std::to_string(opaqueDrawCount) + " opaque, " +
+        std::to_string(alphaMaskDrawCount) + " alpha mask, " +
+        std::to_string(alphaBlendDrawCount) + " alpha blend.");
+    TrLog::Info(
+        "Depth/Normal prepass selected " +
+        std::to_string(prepassDrawCount) + " primitive draws.");
     uploadContext.ExecuteAndWait(mCommandQueue.Get());
 
     for(TrFrameContext& frame : mFrameContexts)
@@ -651,6 +718,9 @@ void TrDeferredRenderer::LoadAssets()
         frame.LightingPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrDeferredLightingPassConstants)));
+        frame.ForwardTransparentPassConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrForwardTransparentPassConstants)));
         frame.CompositePassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrCompositePassConstants)));
@@ -686,20 +756,24 @@ void TrDeferredRenderer::PopulateCommandList()
     mCommandList->RSSetViewports(1, &mViewport);
     mCommandList->RSSetScissorRects(1, &mScissorRect);
 
-    mGBufferPass.Begin(
-        mCommandList.Get(),
-        mDeferredRenderTargets,
-        mResourceHeap,
-        mSamplerHeap,
-        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress());
+    struct SceneDraw
+    {
+        std::size_t InstanceIndex = 0;
+        std::size_t PrimitiveIndex = 0;
+        float CameraDistanceSquared = 0.0f;
+    };
+    std::vector<SceneDraw> prepassedDraws;
+    std::vector<SceneDraw> regularGBufferDraws;
+    std::vector<SceneDraw> transparentDraws;
+    prepassedDraws.reserve(mRuntimeScene.GetDrawCount());
+    regularGBufferDraws.reserve(mRuntimeScene.GetDrawCount());
+    transparentDraws.reserve(mRuntimeScene.GetDrawCount());
 
     const std::vector<TrRuntimeInstance>& instances = mRuntimeScene.GetInstances();
     for(std::size_t instanceIndex = 0; instanceIndex < instances.size(); ++instanceIndex)
     {
         const TrRuntimeInstance& instance = instances[instanceIndex];
         const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
-        mesh.Geometry->Bind(mCommandList.Get());
         for(std::size_t primitiveIndex = 0;
             primitiveIndex < mesh.Primitives.size();
             ++primitiveIndex)
@@ -707,13 +781,67 @@ void TrDeferredRenderer::PopulateCommandList()
             const TrRuntimePrimitive& primitive = mesh.Primitives[primitiveIndex];
             const TrMaterialGpuBinding& material =
                 mMaterialResources.Get(primitive.MaterialId);
+            if(material.AlphaMode == TrSceneAlphaMode::Blend)
+            {
+                const DirectX::XMFLOAT3 localCenter =
+                    primitive.LocalBounds.GetCenter();
+                const DirectX::XMVECTOR worldCenter =
+                    DirectX::XMVector3TransformCoord(
+                        DirectX::XMLoadFloat3(&localCenter),
+                        DirectX::XMLoadFloat4x4(
+                            &instance.CurrentWorldTransform));
+                const DirectX::XMVECTOR cameraPosition =
+                    DirectX::XMLoadFloat3(&mCameraPosition);
+                transparentDraws.push_back(
+                {
+                    instanceIndex,
+                    primitiveIndex,
+                    DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(
+                        DirectX::XMVectorSubtract(
+                            worldCenter,
+                            cameraPosition)))
+                });
+                continue;
+            }
+
+            const SceneDraw draw = {instanceIndex, primitiveIndex, 0.0f};
+            if(ShouldRenderInDepthNormalPrepass(material.AlphaMode))
+            {
+                prepassedDraws.push_back(draw);
+            }
+            else
+            {
+                regularGBufferDraws.push_back(draw);
+            }
+        }
+    }
+
+    if(!prepassedDraws.empty())
+    {
+        mDepthNormalPass.Begin(
+            mCommandList.Get(),
+            mDeferredRenderTargets,
+            mResourceHeap,
+            mSamplerHeap,
+            frame.ViewConstantBuffer.GetGpuVirtualAddress());
+        for(const SceneDraw& draw : prepassedDraws)
+        {
+            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
+            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
+            const TrRuntimePrimitive& primitive =
+                mesh.Primitives[draw.PrimitiveIndex];
+            const TrMaterialGpuBinding& material =
+                mMaterialResources.Get(primitive.MaterialId);
+            mesh.Geometry->Bind(mCommandList.Get());
+
             TrDrawConstants drawConstants = {};
             drawConstants.PrimitiveId = primitive.PrimitiveId;
             drawConstants.MaterialId = primitive.MaterialId;
             drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
-            mGBufferPass.SetDrawBindings(
+            mDepthNormalPass.SetDrawBindings(
                 mCommandList.Get(),
-                frame.PrimitiveConstantBuffers[instanceIndex]->GetGpuVirtualAddress(),
+                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                    ->GetGpuVirtualAddress(),
                 material.Constants,
                 material.TextureTable,
                 material.SamplerTable,
@@ -723,8 +851,64 @@ void TrDeferredRenderer::PopulateCommandList()
                 primitive.IndexCount,
                 primitive.FirstIndex);
         }
+        mDepthNormalPass.End(
+            mCommandList.Get(),
+            mDeferredRenderTargets);
     }
-    mGBufferPass.End(mCommandList.Get(), mDeferredRenderTargets);
+
+    mGBufferPass.Begin(
+        mCommandList.Get(),
+        mDeferredRenderTargets,
+        mResourceHeap,
+        mSamplerHeap,
+        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
+        !prepassedDraws.empty());
+
+    const auto drawGBufferItems =
+        [this, &frame, &instances](const std::vector<SceneDraw>& draws)
+    {
+        for(const SceneDraw& draw : draws)
+        {
+            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
+            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
+            const TrRuntimePrimitive& primitive =
+                mesh.Primitives[draw.PrimitiveIndex];
+            const TrMaterialGpuBinding& material =
+                mMaterialResources.Get(primitive.MaterialId);
+            mesh.Geometry->Bind(mCommandList.Get());
+
+            TrDrawConstants drawConstants = {};
+            drawConstants.PrimitiveId = primitive.PrimitiveId;
+            drawConstants.MaterialId = primitive.MaterialId;
+            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
+            mGBufferPass.SetDrawBindings(
+                mCommandList.Get(),
+                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                    ->GetGpuVirtualAddress(),
+                material.Constants,
+                material.TextureTable,
+                material.SamplerTable,
+                drawConstants);
+            mesh.Geometry->DrawRange(
+                mCommandList.Get(),
+                primitive.IndexCount,
+                primitive.FirstIndex);
+        }
+    };
+
+    drawGBufferItems(regularGBufferDraws);
+    if(!prepassedDraws.empty())
+    {
+        mGBufferPass.BeginPrepassedDraws(
+            mCommandList.Get(),
+            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+            frame.GBufferPassConstantBuffer.GetGpuVirtualAddress());
+        drawGBufferItems(prepassedDraws);
+    }
+    mDepthNormalView = mGBufferPass.End(
+        mCommandList.Get(),
+        mDeferredRenderTargets);
 
     mDeferredLightingPass.Render(
         mCommandList.Get(),
@@ -733,6 +917,55 @@ void TrDeferredRenderer::PopulateCommandList()
         frame.SceneConstantBuffer.GetGpuVirtualAddress(),
         frame.ViewConstantBuffer.GetGpuVirtualAddress(),
         frame.LightingPassConstantBuffer.GetGpuVirtualAddress());
+
+    if(!transparentDraws.empty())
+    {
+        std::sort(
+            transparentDraws.begin(),
+            transparentDraws.end(),
+            [](const SceneDraw& left, const SceneDraw& right)
+            {
+                return left.CameraDistanceSquared > right.CameraDistanceSquared;
+            });
+        mForwardTransparentPass.Begin(
+            mCommandList.Get(),
+            mDeferredRenderTargets,
+            mResourceHeap,
+            mSamplerHeap,
+            frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+            frame.ForwardTransparentPassConstantBuffer.GetGpuVirtualAddress());
+        for(const SceneDraw& draw : transparentDraws)
+        {
+            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
+            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
+            const TrRuntimePrimitive& primitive =
+                mesh.Primitives[draw.PrimitiveIndex];
+            const TrMaterialGpuBinding& material =
+                mMaterialResources.Get(primitive.MaterialId);
+            mesh.Geometry->Bind(mCommandList.Get());
+
+            TrDrawConstants drawConstants = {};
+            drawConstants.PrimitiveId = primitive.PrimitiveId;
+            drawConstants.MaterialId = primitive.MaterialId;
+            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
+            mForwardTransparentPass.SetDrawBindings(
+                mCommandList.Get(),
+                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                    ->GetGpuVirtualAddress(),
+                material.Constants,
+                material.TextureTable,
+                material.SamplerTable,
+                drawConstants);
+            mesh.Geometry->DrawRange(
+                mCommandList.Get(),
+                primitive.IndexCount,
+                primitive.FirstIndex);
+        }
+        mForwardTransparentPass.End(
+            mCommandList.Get(),
+            mDeferredRenderTargets);
+    }
 
     mCompositePass.Render(
         mCommandList.Get(),

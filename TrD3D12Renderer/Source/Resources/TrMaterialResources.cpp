@@ -87,10 +87,14 @@ namespace
         constants.Metallic = material->MetallicFactor;
         constants.AlphaCutoff = material->AlphaCutoff;
         constants.Flags =
-            (material->Unlit ? 1u : 0u) |
-            (material->DoubleSided ? 2u : 0u) |
-            (material->AlphaMode == TrSceneAlphaMode::Mask ? 4u : 0u) |
-            (material->AlphaMode == TrSceneAlphaMode::Blend ? 8u : 0u);
+            (material->Unlit ? TrMaterialFlag::Unlit : 0u) |
+            (material->DoubleSided ? TrMaterialFlag::DoubleSided : 0u) |
+            (material->AlphaMode == TrSceneAlphaMode::Mask
+                ? TrMaterialFlag::AlphaMask
+                : 0u) |
+            (material->AlphaMode == TrSceneAlphaMode::Blend
+                ? TrMaterialFlag::AlphaBlend
+                : 0u);
         CopyTransform(constants.BaseColorTexture, material->BaseColorTexture);
         CopyTransform(
             constants.MetallicRoughnessTexture,
@@ -357,6 +361,9 @@ TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
     };
 
     TrMaterialGpuBinding result;
+    result.AlphaMode = material != nullptr
+        ? material->AlphaMode
+        : TrSceneAlphaMode::Opaque;
     result.Constants = constantBuffer->GetGpuVirtualAddress();
     UINT firstTextureIndex = UINT_MAX;
     UINT firstSamplerIndex = UINT_MAX;
