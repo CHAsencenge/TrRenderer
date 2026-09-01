@@ -57,7 +57,8 @@
 - Deferred Lighting 后执行的 Forward Transparent Pass：透明 Primitive 不写 GBuffer，CPU 按世界包围盒中心由远到近排序，使用只读 Depth-Stencil 和标准非预乘 Alpha Blend 写入 HDR Lighting；
 - `RGBA16_FLOAT` HDR Lighting Target 和显示颜色转换 Composite Pass；
 - 可注册任意 SRV 的 `TrGpuDebug` 中间结果查看器，支持 Final、BaseColor、Normal、Roughness、Metallic、Emissive、AO 和线性 Depth；
-- 独立接入 Dear ImGui（不依赖 nvpro_core），GPU 调试面板通过按钮选择视图，并提供 Exposure、Depth Range 文本输入；面板同时显示 Runtime Scene 节点树和每个节点的 Instance/Mesh/Primitive/Material ID；
+- Screen Trace 命中可在 Deferred Lighting 前从命中点 GBuffer 解析为逐射线 Radiance，并以余弦加权 Monte Carlo 估计积分为逐 Probe Irradiance；Deferred Lighting 使用深度/法线引导上采样，并统一评估直接光、环境光和接收表面的间接漫反射；Radiance 和 Irradiance 均可在 GPU Visualization 中查看；
+- 独立接入 Dear ImGui（不依赖 nvpro_core）；右侧工具面板使用一级分类按钮和二级下拉功能菜单，当前包含 Rendering/Geometry View、Rendering/Display Settings、Scene/Runtime Hierarchy，选中功能显示在功能子窗口；GPU Visualization 作为右侧常驻子窗口，保留所有中间结果按钮和 Screen Trace 状态说明；
 - Final Lighting 支持 Hierarchy 调试着色（父节点主色、节点辅色、深度亮度）和 Primitive Draw 调试着色（PrimitiveID + InstanceID），无需新增 ID Render Target；
 - Debug 退出时检查 D3D12 InfoQueue 的 ERROR/CORRUPTION 消息。
 
@@ -67,7 +68,7 @@
 
 - 历史纹理生命周期已具备，但尚未接入实际时间累积、Motion Vector 和 History Rejection；
 - 已有多 Mesh、多 Primitive、多 Instance、CPU 动态层级更新和时序 Transform，但尚无可交互相机、动画资产系统和 GPU Scene StructuredBuffer；
-- Compute、HZB Build、固定 Screen Probe 布置和首版 HZB Screen Trace 已接入；追踪结果尚未用于间接光照；
+- Compute、HZB Build、固定 Screen Probe、HZB Screen Trace、Radiance Resolve、Irradiance Integrate 和首版间接光合成已接入；尚无 RayQuery 补洞、时间积累和完整的去噪流程；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调当前保留为空，逐帧更新已负责场景层级动画、常量更新和透明排序。
 
@@ -97,7 +98,7 @@ TrD3D12Renderer/
     Renderer/           TrDeferredRenderer 与六层常量契约
     Passes/Raster/      Depth/Normal、GBuffer、Deferred Lighting、Forward Transparent、Composite
     Passes/Compute/     通用 Compute Pass，目前包含 HZB Build
-    Lumen/              Screen Probe、Screen Trace 及其专用资源
+    Lumen/              Screen Probe、Screen Trace、Radiance、Irradiance 及其专用资源
     Passes/RayTracing/  Inline RayQuery 等后续光追 Pass
     Resources/          Buffer、Texture、Mesh、Descriptor、Render Target、Material
     Backend/            Graphics/Compute PSO、DXC、Upload、Barrier
@@ -108,7 +109,7 @@ TrD3D12Renderer/
   shaders/
     Raster/             当前光栅与全屏 Pass Shader
     Compute/            通用 Compute Shader，目前包含 HZB Build
-    Lumen/              Screen Probe 布置与 HZB Screen Trace Shader
+    Lumen/              Screen Probe 布置、HZB Screen Trace、Radiance 与 Irradiance Shader
     RayTracing/         后续 Inline RayQuery Shader
     Legacy/             已确认未使用的旧 Shader
   ThirdParty/           d3dx12.h；Dear ImGui 仍从 Includes 独立引用
@@ -118,7 +119,11 @@ TrD3D12Renderer/
 
 HZB Build、Screen Probe 布置和首版 Screen Trace 已接入 Renderer。当前固定每 `16x16` 个屏幕像素布置一个 Probe，每个 Probe 以 `4x4` 图集块保存 16 条确定性余弦半球射线。Probe 默认选择 Tile 中心的可见表面；中心为背景时，在 Tile 内选择离中心最近的有效 Depth/Normal 样本。这样布局稳定、成本固定，同时能覆盖轮廓附近的部分背景 Tile。
 
-Screen Trace 从较粗 HZB Mip 开始。射线采样点位于场景深度之前时，按当前 Mip 对应的步长前进并逐步提升 Mip；检测到潜在穿越后逐级下降，在 Mip0 上做二分细化和 View Depth 厚度测试。结果图集编码 `HitUV.xy`、归一化命中距离和状态，状态区分无效 Probe、屏幕命中、超过距离、离开屏幕和迭代耗尽。当前结果仅用于 GPU 调试，尚未连接屏幕光照采样、RayQuery fallback 或 Probe 辐照度积分。
+Screen Trace 从较粗 HZB Mip 开始。射线采样点位于场景深度之前时，按当前 Mip 对应的步长前进并逐步提升 Mip；检测到潜在穿越后逐级下降，在 Mip0 上做二分细化和 View Depth 厚度测试。正式命中图集使用 `R32G32B32A32_UINT`，每条射线保存 16 字节 `TrScreenTraceHit`：打包后的精确命中像素、未归一化世界空间 `HitT`、状态/来源/最后 Mip/迭代次数 Flag，以及厚度和屏幕边缘共同评估的置信度。未命中像素统一为 `0xffffffff`，状态区分无效 Probe、屏幕命中、超过距离、离开屏幕和迭代耗尽。原 `RGBA16_FLOAT` 图集已降为独立的 GPU 调试输出，只编码 Hit UV、归一化距离和状态。正式命中数据已连接屏幕 Radiance 采样和 Probe Irradiance 积分，但尚无 RayQuery fallback。
+
+Radiance 和 Irradiance 保持为两个轻量 Compute Pass，不直接合并。Radiance Resolve 在 Deferred Lighting 之前根据精确命中像素读取 GBuffer，使用与 Deferred Lighting 共享的光照函数评估命中表面的直接光和自发光，输出与 Trace Atlas 同尺寸的 `RGBA16_FLOAT` 逐射线 Radiance，其中 Alpha 保存命中置信度。它刻意不采样 Probe GI，避免同帧递归反馈。该资源每帧完全覆盖，不作为历史保存；保留它是为了给后续 RayQuery fallback 提供统一的逐射线汇合点，并支持逐射线调试。Irradiance Integrate 随后按 Probe 的 `4x4` 射线块积分，以 `PI / RayCount * sum(Li * Confidence)` 估计余弦半球漫反射辐照度，并在 Alpha 中保存有效覆盖率。输出是每 Probe 一个 `RGBA16_FLOAT` Texel。
+
+最终 Deferred Lighting 同时完成直接光和间接光材质评估。它对每个全分辨率不透明像素读取邻近 `2x2` Probe，以屏幕双线性权重、世界法线相似度、线性深度差和 Probe 覆盖率联合过滤，降低跨轮廓和跨表面漏光；随后计算 `BaseColor * (1 - Metallic) * Irradiance / PI * AO` 并与直接光、环境光和 Emissive 一次写入 HDR。当前仍没有 RayQuery fallback、时间积累、更宽范围空间滤波和 History Rejection；常量 Ambient 属于过渡照明，正式调节 GI 时应降低或关闭，避免掩盖真实间接光。
 
 HZB 使用“最近深度金字塔”：Mip0 从场景 Device Depth 构建，Mip N 从 Mip N-1 保守归约。Reversed-Z 中较大的值离相机更近，因此使用 `max`；Forward-Z 使用 `min`。保留非线性的 Device Depth 可以直接配合硬件深度约定，也避免每级重复线性化。每个低分辨率 Texel 表示其覆盖区域内最近的潜在遮挡面，后续 Screen Trace 可以先在粗 Mip 快速跳过空区域，再逐级下降确认命中。
 
@@ -417,7 +422,9 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 用 DXC 替换 `D3DCompileFromFile`，并检查 Shader Model 6.5 支持；
 - [x] 通过 HZB Build 验证 Compute SRV 读取、逐 Mip UAV 写入、Dispatch 和资源屏障；
 - [x] 以固定 `16x16` Tile 布置 Screen Probe，并输出世界位置、法线和有效性资源；
-- [x] 每 Probe 生成 16 条确定性余弦半球射线，完成 HZB 粗到细 Screen Trace、Mip0 二分细化和命中状态可视化；
+- [x] 每 Probe 生成 16 条确定性余弦半球射线，完成 HZB 粗到细 Screen Trace、Mip0 二分细化、正式命中载荷和独立命中状态可视化；
+- [x] 将 Screen Trace 命中解析为逐射线 Radiance，并积分为逐 Probe 漫反射 Irradiance；Radiance 仅作为本帧工作集和调试结果；
+- [x] 将 Radiance Resolve 和 Irradiance Integrate 放在 Deferred Lighting 前；Deferred Lighting 使用深度/法线/覆盖率引导的 `2x2` Probe 上采样，统一评估直接光和接收表面间接光；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
 - [x] 建立可扩展的 GPU 中间结果调试视图。

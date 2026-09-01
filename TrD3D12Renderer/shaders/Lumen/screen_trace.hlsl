@@ -1,9 +1,11 @@
 #include "screen_probe_common.header.hlsl"
+#include "screen_trace_hit.header.hlsl"
 
 Texture2D<float4> g_probePositionValidity : register(t0);
 Texture2D<float4> g_probeNormalDepth : register(t1);
 Texture2D<float> g_hzb : register(t2);
-RWTexture2D<float4> g_traceResult : register(u0);
+RWTexture2D<uint4> g_traceHit : register(u0);
+RWTexture2D<float4> g_traceDebug : register(u1);
 
 cbuffer ScreenTraceConstants : register(b2)
 {
@@ -22,12 +24,6 @@ cbuffer ScreenTraceConstants : register(b2)
 };
 
 static const float TR_PI = 3.14159265359f;
-static const float TR_TRACE_INVALID_PROBE = 0.0f;
-static const float TR_TRACE_HIT = 1.0f;
-static const float TR_TRACE_MISS_DISTANCE = 2.0f;
-static const float TR_TRACE_MISS_SCREEN = 3.0f;
-static const float TR_TRACE_MISS_ITERATIONS = 4.0f;
-
 uint HashUint(uint value)
 {
     value ^= value >> 16u;
@@ -110,12 +106,14 @@ bool RefineIntersection(
     float frontDistance,
     float behindDistance,
     out float hitDistance,
-    out float2 hitUv)
+    out float2 hitUv,
+    out float confidence)
 {
     float front = frontDistance;
     float behind = behindDistance;
     hitDistance = behindDistance;
     hitUv = 0.0f;
+    confidence = 0.0f;
 
     [unroll]
     for(uint iteration = 0; iteration < 6u; ++iteration)
@@ -170,7 +168,46 @@ bool RefineIntersection(
     const float thickness = max(
         g_surfaceThickness,
         sceneViewDepth * 0.002f);
-    return separation >= -thickness * 0.25f && separation <= thickness;
+    const bool isValid =
+        separation >= -thickness * 0.25f && separation <= thickness;
+    if(isValid)
+    {
+        const float thicknessConfidence =
+            saturate(1.0f - abs(separation) / thickness);
+        const float2 edgeDistanceUv = min(hitUv, 1.0f - hitUv);
+        const float edgeDistancePixels = min(
+            edgeDistanceUv.x * g_renderSize.x,
+            edgeDistanceUv.y * g_renderSize.y);
+        const float edgeConfidence = saturate(edgeDistancePixels / 4.0f);
+        confidence = thicknessConfidence * edgeConfidence;
+    }
+    return isValid;
+}
+
+void StoreTraceResult(
+    uint2 tracePixel,
+    uint status,
+    uint source,
+    uint packedHitPixel,
+    float hitDistance,
+    float confidence,
+    uint lastMip,
+    uint iterationCount,
+    float2 debugUv)
+{
+    g_traceHit[tracePixel] = TrEncodeScreenTraceHit(
+        packedHitPixel,
+        hitDistance,
+        status,
+        source,
+        lastMip,
+        iterationCount,
+        false,
+        confidence);
+    g_traceDebug[tracePixel] = float4(
+        debugUv,
+        saturate(hitDistance / max(g_maxTraceDistance, 1.0e-6f)),
+        float(status));
 }
 
 [numthreads(8, 8, 1)]
@@ -194,11 +231,16 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         g_probeNormalDepth.Load(int3(probeCoordinate, 0));
     if(positionValidity.w <= 0.0f || dot(normalDepth.xyz, normalDepth.xyz) < 1.0e-6f)
     {
-        g_traceResult[tracePixel] = float4(
+        StoreTraceResult(
+            tracePixel,
+            TR_SCREEN_TRACE_INVALID_PROBE,
+            TR_TRACE_SOURCE_NONE,
+            TR_INVALID_HIT_PIXEL,
             0.0f,
             0.0f,
-            0.0f,
-            TR_TRACE_INVALID_PROBE);
+            0u,
+            0u,
+            0.0f);
         return;
     }
 
@@ -220,11 +262,16 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         if(traceDistance > g_maxTraceDistance)
         {
-            g_traceResult[tracePixel] = float4(
+            StoreTraceResult(
+                tracePixel,
+                TR_SCREEN_TRACE_MISS_DISTANCE,
+                TR_TRACE_SOURCE_NONE,
+                TR_INVALID_HIT_PIXEL,
+                traceDistance,
                 0.0f,
-                0.0f,
-                1.0f,
-                TR_TRACE_MISS_DISTANCE);
+                mipLevel,
+                iteration,
+                0.0f);
             return;
         }
 
@@ -235,10 +282,16 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                screenUv,
                rayDeviceDepth))
         {
-            g_traceResult[tracePixel] = float4(
-                saturate(screenUv),
-                saturate(traceDistance / g_maxTraceDistance),
-                TR_TRACE_MISS_SCREEN);
+            StoreTraceResult(
+                tracePixel,
+                TR_SCREEN_TRACE_MISS_SCREEN,
+                TR_TRACE_SOURCE_NONE,
+                TR_INVALID_HIT_PIXEL,
+                traceDistance,
+                0.0f,
+                mipLevel,
+                iteration + 1u,
+                saturate(screenUv));
             return;
         }
 
@@ -253,18 +306,29 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             float hitDistance;
             float2 hitUv;
+            float hitConfidence;
             if(RefineIntersection(
                    rayOrigin,
                    rayDirection,
                    frontDistance,
                    traceDistance,
                    hitDistance,
-                   hitUv))
+                   hitUv,
+                   hitConfidence))
             {
-                g_traceResult[tracePixel] = float4(
-                    hitUv,
-                    saturate(hitDistance / g_maxTraceDistance),
-                    TR_TRACE_HIT);
+                const uint2 hitPixel = min(
+                    uint2(hitUv * g_renderSize),
+                    uint2(g_renderSize) - 1u);
+                StoreTraceResult(
+                    tracePixel,
+                    TR_SCREEN_TRACE_HIT,
+                    TR_TRACE_SOURCE_SCREEN,
+                    TrPackHitPixel(hitPixel),
+                    hitDistance,
+                    hitConfidence,
+                    mipLevel,
+                    iteration + 1u,
+                    hitUv);
                 return;
             }
 
@@ -281,9 +345,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         mipLevel = min(mipLevel + 1u, g_hzbMipCount - 1u);
     }
 
-    g_traceResult[tracePixel] = float4(
+    StoreTraceResult(
+        tracePixel,
+        TR_SCREEN_TRACE_MISS_ITERATIONS,
+        TR_TRACE_SOURCE_NONE,
+        TR_INVALID_HIT_PIXEL,
+        traceDistance,
         0.0f,
-        0.0f,
-        saturate(traceDistance / g_maxTraceDistance),
-        TR_TRACE_MISS_ITERATIONS);
+        mipLevel,
+        g_maxIterations,
+        0.0f);
 }

@@ -582,8 +582,16 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         TrDebugVisualization::WorldNormal);
     mGpuDebug.RegisterView(
         L"Lumen Screen Trace",
-        mScreenProbeResources.GetTraceResultSrv().GpuHandle,
+        mScreenProbeResources.GetTraceDebugSrv().GpuHandle,
         TrDebugVisualization::ScreenTrace);
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Radiance",
+        mScreenProbeResources.GetRadianceSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Irradiance",
+        mScreenProbeResources.GetIrradianceSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
 }
 
 void TrDeferredRenderer::UpdateWindowTitle() const
@@ -630,6 +638,12 @@ void TrDeferredRenderer::LoadAssets()
     mScreenTracePass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Lumen/screen_trace.hlsl"));
+    mScreenProbeRadiancePass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Lumen/screen_probe_radiance.hlsl"));
+    mScreenProbeIrradiancePass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Lumen/screen_probe_irradiance.hlsl"));
     mDeferredLightingPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/deferred_lighting.hlsl"));
@@ -987,13 +1001,26 @@ void TrDeferredRenderer::PopulateCommandList()
         {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
         mScreenProbeResources);
 
+    mScreenProbeRadiancePass.Resolve(
+        mCommandList.Get(),
+        mResourceHeap,
+        frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+        frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+        mDeferredRenderTargets,
+        mScreenProbeResources);
+    mScreenProbeIrradiancePass.Integrate(
+        mCommandList.Get(),
+        mResourceHeap,
+        mScreenProbeResources);
+
     mDeferredLightingPass.Render(
         mCommandList.Get(),
         mDeferredRenderTargets,
         mResourceHeap,
         frame.SceneConstantBuffer.GetGpuVirtualAddress(),
         frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        frame.LightingPassConstantBuffer.GetGpuVirtualAddress());
+        frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+        mScreenProbeResources);
 
     if(!transparentDraws.empty())
     {

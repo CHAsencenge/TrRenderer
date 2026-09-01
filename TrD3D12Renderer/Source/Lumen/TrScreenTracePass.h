@@ -12,7 +12,8 @@ struct TrScreenTracePassInputs
 
 struct TrScreenTracePassOutputs
 {
-    TrTexture* TraceResult = nullptr;
+    TrTexture* TraceHit = nullptr;
+    TrTexture* TraceDebug = nullptr;
 };
 
 struct alignas(16) TrScreenTraceConstants

@@ -252,13 +252,13 @@ void TrDeferredRenderTargets::EndGBufferPass(
 {
     mBaseColorRoughness.Transition(
         commandList,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     mNormalMetallic.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     mEmissiveOcclusion.Transition(
         commandList,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     mDepth.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);

@@ -104,10 +104,15 @@ set(TR_COMPUTE_PASS_FILES
   Source/Passes/Compute/TrHzbPass.h)
 
 set(TR_LUMEN_FILES
+  Source/Lumen/TrScreenProbeIrradiancePass.cpp
+  Source/Lumen/TrScreenProbeIrradiancePass.h
   Source/Lumen/TrScreenProbePass.cpp
   Source/Lumen/TrScreenProbePass.h
+  Source/Lumen/TrScreenProbeRadiancePass.cpp
+  Source/Lumen/TrScreenProbeRadiancePass.h
   Source/Lumen/TrScreenProbeResources.cpp
   Source/Lumen/TrScreenProbeResources.h
+  Source/Lumen/TrScreenTraceHit.h
   Source/Lumen/TrScreenTracePass.cpp
   Source/Lumen/TrScreenTracePass.h)
 
@@ -212,10 +217,14 @@ set(HLSL_SOURCE_FILES
 set(COMPUTE_HLSL_SOURCE_FILES
   shaders/Compute/hzb.hlsl)
 set(LUMEN_HLSL_SOURCE_FILES
+  shaders/Lumen/screen_probe_irradiance.hlsl
+  shaders/Lumen/screen_probe_radiance.hlsl
   shaders/Lumen/screen_probe.hlsl
   shaders/Lumen/screen_probe_common.header.hlsl
+  shaders/Lumen/screen_trace_hit.header.hlsl
   shaders/Lumen/screen_trace.hlsl)
 set(COMMON_HLSL_SOURCE_FILES
+  shaders/Common/deferred_lighting_common.header.hlsl
   shaders/Common/depth.header.hlsl
   shaders/Common/material_flags.header.hlsl)
 set(LEGACY_HLSL_SOURCE_FILES

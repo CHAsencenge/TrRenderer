@@ -2,6 +2,7 @@
 
 #include "Resources/TrDescriptorHeap.h"
 #include "Resources/TrTexture.h"
+#include "TrScreenTraceHit.h"
 
 struct TrScreenProbeLayout
 {
@@ -18,9 +19,10 @@ struct TrScreenProbeLayout
     UINT TraceAtlasHeight = 0;
 };
 
-// Persistent screen-sized resources shared by Screen Probe placement and
-// Screen Trace. Descriptors are allocated once and rewritten in place on
-// resize so GPU debug view handles remain stable.
+// Persistent allocations shared by Screen Probe placement, Screen Trace and
+// lighting evaluation. Their contents are overwritten each frame; only the
+// resource objects and descriptors persist across frames. Resize rewrites the
+// descriptors in place so GPU debug view handles remain stable.
 class TrScreenProbeResources
 {
 public:
@@ -28,7 +30,13 @@ public:
         DXGI_FORMAT_R32G32B32A32_FLOAT;
     static constexpr DXGI_FORMAT NormalDepthFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
-    static constexpr DXGI_FORMAT TraceResultFormat =
+    static constexpr DXGI_FORMAT TraceHitFormat =
+        DXGI_FORMAT_R32G32B32A32_UINT;
+    static constexpr DXGI_FORMAT TraceDebugFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT RadianceFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT IrradianceFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     void Initialize(
@@ -42,17 +50,29 @@ public:
 
     TrTexture& GetPositionValidity() { return mPositionValidity; }
     TrTexture& GetNormalDepth() { return mNormalDepth; }
-    TrTexture& GetTraceResult() { return mTraceResult; }
+    TrTexture& GetTraceHit() { return mTraceHit; }
+    TrTexture& GetTraceDebug() { return mTraceDebug; }
+    TrTexture& GetRadiance() { return mRadiance; }
+    TrTexture& GetIrradiance() { return mIrradiance; }
     const TrTexture& GetPositionValidity() const { return mPositionValidity; }
     const TrTexture& GetNormalDepth() const { return mNormalDepth; }
-    const TrTexture& GetTraceResult() const { return mTraceResult; }
+    const TrTexture& GetTraceHit() const { return mTraceHit; }
+    const TrTexture& GetTraceDebug() const { return mTraceDebug; }
+    const TrTexture& GetRadiance() const { return mRadiance; }
+    const TrTexture& GetIrradiance() const { return mIrradiance; }
 
     const TrDescriptorAllocation& GetPositionSrv() const { return mPositionSrv; }
     const TrDescriptorAllocation& GetPositionUav() const { return mPositionUav; }
     const TrDescriptorAllocation& GetNormalDepthSrv() const { return mNormalDepthSrv; }
     const TrDescriptorAllocation& GetNormalDepthUav() const { return mNormalDepthUav; }
-    const TrDescriptorAllocation& GetTraceResultSrv() const { return mTraceResultSrv; }
-    const TrDescriptorAllocation& GetTraceResultUav() const { return mTraceResultUav; }
+    const TrDescriptorAllocation& GetTraceHitSrv() const { return mTraceHitSrv; }
+    const TrDescriptorAllocation& GetTraceHitUav() const { return mTraceHitUav; }
+    const TrDescriptorAllocation& GetTraceDebugSrv() const { return mTraceDebugSrv; }
+    const TrDescriptorAllocation& GetTraceDebugUav() const { return mTraceDebugUav; }
+    const TrDescriptorAllocation& GetRadianceSrv() const { return mRadianceSrv; }
+    const TrDescriptorAllocation& GetRadianceUav() const { return mRadianceUav; }
+    const TrDescriptorAllocation& GetIrradianceSrv() const { return mIrradianceSrv; }
+    const TrDescriptorAllocation& GetIrradianceUav() const { return mIrradianceUav; }
 
 private:
     void CreateResources(ID3D12Device* device, UINT width, UINT height);
@@ -60,11 +80,20 @@ private:
     TrScreenProbeLayout mLayout;
     TrTexture mPositionValidity;
     TrTexture mNormalDepth;
-    TrTexture mTraceResult;
+    TrTexture mTraceHit;
+    TrTexture mTraceDebug;
+    TrTexture mRadiance;
+    TrTexture mIrradiance;
     TrDescriptorAllocation mPositionSrv;
     TrDescriptorAllocation mPositionUav;
     TrDescriptorAllocation mNormalDepthSrv;
     TrDescriptorAllocation mNormalDepthUav;
-    TrDescriptorAllocation mTraceResultSrv;
-    TrDescriptorAllocation mTraceResultUav;
+    TrDescriptorAllocation mTraceHitSrv;
+    TrDescriptorAllocation mTraceHitUav;
+    TrDescriptorAllocation mTraceDebugSrv;
+    TrDescriptorAllocation mTraceDebugUav;
+    TrDescriptorAllocation mRadianceSrv;
+    TrDescriptorAllocation mRadianceUav;
+    TrDescriptorAllocation mIrradianceSrv;
+    TrDescriptorAllocation mIrradianceUav;
 };

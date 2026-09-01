@@ -16,16 +16,19 @@ void TrScreenTracePass::Initialize(
     normalDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     CD3DX12_DESCRIPTOR_RANGE hzbRange;
     hzbRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
-    CD3DX12_DESCRIPTOR_RANGE resultRange;
-    resultRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE hitRange;
+    hitRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE debugRange;
+    debugRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[6];
+    CD3DX12_ROOT_PARAMETER rootParameters[7];
     rootParameters[0].InitAsDescriptorTable(1, &positionRange);
     rootParameters[1].InitAsDescriptorTable(1, &normalDepthRange);
     rootParameters[2].InitAsDescriptorTable(1, &hzbRange);
-    rootParameters[3].InitAsDescriptorTable(1, &resultRange);
-    rootParameters[4].InitAsConstantBufferView(TrConstantRegister::View);
-    rootParameters[5].InitAsConstants(
+    rootParameters[3].InitAsDescriptorTable(1, &hitRange);
+    rootParameters[4].InitAsDescriptorTable(1, &debugRange);
+    rootParameters[5].InitAsConstantBufferView(TrConstantRegister::View);
+    rootParameters[6].InitAsConstants(
         sizeof(TrScreenTraceConstants) / sizeof(std::uint32_t),
         TrConstantRegister::Pass);
 
@@ -75,8 +78,12 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
     commandList->SetPipelineState(mPipeline.GetPipelineState());
     commandList->SetComputeRootSignature(mPipeline.GetRootSignature());
 
-    TrTexture& traceResult = screenProbes.GetTraceResult();
-    traceResult.Transition(
+    TrTexture& traceHit = screenProbes.GetTraceHit();
+    TrTexture& traceDebug = screenProbes.GetTraceDebug();
+    traceHit.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    traceDebug.Transition(
         commandList,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
@@ -91,8 +98,11 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
         inputs.HierarchicalDepth->GetSrv().GpuHandle);
     commandList->SetComputeRootDescriptorTable(
         3,
-        screenProbes.GetTraceResultUav().GpuHandle);
-    commandList->SetComputeRootConstantBufferView(4, viewConstants);
+        screenProbes.GetTraceHitUav().GpuHandle);
+    commandList->SetComputeRootDescriptorTable(
+        4,
+        screenProbes.GetTraceDebugUav().GpuHandle);
+    commandList->SetComputeRootConstantBufferView(5, viewConstants);
 
     const TrScreenTraceConstants constants =
     {
@@ -110,7 +120,7 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
         0.04f
     };
     commandList->SetComputeRoot32BitConstants(
-        5,
+        6,
         sizeof(constants) / sizeof(std::uint32_t),
         &constants,
         0);
@@ -119,12 +129,17 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
         (layout.TraceAtlasHeight + 7u) / 8u,
         1);
 
-    traceResult.UavBarrier(commandList);
-    traceResult.Transition(
+    traceHit.UavBarrier(commandList);
+    traceDebug.UavBarrier(commandList);
+    traceHit.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+    traceDebug.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
     Outputs outputs;
-    outputs.TraceResult = &traceResult;
+    outputs.TraceHit = &traceHit;
+    outputs.TraceDebug = &traceDebug;
     return outputs;
 }

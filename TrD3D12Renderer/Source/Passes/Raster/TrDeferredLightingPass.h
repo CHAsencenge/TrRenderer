@@ -2,6 +2,7 @@
 
 #include "Resources/TrDeferredRenderTargets.h"
 #include "Backend/TrGraphicsPipeline.h"
+#include "Lumen/TrScreenProbeResources.h"
 #include "Renderer/TrRenderConstants.h"
 
 class TrDeferredLightingPass
@@ -14,7 +15,8 @@ public:
         TrDescriptorHeap& resourceHeap,
         D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
         D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
-        D3D12_GPU_VIRTUAL_ADDRESS passConstants);
+        D3D12_GPU_VIRTUAL_ADDRESS passConstants,
+        TrScreenProbeResources& screenProbes);
 
 private:
     TrGraphicsPipeline mPipeline;

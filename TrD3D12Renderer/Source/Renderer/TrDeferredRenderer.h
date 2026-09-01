@@ -9,6 +9,8 @@
 #include "Passes/Raster/TrCompositePass.h"
 #include "Passes/Compute/TrHzbPass.h"
 #include "Lumen/TrScreenProbePass.h"
+#include "Lumen/TrScreenProbeIrradiancePass.h"
+#include "Lumen/TrScreenProbeRadiancePass.h"
 #include "Lumen/TrScreenProbeResources.h"
 #include "Lumen/TrScreenTracePass.h"
 #include "Resources/TrConstantBuffer.h"
@@ -116,6 +118,8 @@ private:
     TrScreenProbeResources mScreenProbeResources;
     TrScreenProbePass mScreenProbePass;
     TrScreenTracePass mScreenTracePass;
+    TrScreenProbeRadiancePass mScreenProbeRadiancePass;
+    TrScreenProbeIrradiancePass mScreenProbeIrradiancePass;
     TrHistoryTexture mLightingHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;

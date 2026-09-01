@@ -7,7 +7,7 @@ void TrDeferredLightingPass::Initialize(
     ID3D12Device* device,
     const std::wstring& shaderPath)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[4];
+    CD3DX12_ROOT_PARAMETER rootParameters[6];
     rootParameters[0].InitAsConstantBufferView(
         TrConstantRegister::Scene,
         0,
@@ -26,6 +26,18 @@ void TrDeferredLightingPass::Initialize(
     rootParameters[3].InitAsDescriptorTable(
         1,
         &gBufferRange,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    CD3DX12_DESCRIPTOR_RANGE probeNormalDepthRange;
+    probeNormalDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4);
+    rootParameters[4].InitAsDescriptorTable(
+        1,
+        &probeNormalDepthRange,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    CD3DX12_DESCRIPTOR_RANGE irradianceRange;
+    irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
+    rootParameters[5].InitAsDescriptorTable(
+        1,
+        &irradianceRange,
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -55,7 +67,8 @@ void TrDeferredLightingPass::Render(
     TrDescriptorHeap& resourceHeap,
     D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
-    D3D12_GPU_VIRTUAL_ADDRESS passConstants)
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants,
+    TrScreenProbeResources& screenProbes)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        !resourceHeap.IsShaderVisible() || sceneConstants == 0 ||
@@ -63,6 +76,27 @@ void TrDeferredLightingPass::Render(
     {
         throw std::invalid_argument("Deferred lighting pass inputs are invalid.");
     }
+
+    const TrScreenProbeLayout& layout = screenProbes.GetLayout();
+    const D3D12_RESOURCE_DESC& hdrDescription =
+        renderTargets.GetHdrLighting().GetDescription();
+    const D3D12_RESOURCE_DESC& irradianceDescription =
+        screenProbes.GetIrradiance().GetDescription();
+    if(hdrDescription.Width != layout.RenderWidth ||
+       hdrDescription.Height != layout.RenderHeight ||
+       irradianceDescription.Width != layout.ProbeCountX ||
+       irradianceDescription.Height != layout.ProbeCountY)
+    {
+        throw std::logic_error(
+            "Deferred lighting Screen Probe resources have incompatible dimensions.");
+    }
+
+    screenProbes.GetNormalDepth().Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+    screenProbes.GetIrradiance().Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
     ID3D12DescriptorHeap* descriptorHeaps[] = {resourceHeap.Get()};
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
@@ -74,6 +108,12 @@ void TrDeferredLightingPass::Render(
     commandList->SetGraphicsRootDescriptorTable(
         3,
         renderTargets.GetBaseColorSrv().GpuHandle);
+    commandList->SetGraphicsRootDescriptorTable(
+        4,
+        screenProbes.GetNormalDepthSrv().GpuHandle);
+    commandList->SetGraphicsRootDescriptorTable(
+        5,
+        screenProbes.GetIrradianceSrv().GpuHandle);
 
     renderTargets.BeginDeferredLightingPass(commandList);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -33,8 +33,14 @@ void TrScreenProbeResources::Initialize(
     mPositionUav = resourceHeap.Allocate();
     mNormalDepthSrv = resourceHeap.Allocate();
     mNormalDepthUav = resourceHeap.Allocate();
-    mTraceResultSrv = resourceHeap.Allocate();
-    mTraceResultUav = resourceHeap.Allocate();
+    mTraceHitSrv = resourceHeap.Allocate();
+    mTraceHitUav = resourceHeap.Allocate();
+    mTraceDebugSrv = resourceHeap.Allocate();
+    mTraceDebugUav = resourceHeap.Allocate();
+    mRadianceSrv = resourceHeap.Allocate();
+    mRadianceUav = resourceHeap.Allocate();
+    mIrradianceSrv = resourceHeap.Allocate();
+    mIrradianceUav = resourceHeap.Allocate();
     CreateResources(device, width, height);
 }
 
@@ -45,7 +51,10 @@ void TrScreenProbeResources::Resize(
 {
     if(mPositionSrv.Index == UINT_MAX || mPositionUav.Index == UINT_MAX ||
        mNormalDepthSrv.Index == UINT_MAX || mNormalDepthUav.Index == UINT_MAX ||
-       mTraceResultSrv.Index == UINT_MAX || mTraceResultUav.Index == UINT_MAX)
+       mTraceHitSrv.Index == UINT_MAX || mTraceHitUav.Index == UINT_MAX ||
+       mTraceDebugSrv.Index == UINT_MAX || mTraceDebugUav.Index == UINT_MAX ||
+       mRadianceSrv.Index == UINT_MAX || mRadianceUav.Index == UINT_MAX ||
+       mIrradianceSrv.Index == UINT_MAX || mIrradianceUav.Index == UINT_MAX)
     {
         throw std::logic_error(
             "Screen Probe resources have not been initialized.");
@@ -104,15 +113,42 @@ void TrScreenProbeResources::CreateResources(
         initialState,
         nullptr,
         L"Lumen Screen Probe Normal Depth");
-    mTraceResult.Initialize2D(
+    mTraceHit.Initialize2D(
         device,
         traceWidth,
         traceHeight,
-        TraceResultFormat,
+        TraceHitFormat,
         flags,
         initialState,
         nullptr,
-        L"Lumen Screen Trace Result");
+        L"Lumen Screen Trace Hit Payload");
+    mTraceDebug.Initialize2D(
+        device,
+        traceWidth,
+        traceHeight,
+        TraceDebugFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Trace Debug");
+    mRadiance.Initialize2D(
+        device,
+        traceWidth,
+        traceHeight,
+        RadianceFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Radiance");
+    mIrradiance.Initialize2D(
+        device,
+        probeCountX,
+        probeCountY,
+        IrradianceFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Irradiance");
 
     mPositionValidity.CreateShaderResourceView(
         device,
@@ -126,10 +162,28 @@ void TrScreenProbeResources::CreateResources(
     mNormalDepth.CreateUnorderedAccessView(
         device,
         mNormalDepthUav.CpuHandle);
-    mTraceResult.CreateShaderResourceView(
+    mTraceHit.CreateShaderResourceView(
         device,
-        mTraceResultSrv.CpuHandle);
-    mTraceResult.CreateUnorderedAccessView(
+        mTraceHitSrv.CpuHandle);
+    mTraceHit.CreateUnorderedAccessView(
         device,
-        mTraceResultUav.CpuHandle);
+        mTraceHitUav.CpuHandle);
+    mTraceDebug.CreateShaderResourceView(
+        device,
+        mTraceDebugSrv.CpuHandle);
+    mTraceDebug.CreateUnorderedAccessView(
+        device,
+        mTraceDebugUav.CpuHandle);
+    mRadiance.CreateShaderResourceView(
+        device,
+        mRadianceSrv.CpuHandle);
+    mRadiance.CreateUnorderedAccessView(
+        device,
+        mRadianceUav.CpuHandle);
+    mIrradiance.CreateShaderResourceView(
+        device,
+        mIrradianceSrv.CpuHandle);
+    mIrradiance.CreateUnorderedAccessView(
+        device,
+        mIrradianceUav.CpuHandle);
 }

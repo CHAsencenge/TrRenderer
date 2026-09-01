@@ -31,7 +31,13 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.cpp">
       <Filter>Passes\Compute</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeIrradiancePass.cpp">
+      <Filter>Lumen</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.cpp">
+      <Filter>Lumen</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeRadiancePass.cpp">
       <Filter>Lumen</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.cpp">
@@ -159,10 +165,19 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.h">
       <Filter>Passes\Compute</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeIrradiancePass.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.h">
       <Filter>Lumen</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeRadiancePass.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTraceHit.h">
       <Filter>Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.h">
@@ -267,14 +282,26 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\hzb.hlsl">
       <Filter>Shaders\Compute</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_irradiance.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_radiance.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_common.header.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace_hit.header.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace.hlsl">
       <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\deferred_lighting_common.header.hlsl">
+      <Filter>Shaders\Common</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl">
       <Filter>Shaders\Common</Filter>
