@@ -313,6 +313,7 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
     CreateBackBufferResources();
     mDeferredRenderTargets.Resize(mDevice.Get(), width, height);
     mHierarchicalDepth.Resize(mDevice.Get(), width, height);
+    mScreenProbeResources.Resize(mDevice.Get(), width, height);
     mLightingHistory.Resize(mDevice.Get(), width, height);
     RegisterGpuDebugViews();
 
@@ -474,6 +475,19 @@ void TrDeferredRenderer::LoadPipeline()
         std::to_string(mHeight) + ", " +
         std::to_string(mHierarchicalDepth.GetDescription().MipCount) +
         " mips, closest-depth reduction.");
+    mScreenProbeResources.Initialize(
+        mDevice.Get(),
+        mWidth,
+        mHeight,
+        mResourceHeap);
+    const TrScreenProbeLayout& screenProbeLayout =
+        mScreenProbeResources.GetLayout();
+    TrLog::Info(
+        "Lumen Screen Probes initialized: " +
+        std::to_string(screenProbeLayout.ProbeCountX) + "x" +
+        std::to_string(screenProbeLayout.ProbeCountY) + " probes, " +
+        std::to_string(TrScreenProbeLayout::RaysPerProbe) +
+        " rays per probe.");
 
     for(TrFrameContext& frame : mFrameContexts)
     {
@@ -562,6 +576,14 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
             mHierarchicalDepth.GetMipSrv(mip).GpuHandle,
             TrDebugVisualization::DeviceDepth);
     }
+    mGpuDebug.RegisterView(
+        L"Lumen Screen Probe Normals",
+        mScreenProbeResources.GetNormalDepthSrv().GpuHandle,
+        TrDebugVisualization::WorldNormal);
+    mGpuDebug.RegisterView(
+        L"Lumen Screen Trace",
+        mScreenProbeResources.GetTraceResultSrv().GpuHandle,
+        TrDebugVisualization::ScreenTrace);
 }
 
 void TrDeferredRenderer::UpdateWindowTitle() const
@@ -602,6 +624,12 @@ void TrDeferredRenderer::LoadAssets()
     mHzbPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Compute/hzb.hlsl"));
+    mScreenProbePass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Lumen/screen_probe.hlsl"));
+    mScreenTracePass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Lumen/screen_trace.hlsl"));
     mDeferredLightingPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/deferred_lighting.hlsl"));
@@ -944,6 +972,20 @@ void TrDeferredRenderer::PopulateCommandList()
         mResourceHeap,
         {mDepthNormalView},
         mHierarchicalDepth);
+
+    const TrScreenProbePass::Outputs screenProbeOutputs =
+        mScreenProbePass.Build(
+            mCommandList.Get(),
+            mResourceHeap,
+            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+            {mDepthNormalView},
+            mScreenProbeResources);
+    mScreenTracePass.Trace(
+        mCommandList.Get(),
+        mResourceHeap,
+        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+        {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
+        mScreenProbeResources);
 
     mDeferredLightingPass.Render(
         mCommandList.Get(),

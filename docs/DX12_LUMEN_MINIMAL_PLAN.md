@@ -67,7 +67,7 @@
 
 - 历史纹理生命周期已具备，但尚未接入实际时间累积、Motion Vector 和 History Rejection；
 - 已有多 Mesh、多 Primitive、多 Instance、CPU 动态层级更新和时序 Transform，但尚无可交互相机、动画资产系统和 GPU Scene StructuredBuffer；
-- Compute 基础和 HZB Build 已接入，屏幕空间追踪尚未实现；
+- Compute、HZB Build、固定 Screen Probe 布置和首版 HZB Screen Trace 已接入；追踪结果尚未用于间接光照；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调当前保留为空，逐帧更新已负责场景层级动画、常量更新和透明排序。
 
@@ -96,7 +96,8 @@ TrD3D12Renderer/
     App/                Win32 入口、窗口和 Renderer 生命周期接口
     Renderer/           TrDeferredRenderer 与六层常量契约
     Passes/Raster/      Depth/Normal、GBuffer、Deferred Lighting、Forward Transparent、Composite
-    Passes/Compute/     HZB、Screen Trace 的类型与数据流边界
+    Passes/Compute/     通用 Compute Pass，目前包含 HZB Build
+    Lumen/              Screen Probe、Screen Trace 及其专用资源
     Passes/RayTracing/  Inline RayQuery 等后续光追 Pass
     Resources/          Buffer、Texture、Mesh、Descriptor、Render Target、Material
     Backend/            Graphics/Compute PSO、DXC、Upload、Barrier
@@ -106,7 +107,8 @@ TrD3D12Renderer/
     Legacy/             已确认不参与编译的旧实验代码
   shaders/
     Raster/             当前光栅与全屏 Pass Shader
-    Compute/            HZB、Screen Trace Shader 文件边界
+    Compute/            通用 Compute Shader，目前包含 HZB Build
+    Lumen/              Screen Probe 布置与 HZB Screen Trace Shader
     RayTracing/         后续 Inline RayQuery Shader
     Legacy/             已确认未使用的旧 Shader
   ThirdParty/           d3dx12.h；Dear ImGui 仍从 Includes 独立引用
@@ -114,7 +116,9 @@ TrD3D12Renderer/
 
 磁盘目录、CMake `source_group(TREE ...)` 和 Visual Studio Filter 保持一致；不再手工维护生成的 `.vcxproj`。Visual Studio 解决方案将可执行程序放在 `Applications`，`TrSceneCore` 放在 `Libraries`，导入器放在 `Tools`。D3D12 使用独立的 `Source/App/Main.cpp`，不再通过 `Common/TrRenderer.cpp` 的条件宏提供入口。
 
-HZB Build 已接入 Renderer；Screen Trace 仍只保留类型和数据流边界，射线布局、步进算法和命中结果编码尚未确定。
+HZB Build、Screen Probe 布置和首版 Screen Trace 已接入 Renderer。当前固定每 `16x16` 个屏幕像素布置一个 Probe，每个 Probe 以 `4x4` 图集块保存 16 条确定性余弦半球射线。Probe 默认选择 Tile 中心的可见表面；中心为背景时，在 Tile 内选择离中心最近的有效 Depth/Normal 样本。这样布局稳定、成本固定，同时能覆盖轮廓附近的部分背景 Tile。
+
+Screen Trace 从较粗 HZB Mip 开始。射线采样点位于场景深度之前时，按当前 Mip 对应的步长前进并逐步提升 Mip；检测到潜在穿越后逐级下降，在 Mip0 上做二分细化和 View Depth 厚度测试。结果图集编码 `HitUV.xy`、归一化命中距离和状态，状态区分无效 Probe、屏幕命中、超过距离、离开屏幕和迭代耗尽。当前结果仅用于 GPU 调试，尚未连接屏幕光照采样、RayQuery fallback 或 Probe 辐照度积分。
 
 HZB 使用“最近深度金字塔”：Mip0 从场景 Device Depth 构建，Mip N 从 Mip N-1 保守归约。Reversed-Z 中较大的值离相机更近，因此使用 `max`；Forward-Z 使用 `min`。保留非线性的 Device Depth 可以直接配合硬件深度约定，也避免每级重复线性化。每个低分辨率 Texel 表示其覆盖区域内最近的潜在遮挡面，后续 Screen Trace 可以先在粗 Mip 快速跳过空区域，再逐级下降确认命中。
 
@@ -208,15 +212,15 @@ TrD3D12Renderer/
   TrUploadContext.*    静态资源上传（已完成 Buffer 路径）
   TrScene.*            Camera、Mesh、Material、Instance
   TrDeferredRenderer.* 帧流程和 Pass 调度
-  Passes/
-    TrGBufferPass.*
-    TrDeferredLightingPass.*
-    TrHzbPass.*
-    TrScreenTracePass.*
-    TrRayQueryPass.*
-    TrSurfaceCachePass.*
+  Source/Passes/
+    Raster/             GBuffer、Lighting、Transparent、Composite
+    Compute/            HZB 等通用 Compute Pass
+  Source/Lumen/
+    TrScreenProbeResources.*
     TrScreenProbePass.*
-    TrCompositePass.*
+    TrScreenTracePass.*
+    TrRayQueryPass.*    后续
+    TrSurfaceCachePass.* 后续
 ```
 
 Pass 初期可以只是普通函数或小类。不要建立通用节点系统、反射注册系统或插件框架。
@@ -412,6 +416,8 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 将 Cornell Box CPU 几何生成移出 Renderer；
 - [x] 用 DXC 替换 `D3DCompileFromFile`，并检查 Shader Model 6.5 支持；
 - [x] 通过 HZB Build 验证 Compute SRV 读取、逐 Mip UAV 写入、Dispatch 和资源屏障；
+- [x] 以固定 `16x16` Tile 布置 Screen Probe，并输出世界位置、法线和有效性资源；
+- [x] 每 Probe 生成 16 条确定性余弦半球射线，完成 HZB 粗到细 Screen Trace、Mip0 二分细化和命中状态可视化；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
 - [x] 建立可扩展的 GPU 中间结果调试视图。

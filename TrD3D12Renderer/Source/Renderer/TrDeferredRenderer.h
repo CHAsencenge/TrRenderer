@@ -8,6 +8,9 @@
 #include "App/TrRendererBase.h"
 #include "Passes/Raster/TrCompositePass.h"
 #include "Passes/Compute/TrHzbPass.h"
+#include "Lumen/TrScreenProbePass.h"
+#include "Lumen/TrScreenProbeResources.h"
+#include "Lumen/TrScreenTracePass.h"
 #include "Resources/TrConstantBuffer.h"
 #include "Passes/Raster/TrDeferredLightingPass.h"
 #include "Passes/Raster/TrDepthNormalPass.h"
@@ -110,6 +113,9 @@ private:
     TrDepthNormalView mDepthNormalView;
     TrHierarchicalDepth mHierarchicalDepth;
     TrHzbPass mHzbPass;
+    TrScreenProbeResources mScreenProbeResources;
+    TrScreenProbePass mScreenProbePass;
+    TrScreenTracePass mScreenTracePass;
     TrHistoryTexture mLightingHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;

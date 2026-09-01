@@ -31,8 +31,14 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.cpp">
       <Filter>Passes\Compute</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.cpp">
-      <Filter>Passes\Compute</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.cpp">
+      <Filter>Lumen</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.cpp">
+      <Filter>Lumen</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.cpp">
+      <Filter>Lumen</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.cpp">
       <Filter>Resources</Filter>
@@ -153,8 +159,14 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.h">
       <Filter>Passes\Compute</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.h">
-      <Filter>Passes\Compute</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.h">
+      <Filter>Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.h">
       <Filter>Resources</Filter>
@@ -255,8 +267,14 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\hzb.hlsl">
       <Filter>Shaders\Compute</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\screen_trace.hlsl">
-      <Filter>Shaders\Compute</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_common.header.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace.hlsl">
+      <Filter>Shaders\Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl">
       <Filter>Shaders\Common</Filter>
@@ -290,6 +308,9 @@
     <Filter Include="Legacy">
       <UniqueIdentifier>{F2D91AAD-26FF-34C5-A7B2-BDED5F297EAA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lumen">
+      <UniqueIdentifier>{F3E39989-6C3A-32BD-899B-79C270FC071F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Passes">
       <UniqueIdentifier>{A467429A-27EA-3D7C-9299-B1B5CB12B7B0}</UniqueIdentifier>
     </Filter>
@@ -319,6 +340,9 @@
     </Filter>
     <Filter Include="Shaders\Legacy">
       <UniqueIdentifier>{F06B4889-C5B2-3480-8A5E-CB40F589801C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Lumen">
+      <UniqueIdentifier>{F4038659-7BAC-369E-BBB5-590B95FB7FFF}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Raster">
       <UniqueIdentifier>{C97CAB02-6D65-3460-9E4E-6AE41C6373D2}</UniqueIdentifier>

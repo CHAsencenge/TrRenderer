@@ -402,8 +402,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrScreenTracePass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbePass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrConstantBuffer.cpp" />
@@ -465,7 +469,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\forward_transparent.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\gbuffer.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\hzb.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\screen_trace.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_common.header.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\material_flags.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl" />

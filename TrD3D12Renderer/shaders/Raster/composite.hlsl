@@ -80,6 +80,35 @@ float4 PSMain(FullscreenVertex input) : SV_Target
         return float4(normalizedDepth.xxx, 1.0f);
     }
 
+    if(g_visualizationMode == 8u)
+    {
+        const uint traceStatus = uint(round(source.a));
+        if(traceStatus == 1u)
+        {
+            // A successful Screen Trace is green. Distance darkens long rays,
+            // while hit UV adds enough variation to expose stuck coordinates.
+            const float distanceVisibility = 1.0f - source.b * 0.65f;
+            const float3 hitColor = lerp(
+                float3(0.05f, 0.65f, 0.12f),
+                float3(source.r, 1.0f, source.g),
+                0.35f);
+            return float4(hitColor * distanceVisibility, 1.0f);
+        }
+        if(traceStatus == 2u)
+        {
+            return float4(0.85f, 0.12f, 0.08f, 1.0f);
+        }
+        if(traceStatus == 3u)
+        {
+            return float4(0.08f, 0.25f, 0.95f, 1.0f);
+        }
+        if(traceStatus == 4u)
+        {
+            return float4(0.95f, 0.72f, 0.08f, 1.0f);
+        }
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
     float3 linearColor = source.rgb;
     if(g_visualizationMode == 0u)
     {

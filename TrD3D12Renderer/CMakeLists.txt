@@ -101,9 +101,15 @@ set(TR_RASTER_PASS_FILES
 
 set(TR_COMPUTE_PASS_FILES
   Source/Passes/Compute/TrHzbPass.cpp
-  Source/Passes/Compute/TrHzbPass.h
-  Source/Passes/Compute/TrScreenTracePass.cpp
-  Source/Passes/Compute/TrScreenTracePass.h)
+  Source/Passes/Compute/TrHzbPass.h)
+
+set(TR_LUMEN_FILES
+  Source/Lumen/TrScreenProbePass.cpp
+  Source/Lumen/TrScreenProbePass.h
+  Source/Lumen/TrScreenProbeResources.cpp
+  Source/Lumen/TrScreenProbeResources.h
+  Source/Lumen/TrScreenTracePass.cpp
+  Source/Lumen/TrScreenTracePass.h)
 
 set(TR_RESOURCE_FILES
   Source/Resources/TrBuffer.cpp
@@ -169,6 +175,7 @@ set(TR_SOURCE_FILES
   ${TR_RENDERER_FILES}
   ${TR_RASTER_PASS_FILES}
   ${TR_COMPUTE_PASS_FILES}
+  ${TR_LUMEN_FILES}
   ${TR_RESOURCE_FILES}
   ${TR_BACKEND_FILES}
   ${TR_SCENE_FILES}
@@ -203,8 +210,11 @@ set(HLSL_SOURCE_FILES
   shaders/Raster/forward_transparent.hlsl
   shaders/Raster/gbuffer.hlsl)
 set(COMPUTE_HLSL_SOURCE_FILES
-  shaders/Compute/hzb.hlsl
-  shaders/Compute/screen_trace.hlsl)
+  shaders/Compute/hzb.hlsl)
+set(LUMEN_HLSL_SOURCE_FILES
+  shaders/Lumen/screen_probe.hlsl
+  shaders/Lumen/screen_probe_common.header.hlsl
+  shaders/Lumen/screen_trace.hlsl)
 set(COMMON_HLSL_SOURCE_FILES
   shaders/Common/depth.header.hlsl
   shaders/Common/material_flags.header.hlsl)
@@ -215,6 +225,7 @@ set(LEGACY_HLSL_SOURCE_FILES
 set_source_files_properties(
   ${HLSL_SOURCE_FILES}
   ${COMPUTE_HLSL_SOURCE_FILES}
+  ${LUMEN_HLSL_SOURCE_FILES}
   ${COMMON_HLSL_SOURCE_FILES}
   ${LEGACY_HLSL_SOURCE_FILES}
   ${TR_LEGACY_FILES}
@@ -244,6 +255,7 @@ target_sources(${PROJNAME} PRIVATE
   ${IMGUI_SOURCE_FILES}
   ${HLSL_SOURCE_FILES}
   ${COMPUTE_HLSL_SOURCE_FILES}
+  ${LUMEN_HLSL_SOURCE_FILES}
   ${COMMON_HLSL_SOURCE_FILES}
   ${LEGACY_HLSL_SOURCE_FILES})
 
@@ -264,6 +276,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "Shaders"
   FILES
     ${HLSL_SOURCE_FILES}
     ${COMPUTE_HLSL_SOURCE_FILES}
+    ${LUMEN_HLSL_SOURCE_FILES}
     ${COMMON_HLSL_SOURCE_FILES}
     ${LEGACY_HLSL_SOURCE_FILES})
 source_group("Shared\\Common" FILES ${COMMON_SOURCE_FILES})
