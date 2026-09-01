@@ -7,6 +7,7 @@
 #include "Utilities/TrUtil.h"
 #include "App/TrRendererBase.h"
 #include "Passes/Raster/TrCompositePass.h"
+#include "Passes/Compute/TrHzbPass.h"
 #include "Resources/TrConstantBuffer.h"
 #include "Passes/Raster/TrDeferredLightingPass.h"
 #include "Passes/Raster/TrDepthNormalPass.h"
@@ -107,6 +108,8 @@ private:
     TrDescriptorHeap mSamplerHeap;
     TrDeferredRenderTargets mDeferredRenderTargets;
     TrDepthNormalView mDepthNormalView;
+    TrHierarchicalDepth mHierarchicalDepth;
+    TrHzbPass mHzbPass;
     TrHistoryTexture mLightingHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;

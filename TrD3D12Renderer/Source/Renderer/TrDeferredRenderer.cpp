@@ -208,6 +208,7 @@ void TrDeferredRenderer::OnUpdate()
     compositePassConstants.DepthVisualizationRange = mDepthVisualizationRange;
     compositePassConstants.NearPlane = viewConstants.NearPlane;
     compositePassConstants.FarPlane = viewConstants.FarPlane;
+    compositePassConstants.OutputSize = viewConstants.RenderSize;
 
     TrFrameContext& frame = mFrameContexts[mFrameIndex];
     frame.SceneConstantBuffer.Update(sceneConstants);
@@ -311,7 +312,9 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
     mFrameIndex = mSwapChain->GetCurrentBackBufferIndex();
     CreateBackBufferResources();
     mDeferredRenderTargets.Resize(mDevice.Get(), width, height);
+    mHierarchicalDepth.Resize(mDevice.Get(), width, height);
     mLightingHistory.Resize(mDevice.Get(), width, height);
+    RegisterGpuDebugViews();
 
     for(TrFrameContext& frame : mFrameContexts)
     {
@@ -461,6 +464,16 @@ void TrDeferredRenderer::LoadPipeline()
         TrDeferredRenderTargets::HdrLightingFormat,
         mResourceHeap,
         L"Indirect Lighting History");
+    mHierarchicalDepth.Initialize(
+        mDevice.Get(),
+        mWidth,
+        mHeight,
+        mResourceHeap);
+    TrLog::Info(
+        "HZB initialized: " + std::to_string(mWidth) + "x" +
+        std::to_string(mHeight) + ", " +
+        std::to_string(mHierarchicalDepth.GetDescription().MipCount) +
+        " mips, closest-depth reduction.");
 
     for(TrFrameContext& frame : mFrameContexts)
     {
@@ -536,6 +549,19 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         L"Linear Depth",
         mDeferredRenderTargets.GetDepthSrv().GpuHandle,
         TrDebugVisualization::DeviceDepth);
+    for(UINT mip = 0;
+        mip < mHierarchicalDepth.GetDescription().MipCount;
+        ++mip)
+    {
+        const std::wstring name = L"HZB Mip " + std::to_wstring(mip) +
+            L" (" + std::to_wstring(mHierarchicalDepth.GetMipWidth(mip)) +
+            L"x" + std::to_wstring(mHierarchicalDepth.GetMipHeight(mip)) +
+            L")";
+        mGpuDebug.RegisterView(
+            name.c_str(),
+            mHierarchicalDepth.GetMipSrv(mip).GpuHandle,
+            TrDebugVisualization::DeviceDepth);
+    }
 }
 
 void TrDeferredRenderer::UpdateWindowTitle() const
@@ -573,6 +599,9 @@ void TrDeferredRenderer::LoadAssets()
     mGBufferPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/gbuffer.hlsl"));
+    mHzbPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Compute/hzb.hlsl"));
     mDeferredLightingPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/deferred_lighting.hlsl"));
@@ -909,6 +938,12 @@ void TrDeferredRenderer::PopulateCommandList()
     mDepthNormalView = mGBufferPass.End(
         mCommandList.Get(),
         mDeferredRenderTargets);
+
+    mHzbPass.Build(
+        mCommandList.Get(),
+        mResourceHeap,
+        {mDepthNormalView},
+        mHierarchicalDepth);
 
     mDeferredLightingPass.Render(
         mCommandList.Get(),

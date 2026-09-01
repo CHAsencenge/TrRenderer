@@ -128,6 +128,8 @@ struct alignas(16) TrCompositePassConstants
     float NearPlane = 0.1f;
     float FarPlane = 100.0f;
     DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    DirectX::XMFLOAT2 OutputSize = {1.0f, 1.0f};
+    DirectX::XMFLOAT2 OutputPadding = {0.0f, 0.0f};
 };
 
 struct alignas(16) TrDrawConstants
@@ -146,5 +148,5 @@ static_assert(sizeof(TrMaterialConstants::TextureTransform) == 32);
 static_assert(sizeof(TrMaterialConstants) == 208);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 16);
 static_assert(sizeof(TrForwardTransparentPassConstants) == 16);
-static_assert(sizeof(TrCompositePassConstants) == 32);
+static_assert(sizeof(TrCompositePassConstants) == 48);
 static_assert(sizeof(TrDrawConstants) == 16);

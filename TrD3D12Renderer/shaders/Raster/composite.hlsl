@@ -16,6 +16,8 @@ cbuffer CompositePassConstants : register(b2)
     float g_nearPlane;
     float g_farPlane;
     float2 g_compositePadding;
+    float2 g_outputSize;
+    float2 g_outputPadding;
 };
 
 FullscreenVertex VSMain(uint vertexId : SV_VertexID)
@@ -34,7 +36,15 @@ FullscreenVertex VSMain(uint vertexId : SV_VertexID)
 
 float4 PSMain(FullscreenVertex input) : SV_Target
 {
-    const int2 pixel = int2(input.position.xy);
+    uint sourceWidth;
+    uint sourceHeight;
+    g_debugSource.GetDimensions(sourceWidth, sourceHeight);
+    const float2 screenUv = input.position.xy / max(
+        g_outputSize,
+        float2(1.0f, 1.0f));
+    const uint2 pixel = min(
+        uint2(screenUv * float2(sourceWidth, sourceHeight)),
+        uint2(sourceWidth - 1u, sourceHeight - 1u));
     const float4 source = g_debugSource.Load(int3(pixel, 0));
 
     if(g_visualizationMode == 2u)

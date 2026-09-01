@@ -67,7 +67,7 @@
 
 - 历史纹理生命周期已具备，但尚未接入实际时间累积、Motion Vector 和 History Rejection；
 - 已有多 Mesh、多 Primitive、多 Instance、CPU 动态层级更新和时序 Transform，但尚无可交互相机、动画资产系统和 GPU Scene StructuredBuffer；
-- Compute 基础已接入，尚未实现 HZB 和屏幕空间追踪；
+- Compute 基础和 HZB Build 已接入，屏幕空间追踪尚未实现；
 - 没有 DXR 加速结构和 RayQuery；
 - 键盘回调当前保留为空，逐帧更新已负责场景层级动画、常量更新和透明排序。
 
@@ -114,7 +114,22 @@ TrD3D12Renderer/
 
 磁盘目录、CMake `source_group(TREE ...)` 和 Visual Studio Filter 保持一致；不再手工维护生成的 `.vcxproj`。Visual Studio 解决方案将可执行程序放在 `Applications`，`TrSceneCore` 放在 `Libraries`，导入器放在 `Tools`。D3D12 使用独立的 `Source/App/Main.cpp`，不再通过 `Common/TrRenderer.cpp` 的条件宏提供入口。
 
-HZB 与 Screen Trace 已建立最小文件和类型骨架：`TrHierarchicalDepth` 负责 HZB 纹理及视图的资源归属，`TrHzbPass` 和 `TrScreenTracePass` 只声明稳定的数据依赖。当前尚未接入 Renderer，也没有确定深度归约方式、线程组、射线布局、步进算法和命中结果编码，避免在讨论前固化实现细节。
+HZB Build 已接入 Renderer；Screen Trace 仍只保留类型和数据流边界，射线布局、步进算法和命中结果编码尚未确定。
+
+HZB 使用“最近深度金字塔”：Mip0 从场景 Device Depth 构建，Mip N 从 Mip N-1 保守归约。Reversed-Z 中较大的值离相机更近，因此使用 `max`；Forward-Z 使用 `min`。保留非线性的 Device Depth 可以直接配合硬件深度约定，也避免每级重复线性化。每个低分辨率 Texel 表示其覆盖区域内最近的潜在遮挡面，后续 Screen Trace 可以先在粗 Mip 快速跳过空区域，再逐级下降确认命中。
+
+当前 HZB Build 的具体实现：
+
+- `R32_FLOAT`、完整 Mip 链、`ALLOW_UNORDERED_ACCESS`；
+- 一份全链 SRV，以及每级独立 SRV/UAV；描述符槽预留 15 级并在 Resize 时原位重建，避免线性 Descriptor Heap 泄漏；
+- Mip0 读取 Depth SRV，后续每级读取前一级 SRV并写当前级 UAV；
+- 每级使用一个 `8x8` Compute Dispatch，并做线程越界判断；
+- 非二次幂尺寸按源/目标尺寸比例计算覆盖区间，而不是固定读取 2x2，保证奇数边长末端 Texel 不丢失；
+- 每次 Dispatch 后执行 UAV Barrier，再将目标 Mip 从 UAV 转为 `ALL_SHADER_RESOURCE`，供下一级 Compute 和 Pixel Debug 使用；
+- Resize 重建纹理和有效 Mip 视图，并重新注册调试项；
+- ImGui 面板可查看从 Mip0 到 1x1 的所有层级，Composite 会将任意尺寸 Mip 拉伸到窗口显示。
+
+当前采用“一次 Dispatch 生成一级”的方案，意图是让资源状态和归约语义保持直观。暂不使用 Group Shared Memory 一次生成多级、Wave Intrinsic、SPD 或异步 Compute；等 Screen Trace 接入并测得 HZB Build 成为瓶颈后再优化。
 
 深度约定由 CMake 开关 `TR_USE_REVERSED_Z` 统一控制，默认开启。C++ 侧据此选择投影矩阵、Depth Clear 和 PSO 比较函数；DXC 通过通用 Shader Define 接口收到同值的 `TR_REVERSED_Z=0/1`。当前深度可视化和背景判断均已兼容两种模式，后续 HZB 与 Screen Trace Shader 继续复用该 Define。
 
@@ -396,7 +411,7 @@ Pass 初期可以只是普通函数或小类。不要建立通用节点系统、
 - [x] 将 Constant Buffer、静态上传、Mesh、Graphics PSO 拆成独立组件；
 - [x] 将 Cornell Box CPU 几何生成移出 Renderer；
 - [x] 用 DXC 替换 `D3DCompileFromFile`，并检查 Shader Model 6.5 支持；
-- [ ] 在首个实际 Compute Pass 中验证 SRV 读取、UAV 写入和 Dispatch；
+- [x] 通过 HZB Build 验证 Compute SRV 读取、逐 Mip UAV 写入、Dispatch 和资源屏障；
 - [ ] 加入 DRED 和对象调试名称；
 - [x] 建立 Cornell Box 程序化场景。
 - [x] 建立可扩展的 GPU 中间结果调试视图。
