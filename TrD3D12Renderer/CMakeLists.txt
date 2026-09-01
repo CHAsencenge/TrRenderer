@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.9.6 FATAL_ERROR)
 
 #--------------------------------------------------------------------------------------------------
-# Project setting
+# Project settings
 get_filename_component(PROJNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-# set(PROJNAME ${PROJNAME})
 project(${PROJNAME} LANGUAGES C CXX)
 message(STATUS "-------------------------------")
 message(STATUS "Processing Project ${PROJNAME}:")
@@ -45,29 +44,113 @@ endif()
 message(STATUS "Using DXC from ${TR_DXC_ROOT}")
 
 #--------------------------------------------------------------------------------------------------
-# C++ target and defines
+# Target
 set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJNAME})
-set_target_properties(${PROJNAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+set_target_properties(${PROJNAME} PROPERTIES
+  WIN32_EXECUTABLE TRUE
+  FOLDER "Applications")
 if(COMMAND _add_project_definitions)
   _add_project_definitions(${PROJNAME})
 endif()
 
-
 #--------------------------------------------------------------------------------------------------
-# Source files for this project
-#
-file(GLOB SOURCE_FILES *.cpp *.hpp *.inl *.h *.c)
-file(GLOB EXTRA_COMMON ${TR_RENDERER_DIR}/common/*.*)
-list(APPEND COMMON_SOURCE_FILES ${EXTRA_COMMON})
-if(NOT TR_HAS_NVPRO_CORE)
-  list(FILTER COMMON_SOURCE_FILES EXCLUDE REGEX "[/\\\\]obj_loader\\.(cpp|h)$")
-endif()
-include_directories(${TR_RENDERER_DIR}/common)
+# Source files are explicit. Physical directories are also the ownership and
+# Visual Studio filter boundaries.
+set(TR_APP_FILES
+  Source/App/Main.cpp
+  Source/App/TrRendererBase.cpp
+  Source/App/TrRendererBase.h
+  Source/App/TrWindowApp.cpp
+  Source/App/TrWindowApp.h)
+
+set(TR_RENDERER_FILES
+  Source/Renderer/TrDeferredRenderer.cpp
+  Source/Renderer/TrDeferredRenderer.h
+  Source/Renderer/TrRenderConstants.h)
+
+set(TR_RASTER_PASS_FILES
+  Source/Passes/Raster/TrCompositePass.cpp
+  Source/Passes/Raster/TrCompositePass.h
+  Source/Passes/Raster/TrDeferredLightingPass.cpp
+  Source/Passes/Raster/TrDeferredLightingPass.h
+  Source/Passes/Raster/TrGBufferPass.cpp
+  Source/Passes/Raster/TrGBufferPass.h)
+
+set(TR_RESOURCE_FILES
+  Source/Resources/TrBuffer.cpp
+  Source/Resources/TrBuffer.h
+  Source/Resources/TrConstantBuffer.cpp
+  Source/Resources/TrConstantBuffer.h
+  Source/Resources/TrDeferredRenderTargets.cpp
+  Source/Resources/TrDeferredRenderTargets.h
+  Source/Resources/TrDescriptorHeap.cpp
+  Source/Resources/TrDescriptorHeap.h
+  Source/Resources/TrHistoryTexture.cpp
+  Source/Resources/TrHistoryTexture.h
+  Source/Resources/TrMaterialResources.cpp
+  Source/Resources/TrMaterialResources.h
+  Source/Resources/TrMesh.cpp
+  Source/Resources/TrMesh.h
+  Source/Resources/TrTexture.cpp
+  Source/Resources/TrTexture.h)
+
+set(TR_BACKEND_FILES
+  Source/Backend/TrComputePipeline.cpp
+  Source/Backend/TrComputePipeline.h
+  Source/Backend/TrGraphicsPipeline.cpp
+  Source/Backend/TrGraphicsPipeline.h
+  Source/Backend/TrResourceBarrier.cpp
+  Source/Backend/TrResourceBarrier.h
+  Source/Backend/TrShaderCompiler.cpp
+  Source/Backend/TrShaderCompiler.h
+  Source/Backend/TrUploadContext.cpp
+  Source/Backend/TrUploadContext.h)
+
+set(TR_SCENE_FILES
+  Source/Scene/TrCornellBoxScene.cpp
+  Source/Scene/TrCornellBoxScene.h
+  Source/Scene/TrRuntimeScene.cpp
+  Source/Scene/TrRuntimeScene.h)
+
+set(TR_DEBUG_FILES
+  Source/Debug/TrGpuDebug.cpp
+  Source/Debug/TrGpuDebug.h
+  Source/Debug/TrGpuDebugPanel.cpp
+  Source/Debug/TrGpuDebugPanel.h)
+
+set(TR_UTILITY_FILES
+  Source/Utilities/TrImageDecoder.cpp
+  Source/Utilities/TrImageDecoder.h
+  Source/Utilities/TrUtil.cpp
+  Source/Utilities/TrUtil.h)
+
+# Kept visible for reference but deliberately excluded from compilation.
+set(TR_LEGACY_FILES
+  Source/Legacy/GameTimer.cpp
+  Source/Legacy/GameTimer.h
+  Source/Legacy/TrVertex.cpp
+  Source/Legacy/TrVertex.h)
+
+set(TR_SOURCE_FILES
+  ${TR_APP_FILES}
+  ${TR_RENDERER_FILES}
+  ${TR_RASTER_PASS_FILES}
+  ${TR_RESOURCE_FILES}
+  ${TR_BACKEND_FILES}
+  ${TR_SCENE_FILES}
+  ${TR_DEBUG_FILES}
+  ${TR_UTILITY_FILES})
+
+set(COMMON_SOURCE_FILES
+  "${TR_RENDERER_DIR}/Common/TrLog.cpp"
+  "${TR_RENDERER_DIR}/Common/TrLog.h")
+
+set(TR_THIRD_PARTY_FILES
+  ThirdParty/d3dx12.h)
 
 # Dear ImGui is consumed directly from the repository. This keeps the D3D12
-# renderer independent from nvpro_core and builds only the core plus Win32/DX12
-# backends required by this executable.
+# renderer independent from nvpro_core and builds only the required backends.
 set(TR_IMGUI_DIR "${TR_RENDERER_DIR}/Includes/imgui")
 set(IMGUI_SOURCE_FILES
   "${TR_IMGUI_DIR}/imgui.cpp"
@@ -79,44 +162,67 @@ set(IMGUI_SOURCE_FILES
 if(NOT EXISTS "${TR_IMGUI_DIR}/imgui.h")
   message(FATAL_ERROR "Standalone Dear ImGui sources were not found at ${TR_IMGUI_DIR}")
 endif()
-file(GLOB HLSL_SOURCE_FILES
-"${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRaster/*.hlsl"
-"${TR_RENDERER_DIR}/${PROJNAME}/shaders/DxRayTracing/*.hlsl"
-)
-set_source_files_properties(${HLSL_SOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-# ------------------------------------------------------------------------------------------------
-# project pre define
+set(HLSL_SOURCE_FILES
+  shaders/Raster/composite.hlsl
+  shaders/Raster/deferred_lighting.hlsl
+  shaders/Raster/gbuffer.hlsl)
+set(LEGACY_HLSL_SOURCE_FILES
+  shaders/Legacy/cornell_box.hlsl
+  shaders/Legacy/shaders.hlsl
+  shaders/Legacy/shaders_texture.hlsl)
+set_source_files_properties(
+  ${HLSL_SOURCE_FILES}
+  ${LEGACY_HLSL_SOURCE_FILES}
+  ${TR_LEGACY_FILES}
+  PROPERTIES HEADER_FILE_ONLY TRUE)
+
+#--------------------------------------------------------------------------------------------------
+# Compile definitions
 add_definitions(-DIS_TR_D3D_RENDERER)
 add_definitions(-DUNICODE)
 add_definitions(-DSLN_ROOT_DIR="${TR_RENDERER_DIR}/")
 add_definitions(-DSHADER_DIR="${TR_RENDERER_DIR}/${PROJNAME}/shaders/")
 
 #--------------------------------------------------------------------------------------------------
-# Sources
-target_sources(${PROJNAME} PUBLIC ${SOURCE_FILES} ${HEADER_FILES})
-target_sources(${PROJNAME} PUBLIC ${COMMON_SOURCE_FILES})
-target_sources(${PROJNAME} PRIVATE ${IMGUI_SOURCE_FILES})
-target_sources(${PROJNAME} PUBLIC ${HLSL_SOURCE_FILES})
+# Sources and include roots
+target_sources(${PROJNAME} PRIVATE
+  ${TR_SOURCE_FILES}
+  ${TR_LEGACY_FILES}
+  ${TR_THIRD_PARTY_FILES}
+  ${COMMON_SOURCE_FILES}
+  ${IMGUI_SOURCE_FILES}
+  ${HLSL_SOURCE_FILES}
+  ${LEGACY_HLSL_SOURCE_FILES})
+
 target_include_directories(${PROJNAME} PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/Source"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
+  "${TR_RENDERER_DIR}/Common"
   ${TR_DXC_INCLUDE_DIR}
   "${TR_IMGUI_DIR}"
   "${TR_IMGUI_DIR}/backends")
 
 #--------------------------------------------------------------------------------------------------
-# Sub-folders in Visual Studio
-#
-source_group("Common"       FILES ${COMMON_SOURCE_FILES})
-source_group("Sources"      FILES ${SOURCE_FILES})
-source_group("Headers"      FILES ${HEADER_FILES})
-source_group("Shader Sources"  FILES ${HLSL_SOURCE_FILES})
+# Visual Studio filters mirror the physical module layout. Headers and sources
+# remain together under their owning component.
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/Source" PREFIX ""
+  FILES ${TR_SOURCE_FILES} ${TR_LEGACY_FILES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "Shaders"
+  FILES ${HLSL_SOURCE_FILES} ${LEGACY_HLSL_SOURCE_FILES})
+source_group("Shared\\Common" FILES ${COMMON_SOURCE_FILES})
+source_group("ThirdParty" FILES ${TR_THIRD_PARTY_FILES})
 source_group("ThirdParty\\Dear ImGui" FILES ${IMGUI_SOURCE_FILES})
 
 #--------------------------------------------------------------------------------------------------
 # Linkage
-#
-target_link_libraries(${PROJNAME} ${PLATFORM_LIBRARIES})
-target_link_libraries(${PROJNAME} TrSceneCore ${TR_DXCOMPILER_LIBRARY} d3d12 dxgi windowscodecs)
+target_link_libraries(${PROJNAME}
+  ${PLATFORM_LIBRARIES}
+  TrSceneCore
+  ${TR_DXCOMPILER_LIBRARY}
+  d3d12
+  dxgi
+  windowscodecs)
 
 add_custom_command(TARGET ${PROJNAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -127,15 +233,12 @@ add_custom_command(TARGET ${PROJNAME} POST_BUILD
 
 foreach(DEBUGLIB ${LIBRARIES_DEBUG})
   target_link_libraries(${PROJNAME} debug ${DEBUGLIB})
-endforeach(DEBUGLIB)
+endforeach()
 
 foreach(RELEASELIB ${LIBRARIES_OPTIMIZED})
   target_link_libraries(${PROJNAME} optimized ${RELEASELIB})
-endforeach(RELEASELIB)
+endforeach()
 
-#--------------------------------------------------------------------------------------------------
-# copies binaries that need to be put next to the exe files (ZLib, etc.)
-#
 if(COMMAND _finalize_target)
   _finalize_target(${PROJNAME})
 endif()

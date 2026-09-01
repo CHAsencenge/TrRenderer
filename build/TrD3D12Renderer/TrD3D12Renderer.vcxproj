@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -106,10 +106,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -146,7 +146,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -166,10 +166,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -206,7 +206,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -226,10 +226,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -266,7 +266,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>26812;26451</DisableSpecificWarnings>
@@ -285,10 +285,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;IS_TR_D3D_RENDERER;UNICODE;SLN_ROOT_DIR=\"E:/UGit/TrRenderer/\";SHADER_DIR=\"E:/UGit/TrRenderer/TrD3D12Renderer/shaders/\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\UGit\TrRenderer\TrD3D12Renderer\Source;E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty;E:\UGit\TrRenderer\Common;D:\dxc\inc;E:\UGit\TrRenderer\Includes\imgui;E:\UGit\TrRenderer\Includes\imgui\backends;E:\UGit\TrRenderer\TrSceneImporter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -381,78 +381,77 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrComputePipeline.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrComputePipeline.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrConstantBuffer.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrConstantBuffer.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCornellBoxScene.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCornellBoxScene.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredLightingPass.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredLightingPass.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderTargets.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderTargets.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderer.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderer.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDescriptorHeap.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDescriptorHeap.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.h" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRenderConstants.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRendererBase.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRendererBase.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrTexture.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrTexture.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUploadContext.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUploadContext.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUtil.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUtil.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrVertex.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrVertex.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.h" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\Main.cpp" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrRendererBase.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrRendererBase.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrWindowApp.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrWindowApp.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrConstantBuffer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrConstantBuffer.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMesh.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMesh.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrTexture.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrTexture.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrComputePipeline.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrComputePipeline.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrGraphicsPipeline.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrGraphicsPipeline.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrResourceBarrier.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrResourceBarrier.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrShaderCompiler.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrShaderCompiler.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrUploadContext.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrUploadContext.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrCornellBoxScene.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrCornellBoxScene.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrRuntimeScene.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrRuntimeScene.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebug.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebug.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.h" />
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrUtil.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrUtil.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\GameTimer.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\GameTimer.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\TrVertex.cpp" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\TrVertex.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty\d3dx12.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrLog.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrLog.h" />
-    <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui.cpp" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_draw.cpp" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_tables.cpp" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui_widgets.cpp" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\backends\imgui_impl_dx12.cpp" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\composite.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\deferred_lighting.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\gbuffer.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl" />
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\composite.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\deferred_lighting.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\gbuffer.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\shaders.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\shaders_texture.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="E:\UGit\TrRenderer\build\ZERO_CHECK.vcxproj">

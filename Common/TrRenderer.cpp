@@ -20,11 +20,6 @@
 #include "../TrSoftwareRenderer/ClassUtils.h"
 #endif
 
-#ifdef IS_TR_D3D_RENDERER
-#include "../TrD3D12Renderer/TrWindowApp.h"
-#include "../TrD3D12Renderer/TrDeferredRenderer.h"
-#endif
-
 #ifdef IS_TR_VULKAN_RENDERER
 #include "../TrVulkanRenderer/TrVulkanRendererRaster.h"
 #include "../TrVulkanRenderer/TrVulkanRendererRayTracing.h"
@@ -129,47 +124,6 @@ int main(int argc, char* argv[])
 * ANSI character set is based on the ASCII character set (english, digits, some special)
 * ANSI encoding is limited in its ability to represent non-Latin characters
  */
-
-#ifdef IS_TR_D3D_RENDERER
-_Use_decl_annotations_
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-    LPSTR cmdLine, int showCmd)
-{
-    try
-    {
-        TrLog::InitializeForApplication("TrD3D12Renderer");
-        TrLog::Info("Application starting.");
-        TrDeferredRenderer Renderer(1920, 1080, L"Tr Cornell Box");
-        const int exitCode = TrWindowApp::Run(&Renderer, hInstance, showCmd);
-        TrLog::Info("Application stopped normally.");
-        TrLog::Shutdown();
-        return exitCode;
-    }
-    catch(const TrGraphicsException& exception)
-    {
-        const std::wstring message = exception.ToString();
-        TrLog::Error(message);
-        MessageBoxW(nullptr, message.c_str(), L"Direct3D 12 Error", MB_OK | MB_ICONERROR);
-        TrLog::Shutdown();
-        return EXIT_FAILURE;
-    }
-    catch(const std::exception& exception)
-    {
-        TrLog::Error(exception.what());
-        MessageBoxA(nullptr, exception.what(), "Tr Renderer Error", MB_OK | MB_ICONERROR);
-        TrLog::Shutdown();
-        return EXIT_FAILURE;
-    }
-    catch(...)
-    {
-        TrLog::Error("Unknown fatal exception.");
-        MessageBoxA(nullptr, "Unknown fatal exception.", "Tr Renderer Error", MB_OK | MB_ICONERROR);
-        TrLog::Shutdown();
-        return EXIT_FAILURE;
-    }
-}
-#endif
-
 
 #ifdef IS_TR_VULKAN_RENDERER
 int main()

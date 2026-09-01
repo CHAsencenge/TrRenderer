@@ -1,92 +1,86 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\Main.cpp">
+      <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrRendererBase.cpp">
+      <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrWindowApp.cpp">
+      <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrComputePipeline.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrConstantBuffer.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.cpp">
+      <Filter>Passes\Raster</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCornellBoxScene.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.cpp">
+      <Filter>Passes\Raster</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredLightingPass.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.cpp">
+      <Filter>Passes\Raster</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderTargets.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderer.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrConstantBuffer.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDescriptorHeap.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMesh.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrTexture.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrComputePipeline.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrGraphicsPipeline.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrResourceBarrier.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRendererBase.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrShaderCompiler.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrUploadContext.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrCornellBoxScene.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrRuntimeScene.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrTexture.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebug.cpp">
+      <Filter>Debug</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUploadContext.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.cpp">
+      <Filter>Debug</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUtil.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrVertex.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrUtil.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\Common\TrLog.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="E:\UGit\TrRenderer\Common\TrRenderer.cpp">
-      <Filter>Common</Filter>
+      <Filter>Shared\Common</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\Includes\imgui\imgui.cpp">
       <Filter>ThirdParty\Dear ImGui</Filter>
@@ -108,136 +102,175 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\GameTimer.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrRendererBase.h">
+      <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrBuffer.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\App\TrWindowApp.h">
+      <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCompositePass.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrComputePipeline.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrConstantBuffer.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.h">
+      <Filter>Passes\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrCornellBoxScene.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrDeferredLightingPass.h">
+      <Filter>Passes\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredLightingPass.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrGBufferPass.h">
+      <Filter>Passes\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderTargets.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrBuffer.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDeferredRenderer.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrConstantBuffer.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrDescriptorHeap.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDeferredRenderTargets.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGBufferPass.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrDescriptorHeap.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebug.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrHistoryTexture.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGpuDebugPanel.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMaterialResources.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrGraphicsPipeline.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrMesh.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrHistoryTexture.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Resources\TrTexture.h">
+      <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrImageDecoder.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrComputePipeline.h">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMaterialResources.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrGraphicsPipeline.h">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrMesh.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrResourceBarrier.h">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRenderConstants.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrShaderCompiler.h">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRendererBase.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Backend\TrUploadContext.h">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrResourceBarrier.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrCornellBoxScene.h">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrRuntimeScene.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Scene\TrRuntimeScene.h">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrShaderCompiler.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebug.h">
+      <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrTexture.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.h">
+      <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUploadContext.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrUtil.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrUtil.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrVertex.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\GameTimer.cpp">
+      <Filter>Legacy</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\TrWindowApp.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\GameTimer.h">
+      <Filter>Legacy</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\d3dx12.h">
-      <Filter>Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\TrVertex.cpp">
+      <Filter>Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Legacy\TrVertex.h">
+      <Filter>Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\ThirdParty\d3dx12.h">
+      <Filter>ThirdParty</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\Common\TrLog.h">
-      <Filter>Common</Filter>
+      <Filter>Shared\Common</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\Common\TrRenderer.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\composite.hlsl">
+      <Filter>Shaders\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\composite.hlsl">
-      <Filter>Shader Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\deferred_lighting.hlsl">
+      <Filter>Shaders\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\cornell_box.hlsl">
-      <Filter>Shader Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Raster\gbuffer.hlsl">
+      <Filter>Shaders\Raster</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\deferred_lighting.hlsl">
-      <Filter>Shader Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl">
+      <Filter>Shaders\Legacy</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\gbuffer.hlsl">
-      <Filter>Shader Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\shaders.hlsl">
+      <Filter>Shaders\Legacy</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders.hlsl">
-      <Filter>Shader Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\DxRaster\shaders_texture.hlsl">
-      <Filter>Shader Sources</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\shaders_texture.hlsl">
+      <Filter>Shaders\Legacy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="E:\UGit\TrRenderer\TrD3D12Renderer\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Common">
-      <UniqueIdentifier>{24954BC4-1691-3993-AF9A-79F488BBA81F}</UniqueIdentifier>
+    <Filter Include="App">
+      <UniqueIdentifier>{5475FA2E-0C19-3588-9E83-ADD386CA01CF}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader Sources">
-      <UniqueIdentifier>{459BD42A-E66E-3D42-9ADE-D3C5395AF97C}</UniqueIdentifier>
+    <Filter Include="Backend">
+      <UniqueIdentifier>{BC1D9BC6-39F1-366B-BCB4-82A592825F53}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources">
-      <UniqueIdentifier>{E602A0D2-4680-3AC2-9D85-32C831D60D83}</UniqueIdentifier>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{EF59D41E-4417-3C68-ABCB-39351654B314}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Legacy">
+      <UniqueIdentifier>{F2D91AAD-26FF-34C5-A7B2-BDED5F297EAA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Passes">
+      <UniqueIdentifier>{A467429A-27EA-3D7C-9299-B1B5CB12B7B0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Passes\Raster">
+      <UniqueIdentifier>{8F3E8D09-CB95-3874-B08F-9BBDCDDAC34D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{D5A4D52B-60D7-32BF-9DE2-7D4C8FDBD055}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{A20166EB-4931-3E2F-9A0D-5D7A207A2B67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{167DA126-9DA5-307D-A778-666DFA496751}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{82F13915-753A-3606-857D-B6EFD2496AD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Legacy">
+      <UniqueIdentifier>{F06B4889-C5B2-3480-8A5E-CB40F589801C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Raster">
+      <UniqueIdentifier>{C97CAB02-6D65-3460-9E4E-6AE41C6373D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{2D462A45-3FF2-325A-A593-CF4188AF4BC2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\Common">
+      <UniqueIdentifier>{668354E6-A800-307A-9102-44810ED29F36}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty">
       <UniqueIdentifier>{910023C5-678E-3DA6-8DD5-A6F0DD764645}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty\Dear ImGui">
       <UniqueIdentifier>{625CF860-0DF3-3A76-A425-2318B94DC6A1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{FC830715-B1C8-3F2F-911A-4FE2435EABEB}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

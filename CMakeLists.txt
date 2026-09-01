@@ -6,6 +6,9 @@ endif()
 
 project(TrRenderer)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
+
 #--------------------------------------------------------------------------------------------------
 # Keep nvpro_core optional and external. When it is unavailable, the standalone software and
 # D3D12 renderers can still be configured and built; the Vulkan renderer is omitted.
@@ -65,6 +68,18 @@ add_subdirectory(TrSceneImporter)
 add_subdirectory(TrD3D12Renderer)
 if(TR_HAS_NVPRO_CORE)
   add_subdirectory(TrVulkanRenderer)
+endif()
+
+foreach(TR_APPLICATION_TARGET TrD3D12Renderer TrSoftwareRenderer TrVulkanRenderer)
+  if(TARGET ${TR_APPLICATION_TARGET})
+    set_target_properties(${TR_APPLICATION_TARGET} PROPERTIES FOLDER "Applications")
+  endif()
+endforeach()
+if(TARGET TrSceneCore)
+  set_target_properties(TrSceneCore PROPERTIES FOLDER "Libraries")
+endif()
+if(TARGET TrSceneImporter)
+  set_target_properties(TrSceneImporter PROPERTIES FOLDER "Tools")
 endif()
 
 #--------------------------------------------------------------------------------------------------

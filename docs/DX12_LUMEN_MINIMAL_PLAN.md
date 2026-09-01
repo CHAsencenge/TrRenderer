@@ -88,28 +88,27 @@
 
 ```text
 TrD3D12Renderer/
-  TrBuffer.*           Default/Upload/Readback、VBV/IBV/CBV/SRV/UAV、状态跟踪
-  TrConstantBuffer.*   256 字节对齐、持久映射、按帧更新
-  TrRenderConstants.h  六层常量域、固定寄存器和各 Pass 的常量契约
-  TrUploadContext.*    一次性静态资源上传及上传资源生命周期
-  TrMesh.*             Vertex/Index Buffer、View、Bind 和 Draw
-  TrRuntimeScene.*     保留 Mesh/Primitive/Node Instance 的 GPU 场景资源
-  TrMaterialResources.* 材质常量、纹理 SRV 与 Sampler 表
-  TrGraphicsPipeline.* Root Signature、Shader 编译和 Graphics PSO
-  TrComputePipeline.*  Root Signature、CS 6.5 编译和 Compute PSO
-  TrTexture.*          Texture2D、分 Mip View 和按 Mip 资源状态跟踪
-  TrHistoryTexture.*   固定双纹理历史、SRV/UAV、交换和失效
-  TrDescriptorHeap.*   固定容量描述符堆与线性分配
-  TrResourceBarrier.*  Transition 和 UAV Barrier
-  TrDeferredRenderTargets.* GBuffer、Depth 和 HDR Lighting 资源
-  TrGBufferPass.*      MRT GBuffer 管线与 Pass 边界
-  TrDeferredLightingPass.* GBuffer 读取和方向光照
-  TrGpuDebug.*         中间 SRV 注册、GPU 解码模式和运行时选择
-  TrGpuDebugPanel.*    无第三方依赖的按钮、文本输入和参数校验
-  TrCompositePass.*    调试源读取、可视化转换和 SwapChain 输出
-  TrCornellBoxScene.*         不接触 Device 的 CPU 场景数据生成
-  TrDeferredRenderer.*   初始化与逐帧编排
+  Source/
+    App/                Win32 入口、窗口和 Renderer 生命周期接口
+    Renderer/           TrDeferredRenderer 与六层常量契约
+    Passes/Raster/      GBuffer、Deferred Lighting、Composite
+    Passes/Compute/     HZB、Screen Trace 等后续 Compute Pass
+    Passes/RayTracing/  Inline RayQuery 等后续光追 Pass
+    Resources/          Buffer、Texture、Mesh、Descriptor、Render Target、Material
+    Backend/            Graphics/Compute PSO、DXC、Upload、Barrier
+    Scene/              TrRuntimeScene 与程序化场景
+    Debug/              GPU 中间结果和 ImGui 面板
+    Utilities/          通用错误处理与图像解码
+    Legacy/             已确认不参与编译的旧实验代码
+  shaders/
+    Raster/             当前光栅与全屏 Pass Shader
+    Compute/            后续 HZB、Screen Trace Shader
+    RayTracing/         后续 Inline RayQuery Shader
+    Legacy/             已确认未使用的旧 Shader
+  ThirdParty/           d3dx12.h；Dear ImGui 仍从 Includes 独立引用
 ```
+
+磁盘目录、CMake `source_group(TREE ...)` 和 Visual Studio Filter 保持一致；不再手工维护生成的 `.vcxproj`。Visual Studio 解决方案将可执行程序放在 `Applications`，`TrSceneCore` 放在 `Libraries`，导入器放在 `Tools`。D3D12 使用独立的 `Source/App/Main.cpp`，不再通过 `Common/TrRenderer.cpp` 的条件宏提供入口。
 
 初始化依赖保持单向，不让场景生成代码接触 DX12 对象：
 
