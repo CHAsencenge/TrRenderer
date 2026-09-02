@@ -58,11 +58,18 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const float2 surfaceVelocity = currentIsBackground
         ? 0.0f
         : velocityPreviousDepth.xy;
-    const float2 historyUv = currentUv - surfaceVelocity +
+    // The resolved color history lives on the stable output pixel grid, so it
+    // is reprojected only by non-jittered surface motion. The depth history is
+    // copied from the previous frame's jittered depth buffer and therefore
+    // needs the previous-to-current jitter offset to address the same surface.
+    const float2 colorHistoryUv = currentUv - surfaceVelocity;
+    const float2 depthHistoryUv = colorHistoryUv +
         NdcJitterToUv(g_previousJitterNdc - g_currentJitterNdc);
-    const bool historyUvValid =
-        all(historyUv >= 0.0f) && all(historyUv < 1.0f);
-    if(!historyUvValid ||
+    const bool colorHistoryUvValid =
+        all(colorHistoryUv >= 0.0f) && all(colorHistoryUv < 1.0f);
+    const bool depthHistoryUvValid =
+        all(depthHistoryUv >= 0.0f) && all(depthHistoryUv < 1.0f);
+    if(!colorHistoryUvValid || !depthHistoryUvValid ||
        (!currentIsBackground && velocityPreviousDepth.w < 0.5f))
     {
         g_outputColorHistory[pixel] = float4(current.rgb, 1.0f);
@@ -72,14 +79,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     const float3 historyColor = g_previousColorHistory.SampleLevel(
         g_linearClampSampler,
-        historyUv,
+        colorHistoryUv,
         0.0f).rgb;
     // Depth represents geometry identity, not a continuously filterable color.
     // Point sampling prevents foreground and background device depths from being
     // blended together at silhouettes before the history rejection test.
     const float historyDepth = g_previousDepthHistory.SampleLevel(
         g_pointClampSampler,
-        historyUv,
+        depthHistoryUv,
         0.0f);
     const bool historyIsBackground = TrIsBackgroundDepth(historyDepth);
     float depthHistoryWeight = 1.0f;

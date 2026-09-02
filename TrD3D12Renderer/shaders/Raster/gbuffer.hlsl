@@ -218,8 +218,9 @@ PSInput VSMain(VSInput input)
     result.texCoord1 = input.texCoord1;
     result.texCoord2 = input.texCoord2;
 
-    // Store real surface motion without projection jitter. The TAA resolve
-    // applies the current-to-previous jitter delta during reprojection.
+    // Store real surface motion without projection jitter. Resolved color
+    // history uses this motion directly; raw depth history applies the jitter
+    // delta separately when validating the reprojected surface.
     const float2 currentNdc =
         currentClipPosition.xy / max(currentClipPosition.w, 1.0e-6f) -
         g_temporalJitter;
