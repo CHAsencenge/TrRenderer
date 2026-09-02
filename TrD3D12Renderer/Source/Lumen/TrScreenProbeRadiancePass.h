@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Resources/TrDeferredRenderTargets.h"
 #include "TrScreenProbeResources.h"
 
@@ -11,9 +12,11 @@ struct TrScreenProbeRadiancePassOutputs
 
 // Resolves a screen-space hit into one incident-radiance sample per probe ray.
 // The output is overwritten every frame and is not a temporal history.
-class TrScreenProbeRadiancePass
+class TrScreenProbeRadiancePass : public TrRenderPass
 {
 public:
+    TrScreenProbeRadiancePass() : TrRenderPass("Hit Radiance Resolve") {}
+
     using Outputs = TrScreenProbeRadiancePassOutputs;
 
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);

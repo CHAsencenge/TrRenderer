@@ -3,11 +3,14 @@
 #include "Resources/TrDeferredRenderTargets.h"
 #include "Backend/TrGraphicsPipeline.h"
 #include "Lumen/TrScreenProbeResources.h"
+#include "Passes/TrRenderPass.h"
 #include "Renderer/TrRenderConstants.h"
 
-class TrDeferredLightingPass
+class TrDeferredLightingPass : public TrRenderPass
 {
 public:
+    TrDeferredLightingPass() : TrRenderPass("Deferred Lighting") {}
+
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);
     void Render(
         ID3D12GraphicsCommandList* commandList,

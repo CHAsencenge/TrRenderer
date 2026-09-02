@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Resources/TrDescriptorHeap.h"
 #include "Resources/TrHistoryTexture.h"
 #include "Resources/TrTexture.h"
@@ -36,9 +37,11 @@ struct TrTaaInputs
     D3D12_GPU_DESCRIPTOR_HANDLE DepthSrv = {};
 };
 
-class TrTaaPass
+class TrTaaPass : public TrRenderPass
 {
 public:
+    TrTaaPass() : TrRenderPass("TAA") {}
+
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);
 
     D3D12_GPU_DESCRIPTOR_HANDLE Resolve(

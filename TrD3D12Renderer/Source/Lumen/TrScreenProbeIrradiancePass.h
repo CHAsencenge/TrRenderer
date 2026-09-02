@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "TrScreenProbeResources.h"
 
 struct alignas(16) TrScreenProbeIrradianceConstants
@@ -20,9 +21,11 @@ struct TrScreenProbeIrradiancePassOutputs
 
 // Integrates cosine-weighted per-ray radiance into one diffuse irradiance
 // value per screen probe. Temporal accumulation is intentionally separate.
-class TrScreenProbeIrradiancePass
+class TrScreenProbeIrradiancePass : public TrRenderPass
 {
 public:
+    TrScreenProbeIrradiancePass() : TrRenderPass("Irradiance Integrate") {}
+
     using Outputs = TrScreenProbeIrradiancePassOutputs;
 
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);

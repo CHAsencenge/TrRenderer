@@ -105,6 +105,10 @@ set(TR_COMPUTE_PASS_FILES
   Source/Passes/Compute/TrTaaPass.cpp
   Source/Passes/Compute/TrTaaPass.h)
 
+set(TR_PASS_FILES
+  Source/Passes/TrRenderPass.cpp
+  Source/Passes/TrRenderPass.h)
+
 set(TR_LUMEN_FILES
   Source/Lumen/TrScreenProbeIrradiancePass.cpp
   Source/Lumen/TrScreenProbeIrradiancePass.h
@@ -164,7 +168,9 @@ set(TR_DEBUG_FILES
   Source/Debug/TrGpuDebug.cpp
   Source/Debug/TrGpuDebug.h
   Source/Debug/TrGpuDebugPanel.cpp
-  Source/Debug/TrGpuDebugPanel.h)
+  Source/Debug/TrGpuDebugPanel.h
+  Source/Debug/TrPerformanceMonitor.cpp
+  Source/Debug/TrPerformanceMonitor.h)
 
 set(TR_UTILITY_FILES
   Source/Utilities/TrImageDecoder.cpp
@@ -182,6 +188,7 @@ set(TR_LEGACY_FILES
 set(TR_SOURCE_FILES
   ${TR_APP_FILES}
   ${TR_RENDERER_FILES}
+  ${TR_PASS_FILES}
   ${TR_RASTER_PASS_FILES}
   ${TR_COMPUTE_PASS_FILES}
   ${TR_LUMEN_FILES}

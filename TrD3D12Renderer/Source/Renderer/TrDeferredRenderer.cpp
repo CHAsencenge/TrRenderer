@@ -107,6 +107,7 @@ void TrDeferredRenderer::OnInitialize()
     LoadAssets();
     InitializeCamera();
     BuildSceneSelectionList();
+    mPerformanceMonitor.Reset();
     mGpuDebugPanel.Initialize(
         TrWindowApp::GetHwnd(),
         mDevice.Get(),
@@ -123,6 +124,8 @@ void TrDeferredRenderer::OnInitialize()
 void TrDeferredRenderer::OnUpdate()
 {
     using namespace DirectX;
+
+    mPerformanceMonitor.Tick();
 
     mRuntimeScene.BeginFrame();
     if(mProceduralAnimationNodeId != TrInvalidRuntimeId)
@@ -180,6 +183,7 @@ void TrDeferredRenderer::OnUpdate()
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
            mRuntimeScene,
+           mPerformanceMonitor.GetSnapshot(),
            mGeometryVisualization,
            mExposure,
            mDepthVisualizationRange,
@@ -407,6 +411,7 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
         DirectX::XMMatrixIdentity());
     mTemporalJitter = {0.0f, 0.0f};
     mPreviousTemporalJitter = {0.0f, 0.0f};
+    mPerformanceMonitor.Reset();
 }
 
 void TrDeferredRenderer::OnDestroy()
@@ -884,6 +889,10 @@ void TrDeferredRenderer::LoadPipeline()
     {
         ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
+    mPerformanceMonitor.Initialize(
+        mDevice.Get(),
+        mCommandQueue.Get(),
+        SwapFrameCount);
     TrLog::Info("DX12 pipeline resources created.");
 }
 
@@ -1269,6 +1278,7 @@ void TrDeferredRenderer::PopulateCommandList()
     ThrowIfFailed(mCommandList->Reset(
         frame.CommandAllocator.Get(),
         mGBufferPass.GetPipelineState()));
+    mPerformanceMonitor.BeginFrame(mFrameIndex, mCommandList.Get());
 
     // need to set viewports and scissor rects each frame
     mCommandList->RSSetViewports(1, &mViewport);
@@ -1336,200 +1346,271 @@ void TrDeferredRenderer::PopulateCommandList()
 
     if(!prepassedDraws.empty())
     {
-        mDepthNormalPass.Begin(
+        mDepthNormalPass.ExecuteProfiled(
+            mPerformanceMonitor,
             mCommandList.Get(),
-            mDeferredRenderTargets,
-            mResourceHeap,
-            mSamplerHeap,
-            frame.ViewConstantBuffer.GetGpuVirtualAddress());
-        for(const SceneDraw& draw : prepassedDraws)
-        {
-            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
-            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
-            const TrRuntimePrimitive& primitive =
-                mesh.Primitives[draw.PrimitiveIndex];
-            const TrMaterialGpuBinding& material =
-                mMaterialResources.Get(primitive.MaterialId);
-            mesh.Geometry->Bind(mCommandList.Get());
+            [&]()
+            {
+                mDepthNormalPass.Begin(
+                    mCommandList.Get(),
+                    mDeferredRenderTargets,
+                    mResourceHeap,
+                    mSamplerHeap,
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress());
+                for(const SceneDraw& draw : prepassedDraws)
+                {
+                    const TrRuntimeInstance& instance =
+                        instances[draw.InstanceIndex];
+                    const TrRuntimeMesh& mesh =
+                        mRuntimeScene.GetMesh(instance.MeshId);
+                    const TrRuntimePrimitive& primitive =
+                        mesh.Primitives[draw.PrimitiveIndex];
+                    const TrMaterialGpuBinding& material =
+                        mMaterialResources.Get(primitive.MaterialId);
+                    mesh.Geometry->Bind(mCommandList.Get());
 
-            TrDrawConstants drawConstants = {};
-            drawConstants.PrimitiveId = primitive.PrimitiveId;
-            drawConstants.MaterialId = primitive.MaterialId;
-            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
-            mDepthNormalPass.SetDrawBindings(
-                mCommandList.Get(),
-                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
-                    ->GetGpuVirtualAddress(),
-                material.Constants,
-                material.TextureTable,
-                material.SamplerTable,
-                drawConstants);
-            mesh.Geometry->DrawRange(
-                mCommandList.Get(),
-                primitive.IndexCount,
-                primitive.FirstIndex);
-        }
-        mDepthNormalPass.End(
-            mCommandList.Get(),
-            mDeferredRenderTargets);
+                    TrDrawConstants drawConstants = {};
+                    drawConstants.PrimitiveId = primitive.PrimitiveId;
+                    drawConstants.MaterialId = primitive.MaterialId;
+                    drawConstants.LocalPrimitiveIndex =
+                        primitive.LocalPrimitiveIndex;
+                    mDepthNormalPass.SetDrawBindings(
+                        mCommandList.Get(),
+                        frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                            ->GetGpuVirtualAddress(),
+                        material.Constants,
+                        material.TextureTable,
+                        material.SamplerTable,
+                        drawConstants);
+                    mesh.Geometry->DrawRange(
+                        mCommandList.Get(),
+                        primitive.IndexCount,
+                        primitive.FirstIndex);
+                }
+                mDepthNormalPass.End(
+                    mCommandList.Get(),
+                    mDeferredRenderTargets);
+            });
     }
 
-    mGBufferPass.Begin(
+    mGBufferPass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mDeferredRenderTargets,
-        mResourceHeap,
-        mSamplerHeap,
-        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
-        !prepassedDraws.empty());
-
-    const auto drawGBufferItems =
-        [this, &frame, &instances](const std::vector<SceneDraw>& draws)
-    {
-        for(const SceneDraw& draw : draws)
+        [&]()
         {
-            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
-            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
-            const TrRuntimePrimitive& primitive =
-                mesh.Primitives[draw.PrimitiveIndex];
-            const TrMaterialGpuBinding& material =
-                mMaterialResources.Get(primitive.MaterialId);
-            mesh.Geometry->Bind(mCommandList.Get());
-
-            TrDrawConstants drawConstants = {};
-            drawConstants.PrimitiveId = primitive.PrimitiveId;
-            drawConstants.MaterialId = primitive.MaterialId;
-            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
-            mGBufferPass.SetDrawBindings(
+            mGBufferPass.Begin(
                 mCommandList.Get(),
-                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
-                    ->GetGpuVirtualAddress(),
-                material.Constants,
-                material.TextureTable,
-                material.SamplerTable,
-                drawConstants);
-            mesh.Geometry->DrawRange(
+                mDeferredRenderTargets,
+                mResourceHeap,
+                mSamplerHeap,
+                frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                frame.GBufferPassConstantBuffer.GetGpuVirtualAddress(),
+                !prepassedDraws.empty());
+
+            const auto drawGBufferItems =
+                [this, &frame, &instances](const std::vector<SceneDraw>& draws)
+            {
+                for(const SceneDraw& draw : draws)
+                {
+                    const TrRuntimeInstance& instance =
+                        instances[draw.InstanceIndex];
+                    const TrRuntimeMesh& mesh =
+                        mRuntimeScene.GetMesh(instance.MeshId);
+                    const TrRuntimePrimitive& primitive =
+                        mesh.Primitives[draw.PrimitiveIndex];
+                    const TrMaterialGpuBinding& material =
+                        mMaterialResources.Get(primitive.MaterialId);
+                    mesh.Geometry->Bind(mCommandList.Get());
+
+                    TrDrawConstants drawConstants = {};
+                    drawConstants.PrimitiveId = primitive.PrimitiveId;
+                    drawConstants.MaterialId = primitive.MaterialId;
+                    drawConstants.LocalPrimitiveIndex =
+                        primitive.LocalPrimitiveIndex;
+                    mGBufferPass.SetDrawBindings(
+                        mCommandList.Get(),
+                        frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                            ->GetGpuVirtualAddress(),
+                        material.Constants,
+                        material.TextureTable,
+                        material.SamplerTable,
+                        drawConstants);
+                    mesh.Geometry->DrawRange(
+                        mCommandList.Get(),
+                        primitive.IndexCount,
+                        primitive.FirstIndex);
+                }
+            };
+
+            drawGBufferItems(regularGBufferDraws);
+            if(!prepassedDraws.empty())
+            {
+                mGBufferPass.BeginPrepassedDraws(
+                    mCommandList.Get(),
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    frame.GBufferPassConstantBuffer.GetGpuVirtualAddress());
+                drawGBufferItems(prepassedDraws);
+            }
+            mDepthNormalView = mGBufferPass.End(
                 mCommandList.Get(),
-                primitive.IndexCount,
-                primitive.FirstIndex);
-        }
-    };
+                mDeferredRenderTargets);
+        });
 
-    drawGBufferItems(regularGBufferDraws);
-    if(!prepassedDraws.empty())
-    {
-        mGBufferPass.BeginPrepassedDraws(
-            mCommandList.Get(),
-            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-            frame.GBufferPassConstantBuffer.GetGpuVirtualAddress());
-        drawGBufferItems(prepassedDraws);
-    }
-    mDepthNormalView = mGBufferPass.End(
+    mHzbPass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mDeferredRenderTargets);
-
-    mHzbPass.Build(
-        mCommandList.Get(),
-        mResourceHeap,
-        {mDepthNormalView},
-        mHierarchicalDepth);
+        [&]()
+        {
+            mHzbPass.Build(
+                mCommandList.Get(),
+                mResourceHeap,
+                {mDepthNormalView},
+                mHierarchicalDepth);
+        });
 
     const TrScreenProbePass::Outputs screenProbeOutputs =
-        mScreenProbePass.Build(
+        mScreenProbePass.ExecuteProfiled(
+            mPerformanceMonitor,
             mCommandList.Get(),
-            mResourceHeap,
-            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-            {mDepthNormalView},
-            mScreenProbeResources);
-    mScreenTracePass.Trace(
+            [&]()
+            {
+                return mScreenProbePass.Build(
+                    mCommandList.Get(),
+                    mResourceHeap,
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    {mDepthNormalView},
+                    mScreenProbeResources);
+            });
+    mScreenTracePass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mResourceHeap,
-        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
-        mScreenProbeResources);
+        [&]()
+        {
+            mScreenTracePass.Trace(
+                mCommandList.Get(),
+                mResourceHeap,
+                frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
+                mScreenProbeResources);
+        });
 
-    mScreenProbeRadiancePass.Resolve(
+    mScreenProbeRadiancePass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mResourceHeap,
-        frame.SceneConstantBuffer.GetGpuVirtualAddress(),
-        frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
-        mDeferredRenderTargets,
-        mScreenProbeResources);
-    mScreenProbeIrradiancePass.Integrate(
+        [&]()
+        {
+            mScreenProbeRadiancePass.Resolve(
+                mCommandList.Get(),
+                mResourceHeap,
+                frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+                mDeferredRenderTargets,
+                mScreenProbeResources);
+        });
+    mScreenProbeIrradiancePass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mResourceHeap,
-        mScreenProbeResources);
+        [&]()
+        {
+            mScreenProbeIrradiancePass.Integrate(
+                mCommandList.Get(),
+                mResourceHeap,
+                mScreenProbeResources);
+        });
     const UINT renderFrameNumber = mFrameNumber > 0 ? mFrameNumber - 1u : 0u;
     const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =
-        mScreenProbeTemporalPass.Resolve(
+        mScreenProbeTemporalPass.ExecuteProfiled(
+            mPerformanceMonitor,
             mCommandList.Get(),
-            mResourceHeap,
-            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-            renderFrameNumber,
-            mScreenProbeResources);
+            [&]()
+            {
+                return mScreenProbeTemporalPass.Resolve(
+                    mCommandList.Get(),
+                    mResourceHeap,
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    renderFrameNumber,
+                    mScreenProbeResources);
+            });
     mGpuDebug.UpdateViewSource(
         mProbeTemporalDebugViewIndex,
         probeTemporalOutputs.IrradianceSrv);
 
-    mDeferredLightingPass.Render(
+    mDeferredLightingPass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mDeferredRenderTargets,
-        mResourceHeap,
-        frame.SceneConstantBuffer.GetGpuVirtualAddress(),
-        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-        frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
-        mScreenProbeResources,
-        *probeTemporalOutputs.Irradiance,
-        probeTemporalOutputs.IrradianceSrv);
+        [&]()
+        {
+            mDeferredLightingPass.Render(
+                mCommandList.Get(),
+                mDeferredRenderTargets,
+                mResourceHeap,
+                frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+                mScreenProbeResources,
+                *probeTemporalOutputs.Irradiance,
+                probeTemporalOutputs.IrradianceSrv);
+        });
     mScreenProbeResources.AdvanceHistory();
 
     if(!transparentDraws.empty())
     {
-        std::sort(
-            transparentDraws.begin(),
-            transparentDraws.end(),
-            [](const SceneDraw& left, const SceneDraw& right)
+        mForwardTransparentPass.ExecuteProfiled(
+            mPerformanceMonitor,
+            mCommandList.Get(),
+            [&]()
             {
-                return left.CameraDistanceSquared > right.CameraDistanceSquared;
-            });
-        mForwardTransparentPass.Begin(
-            mCommandList.Get(),
-            mDeferredRenderTargets,
-            mResourceHeap,
-            mSamplerHeap,
-            frame.SceneConstantBuffer.GetGpuVirtualAddress(),
-            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-            frame.ForwardTransparentPassConstantBuffer.GetGpuVirtualAddress());
-        for(const SceneDraw& draw : transparentDraws)
-        {
-            const TrRuntimeInstance& instance = instances[draw.InstanceIndex];
-            const TrRuntimeMesh& mesh = mRuntimeScene.GetMesh(instance.MeshId);
-            const TrRuntimePrimitive& primitive =
-                mesh.Primitives[draw.PrimitiveIndex];
-            const TrMaterialGpuBinding& material =
-                mMaterialResources.Get(primitive.MaterialId);
-            mesh.Geometry->Bind(mCommandList.Get());
+                std::sort(
+                    transparentDraws.begin(),
+                    transparentDraws.end(),
+                    [](const SceneDraw& left, const SceneDraw& right)
+                    {
+                        return left.CameraDistanceSquared >
+                            right.CameraDistanceSquared;
+                    });
+                mForwardTransparentPass.Begin(
+                    mCommandList.Get(),
+                    mDeferredRenderTargets,
+                    mResourceHeap,
+                    mSamplerHeap,
+                    frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    frame.ForwardTransparentPassConstantBuffer
+                        .GetGpuVirtualAddress());
+                for(const SceneDraw& draw : transparentDraws)
+                {
+                    const TrRuntimeInstance& instance =
+                        instances[draw.InstanceIndex];
+                    const TrRuntimeMesh& mesh =
+                        mRuntimeScene.GetMesh(instance.MeshId);
+                    const TrRuntimePrimitive& primitive =
+                        mesh.Primitives[draw.PrimitiveIndex];
+                    const TrMaterialGpuBinding& material =
+                        mMaterialResources.Get(primitive.MaterialId);
+                    mesh.Geometry->Bind(mCommandList.Get());
 
-            TrDrawConstants drawConstants = {};
-            drawConstants.PrimitiveId = primitive.PrimitiveId;
-            drawConstants.MaterialId = primitive.MaterialId;
-            drawConstants.LocalPrimitiveIndex = primitive.LocalPrimitiveIndex;
-            mForwardTransparentPass.SetDrawBindings(
-                mCommandList.Get(),
-                frame.PrimitiveConstantBuffers[draw.InstanceIndex]
-                    ->GetGpuVirtualAddress(),
-                material.Constants,
-                material.TextureTable,
-                material.SamplerTable,
-                drawConstants);
-            mesh.Geometry->DrawRange(
-                mCommandList.Get(),
-                primitive.IndexCount,
-                primitive.FirstIndex);
-        }
-        mForwardTransparentPass.End(
-            mCommandList.Get(),
-            mDeferredRenderTargets);
+                    TrDrawConstants drawConstants = {};
+                    drawConstants.PrimitiveId = primitive.PrimitiveId;
+                    drawConstants.MaterialId = primitive.MaterialId;
+                    drawConstants.LocalPrimitiveIndex =
+                        primitive.LocalPrimitiveIndex;
+                    mForwardTransparentPass.SetDrawBindings(
+                        mCommandList.Get(),
+                        frame.PrimitiveConstantBuffers[draw.InstanceIndex]
+                            ->GetGpuVirtualAddress(),
+                        material.Constants,
+                        material.TextureTable,
+                        material.SamplerTable,
+                        drawConstants);
+                    mesh.Geometry->DrawRange(
+                        mCommandList.Get(),
+                        primitive.IndexCount,
+                        primitive.FirstIndex);
+                }
+                mForwardTransparentPass.End(
+                    mCommandList.Get(),
+                    mDeferredRenderTargets);
+            });
     }
 
     TrTaaConstants taaConstants;
@@ -1541,19 +1622,26 @@ void TrDeferredRenderer::PopulateCommandList()
     taaConstants.PreviousJitterNdc = mPreviousTemporalJitter;
     taaConstants.NearPlane = mCameraNearPlane;
     taaConstants.FarPlane = mCameraFarPlane;
-    const D3D12_GPU_DESCRIPTOR_HANDLE taaOutputSrv = mTaaPass.Resolve(
-        mCommandList.Get(),
-        mResourceHeap,
-        {
-            &mDeferredRenderTargets.GetHdrLighting(),
-            mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
-            &mDeferredRenderTargets.GetVelocity(),
-            mDeferredRenderTargets.GetVelocitySrv().GpuHandle,
-            &mDeferredRenderTargets.GetDepth(),
-            mDeferredRenderTargets.GetDepthSrv().GpuHandle
-        },
-        taaConstants,
-        mTaaHistory);
+    const D3D12_GPU_DESCRIPTOR_HANDLE taaOutputSrv =
+        mTaaPass.ExecuteProfiled(
+            mPerformanceMonitor,
+            mCommandList.Get(),
+            [&]()
+            {
+                return mTaaPass.Resolve(
+                    mCommandList.Get(),
+                    mResourceHeap,
+                    {
+                        &mDeferredRenderTargets.GetHdrLighting(),
+                        mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+                        &mDeferredRenderTargets.GetVelocity(),
+                        mDeferredRenderTargets.GetVelocitySrv().GpuHandle,
+                        &mDeferredRenderTargets.GetDepth(),
+                        mDeferredRenderTargets.GetDepthSrv().GpuHandle
+                    },
+                    taaConstants,
+                    mTaaHistory);
+            });
     mTaaHistory.AdvanceFrame();
 
     const TrGpuDebugView& selectedDebugView = mGpuDebug.GetSelectedView();
@@ -1562,19 +1650,26 @@ void TrDeferredRenderer::PopulateCommandList()
             ? taaOutputSrv
             : selectedDebugView.SourceSrv;
 
-    mCompositePass.Render(
+    mCompositePass.ExecuteProfiled(
+        mPerformanceMonitor,
         mCommandList.Get(),
-        mResourceHeap,
-        compositeSource,
-        frame.CompositePassConstantBuffer.GetGpuVirtualAddress(),
-        mRenderTargets[mFrameIndex],
-        mRenderTargetViews[mFrameIndex].CpuHandle);
+        [&]()
+        {
+            mCompositePass.Render(
+                mCommandList.Get(),
+                mResourceHeap,
+                compositeSource,
+                frame.CompositePassConstantBuffer.GetGpuVirtualAddress(),
+                mRenderTargets[mFrameIndex],
+                mRenderTargetViews[mFrameIndex].CpuHandle);
+        });
 
     mGpuDebugPanel.Render(mCommandList.Get(), mResourceHeap);
     mRenderTargets[mFrameIndex].Transition(
         mCommandList.Get(),
         D3D12_RESOURCE_STATE_PRESENT);
 
+    mPerformanceMonitor.EndFrame(mCommandList.Get());
     ThrowIfFailed(mCommandList->Close());
 }
 
@@ -1593,6 +1688,7 @@ void TrDeferredRenderer::MoveToNextFrame()
         ThrowIfFailed(mFence->SetEventOnCompletion(nextFrame.FenceValue, mFenceEvent));
         WaitForSingleObject(mFenceEvent, INFINITE);
     }
+    mPerformanceMonitor.CollectFrame(mFrameIndex);
 }
 
 void TrDeferredRenderer::FlushCommandQueue()

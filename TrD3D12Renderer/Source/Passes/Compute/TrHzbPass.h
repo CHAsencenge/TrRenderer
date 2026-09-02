@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Resources/TrDepthNormalView.h"
 #include "Resources/TrHierarchicalDepth.h"
 
@@ -24,9 +25,11 @@ struct alignas(16) TrHzbBuildConstants
 
 static_assert(sizeof(TrHzbBuildConstants) == 16);
 
-class TrHzbPass
+class TrHzbPass : public TrRenderPass
 {
 public:
+    TrHzbPass() : TrRenderPass("HZB") {}
+
     using Inputs = TrHzbPassInputs;
     using Outputs = TrHzbPassOutputs;
 

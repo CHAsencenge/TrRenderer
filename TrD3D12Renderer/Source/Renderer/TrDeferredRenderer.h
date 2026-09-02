@@ -24,6 +24,7 @@
 #include "Passes/Raster/TrGBufferPass.h"
 #include "Debug/TrGpuDebug.h"
 #include "Debug/TrGpuDebugPanel.h"
+#include "Debug/TrPerformanceMonitor.h"
 #include "Resources/TrHistoryTexture.h"
 #include "Resources/TrMaterialResources.h"
 #include "TrRenderConstants.h"
@@ -141,6 +142,7 @@ private:
     TrHistoryTexture mTaaHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;
+    TrPerformanceMonitor mPerformanceMonitor;
 
     // app resources
     TrScene mLoadedScene;

@@ -2,11 +2,14 @@
 
 #include "Resources/TrDeferredRenderTargets.h"
 #include "Backend/TrGraphicsPipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Renderer/TrRenderConstants.h"
 
-class TrGBufferPass
+class TrGBufferPass : public TrRenderPass
 {
 public:
+    TrGBufferPass() : TrRenderPass("GBuffer") {}
+
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);
 
     void Begin(

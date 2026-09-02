@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Backend/TrGraphicsPipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Renderer/TrRenderConstants.h"
 #include "Resources/TrDeferredRenderTargets.h"
 
-class TrDepthNormalPass
+class TrDepthNormalPass : public TrRenderPass
 {
 public:
+    TrDepthNormalPass() : TrRenderPass("Depth Normal") {}
+
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);
     void Begin(
         ID3D12GraphicsCommandList* commandList,

@@ -13,6 +13,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\TrRenderPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.cpp">
       <Filter>Passes\Raster</Filter>
     </ClCompile>
@@ -109,6 +112,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrPerformanceMonitor.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -152,6 +158,9 @@
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\TrRenderPass.h">
+      <Filter>Passes</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.h">
       <Filter>Passes\Raster</Filter>
@@ -250,6 +259,9 @@
       <Filter>Debug</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrGpuDebugPanel.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Debug\TrPerformanceMonitor.h">
       <Filter>Debug</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Utilities\TrImageDecoder.h">

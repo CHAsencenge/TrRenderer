@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "TrScreenProbeResources.h"
 
 struct alignas(16) TrScreenProbeTemporalConstants
@@ -26,9 +27,11 @@ struct TrScreenProbeTemporalPassOutputs
 // Reprojects the previous probe irradiance into the current screen-probe grid.
 // Position and normal histories identify whether a reprojected probe still
 // represents the same surface before its lighting is accumulated.
-class TrScreenProbeTemporalPass
+class TrScreenProbeTemporalPass : public TrRenderPass
 {
 public:
+    TrScreenProbeTemporalPass() : TrRenderPass("Probe Temporal") {}
+
     using Outputs = TrScreenProbeTemporalPassOutputs;
 
     void Initialize(ID3D12Device* device, const std::wstring& shaderPath);

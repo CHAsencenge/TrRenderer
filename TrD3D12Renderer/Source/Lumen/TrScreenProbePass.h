@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/TrComputePipeline.h"
+#include "Passes/TrRenderPass.h"
 #include "Resources/TrDepthNormalView.h"
 #include "TrScreenProbeResources.h"
 
@@ -26,9 +27,11 @@ struct alignas(16) TrScreenProbeBuildConstants
 
 static_assert(sizeof(TrScreenProbeBuildConstants) == 32);
 
-class TrScreenProbePass
+class TrScreenProbePass : public TrRenderPass
 {
 public:
+    TrScreenProbePass() : TrRenderPass("Screen Probe Build") {}
+
     using Inputs = TrScreenProbePassInputs;
     using Outputs = TrScreenProbePassOutputs;
 
