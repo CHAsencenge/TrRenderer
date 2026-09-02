@@ -19,6 +19,7 @@ struct PSInput
     float2 texCoord0 : TEXCOORD0;
     float2 texCoord1 : TEXCOORD1;
     float2 texCoord2 : TEXCOORD2;
+    noperspective float4 velocityPreviousDepth : TEXCOORD3;
 };
 
 struct GBufferOutput
@@ -26,6 +27,7 @@ struct GBufferOutput
     float4 baseColorRoughness : SV_Target0;
     float4 normalMetallic : SV_Target1;
     float4 emissiveOcclusion : SV_Target2;
+    float4 velocityPreviousDepth : SV_Target3;
 };
 
 struct TextureTransformConstants
@@ -133,17 +135,32 @@ float2 TransformTexCoord(PSInput input, TextureTransformConstants transform)
         sine * uv.x + cosine * uv.y) + transform.offset;
 }
 
+// Nworld = normalize(nx * T + ny * B + nz * N)
 float3 ApplyNormalMap(float3 worldPosition, float3 geometricNormal, float2 uv)
 {
+    // 切线空间法线
     float3 mappedNormal = g_normalTexture.Sample(g_normalSampler, uv).xyz * 2.0f - 1.0f;
     mappedNormal.xy *= g_normalTextureTransform.strength;
 
+    // T = U 增大方向
+    // B = V 增大方向
+    // N = 几何法线方向
+
+    // Px 为 ddx，Py 为 ddy，屏幕上发生微小移动 (dx, dy), 对应的世界位置变化 dP = Px·dx + Py·dy
     const float3 positionDx = ddx(worldPosition);
     const float3 positionDy = ddy(worldPosition);
+    // dU = Ux·dx + Uy·dy
     const float2 uvDx = ddx(uv);
     const float2 uvDy = ddy(uv);
+    // 目标：要找到世界空间中的两个方向，使它们能够分别表示 U 和 V 的变化
+    // 构造对偶基，Ex 完全忽略 Py，只测量 Px，Ey 完全忽略 Px，只测量 Py
+    // Ex · Px = 1
+    // Ex · Py = 0
+    // Ey · Px = 0
+    // Ey · Py = 1
     const float3 positionDyPerpendicular = cross(positionDy, geometricNormal);
     const float3 positionDxPerpendicular = cross(geometricNormal, positionDx);
+
     const float3 tangent = positionDyPerpendicular * uvDx.x +
         positionDxPerpendicular * uvDy.x;
     const float3 bitangent = positionDyPerpendicular * uvDx.y +
@@ -180,7 +197,14 @@ PSInput VSMain(VSInput input)
 {
     PSInput result;
     const float4 worldPosition = mul(float4(input.position, 1.0f), g_world);
-    result.position = mul(worldPosition, g_viewProjection);
+    const float4 currentClipPosition = mul(worldPosition, g_viewProjection);
+    const float4 previousWorldPosition = mul(
+        float4(input.position, 1.0f),
+        g_previousWorld);
+    const float4 previousClipPosition = mul(
+        previousWorldPosition,
+        g_previousViewProjection);
+    result.position = currentClipPosition;
     result.worldPosition = worldPosition.xyz;
     result.worldNormal = mul(
         float4(input.normal, 0.0f),
@@ -193,6 +217,29 @@ PSInput VSMain(VSInput input)
     result.texCoord0 = input.texCoord0;
     result.texCoord1 = input.texCoord1;
     result.texCoord2 = input.texCoord2;
+
+    // Store real surface motion without projection jitter. The TAA resolve
+    // applies the current-to-previous jitter delta during reprojection.
+    const float2 currentNdc =
+        currentClipPosition.xy / max(currentClipPosition.w, 1.0e-6f) -
+        g_temporalJitter;
+    const float previousW = max(previousClipPosition.w, 1.0e-6f);
+    const float3 previousNdc = previousClipPosition.xyz / previousW;
+    const float2 currentUv = float2(
+        currentNdc.x * 0.5f + 0.5f,
+        0.5f - currentNdc.y * 0.5f);
+    const float2 previousUv = float2(
+        previousNdc.x * 0.5f + 0.5f,
+        0.5f - previousNdc.y * 0.5f);
+    const float previousPositionValid =
+        previousClipPosition.w > 1.0e-6f &&
+        previousNdc.z >= 0.0f && previousNdc.z <= 1.0f
+            ? 1.0f
+            : 0.0f;
+    result.velocityPreviousDepth = float4(
+        currentUv - previousUv,
+        previousNdc.z,
+        previousPositionValid);
     return result;
 }
 
@@ -273,5 +320,6 @@ GBufferOutput PSMain(PSInput input)
     result.baseColorRoughness = float4(saturate(baseColor), saturate(roughness));
     result.normalMetallic = float4(worldNormal, saturate(metallic));
     result.emissiveOcclusion = float4(emissive, occlusion);
+    result.velocityPreviousDepth = input.velocityPreviousDepth;
     return result;
 }

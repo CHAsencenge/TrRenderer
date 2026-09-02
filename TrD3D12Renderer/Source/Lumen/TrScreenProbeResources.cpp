@@ -42,6 +42,28 @@ void TrScreenProbeResources::Initialize(
     mIrradianceSrv = resourceHeap.Allocate();
     mIrradianceUav = resourceHeap.Allocate();
     CreateResources(device, width, height);
+
+    mIrradianceHistory.Initialize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY,
+        IrradianceFormat,
+        resourceHeap,
+        L"Lumen Screen Probe Irradiance History");
+    mPositionHistory.Initialize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY,
+        PositionFormat,
+        resourceHeap,
+        L"Lumen Screen Probe Position History");
+    mNormalDepthHistory.Initialize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY,
+        NormalDepthFormat,
+        resourceHeap,
+        L"Lumen Screen Probe Normal Depth History");
 }
 
 void TrScreenProbeResources::Resize(
@@ -60,6 +82,39 @@ void TrScreenProbeResources::Resize(
             "Screen Probe resources have not been initialized.");
     }
     CreateResources(device, width, height);
+    mIrradianceHistory.Resize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY);
+    mPositionHistory.Resize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY);
+    mNormalDepthHistory.Resize(
+        device,
+        mLayout.ProbeCountX,
+        mLayout.ProbeCountY);
+}
+
+void TrScreenProbeResources::AdvanceHistory()
+{
+    mIrradianceHistory.AdvanceFrame();
+    mPositionHistory.AdvanceFrame();
+    mNormalDepthHistory.AdvanceFrame();
+}
+
+void TrScreenProbeResources::InvalidateHistory()
+{
+    mIrradianceHistory.Invalidate();
+    mPositionHistory.Invalidate();
+    mNormalDepthHistory.Invalidate();
+}
+
+bool TrScreenProbeResources::IsHistoryValid() const
+{
+    return mIrradianceHistory.IsValid() &&
+        mPositionHistory.IsValid() &&
+        mNormalDepthHistory.IsValid();
 }
 
 void TrScreenProbeResources::CreateResources(

@@ -56,10 +56,14 @@ float3 GenerateProbeRay(
 {
     const uint probeHash = HashUint(
         probeCoordinate.x + probeCoordinate.y * max(g_probeCountX, 1u));
-    const float rotation = float(probeHash & 0xffffu) / 65536.0f;
-    const float2 samplePoint = float2(
+    const float probeRotation = float(probeHash & 0xffffu) / 65536.0f;
+    const uint temporalIndex = g_frameNumber + 1u;
+    const float2 temporalShift = float2(
+        RadicalInverse(temporalIndex),
+        frac(float(temporalIndex) * 0.7548776662466927f));
+    const float2 samplePoint = frac(float2(
         (float(rayIndex) + 0.5f) / float(rayCount),
-        frac(RadicalInverse(rayIndex) + rotation));
+        RadicalInverse(rayIndex) + probeRotation) + temporalShift);
 
     // Cosine-weighted hemisphere: denser rays around the surface normal where
     // diffuse irradiance has the largest contribution.

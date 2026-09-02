@@ -72,7 +72,9 @@ void TrGBufferPass::Initialize(
         TrDeferredRenderTargets::NormalMetallicFormat;
     pipelineDesc.RenderTargetFormats[2] =
         TrDeferredRenderTargets::EmissiveOcclusionFormat;
-    pipelineDesc.RenderTargetCount = 3;
+    pipelineDesc.RenderTargetFormats[3] =
+        TrDeferredRenderTargets::VelocityFormat;
+    pipelineDesc.RenderTargetCount = 4;
     pipelineDesc.DepthStencilFormat =
         TrDeferredRenderTargets::DepthStencilViewFormat;
     pipelineDesc.CullMode = D3D12_CULL_MODE_NONE;

@@ -50,6 +50,32 @@ namespace
             (alphaMode == TrSceneAlphaMode::Mask &&
              TrRenderConfig::IncludeMaskedInDepthNormalPrepass);
     }
+
+    float Halton(UINT index, UINT base)
+    {
+        float result = 0.0f;
+        float fraction = 1.0f;
+        while(index > 0)
+        {
+            fraction /= static_cast<float>(base);
+            result += fraction * static_cast<float>(index % base);
+            index /= base;
+        }
+        return result;
+    }
+
+    DirectX::XMFLOAT2 CalculateTemporalJitterNdc(
+        UINT frameNumber,
+        UINT width,
+        UINT height)
+    {
+        const UINT sequenceIndex = frameNumber % 8u + 1u;
+        const float jitterPixelsX = Halton(sequenceIndex, 2u) - 0.5f;
+        const float jitterPixelsY = Halton(sequenceIndex, 3u) - 0.5f;
+        return DirectX::XMFLOAT2(
+            2.0f * jitterPixelsX / static_cast<float>(width),
+            -2.0f * jitterPixelsY / static_cast<float>(height));
+    }
 }
 
 
@@ -149,6 +175,8 @@ void TrDeferredRenderer::OnUpdate()
     }
 
     std::optional<std::wstring> sceneChangeRequest;
+    const TrGeometryVisualization previousGeometryVisualization =
+        mGeometryVisualization;
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
            mRuntimeScene,
@@ -160,6 +188,11 @@ void TrDeferredRenderer::OnUpdate()
            sceneChangeRequest))
     {
         UpdateWindowTitle();
+    }
+    if(previousGeometryVisualization != mGeometryVisualization)
+    {
+        mScreenProbeResources.InvalidateHistory();
+        mTaaHistory.Invalidate();
     }
     if(sceneChangeRequest.has_value())
     {
@@ -192,12 +225,25 @@ void TrDeferredRenderer::OnUpdate()
         cameraPosition,
         cameraForward,
         XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-    const XMMATRIX projection = TrRenderConfig::CreatePerspectiveFovLH(
+    const XMMATRIX unjitteredProjection = TrRenderConfig::CreatePerspectiveFovLH(
         verticalFieldOfView,
         mAspectRatio,
         mCameraNearPlane,
         mCameraFarPlane);
+    const XMFLOAT2 currentJitter = CalculateTemporalJitterNdc(
+        mFrameNumber,
+        mWidth,
+        mHeight);
+    mPreviousTemporalJitter = mFrameNumber == 0
+        ? currentJitter
+        : mTemporalJitter;
+    mTemporalJitter = currentJitter;
+    const XMMATRIX projection = unjitteredProjection * XMMatrixTranslation(
+        currentJitter.x,
+        currentJitter.y,
+        0.0f);
     const XMMATRIX viewProjection = view * projection;
+    const XMMATRIX unjitteredViewProjection = view * unjitteredProjection;
     const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
     TrSceneConstants sceneConstants = {};
     XMStoreFloat3(
@@ -212,7 +258,7 @@ void TrDeferredRenderer::OnUpdate()
         &viewConstants.InverseViewProjection,
         XMMatrixTranspose(inverseViewProjection));
     const XMMATRIX previousViewProjection = mFrameNumber == 0
-        ? viewProjection
+        ? unjitteredViewProjection
         : XMLoadFloat4x4(&mPreviousViewProjection);
     XMStoreFloat4x4(
         &viewConstants.PreviousViewProjection,
@@ -226,6 +272,8 @@ void TrDeferredRenderer::OnUpdate()
     viewConstants.InverseRenderSize = XMFLOAT2(
         1.0f / static_cast<float>(mWidth),
         1.0f / static_cast<float>(mHeight));
+    viewConstants.TemporalJitter = mTemporalJitter;
+    viewConstants.PreviousTemporalJitter = mPreviousTemporalJitter;
     viewConstants.FrameNumber = mFrameNumber;
 
     TrGBufferPassConstants gBufferPassConstants = {};
@@ -282,7 +330,7 @@ void TrDeferredRenderer::OnUpdate()
     frame.ForwardTransparentPassConstantBuffer.Update(transparentPassConstants);
     frame.CompositePassConstantBuffer.Update(compositePassConstants);
 
-    XMStoreFloat4x4(&mPreviousViewProjection, viewProjection);
+    XMStoreFloat4x4(&mPreviousViewProjection, unjitteredViewProjection);
     ++mFrameNumber;
 }
 
@@ -346,7 +394,7 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
     mDeferredRenderTargets.Resize(mDevice.Get(), width, height);
     mHierarchicalDepth.Resize(mDevice.Get(), width, height);
     mScreenProbeResources.Resize(mDevice.Get(), width, height);
-    mLightingHistory.Resize(mDevice.Get(), width, height);
+    mTaaHistory.Resize(mDevice.Get(), width, height);
     RegisterGpuDebugViews();
 
     for(TrFrameContext& frame : mFrameContexts)
@@ -357,6 +405,8 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
     DirectX::XMStoreFloat4x4(
         &mPreviousViewProjection,
         DirectX::XMMatrixIdentity());
+    mTemporalJitter = {0.0f, 0.0f};
+    mPreviousTemporalJitter = {0.0f, 0.0f};
 }
 
 void TrDeferredRenderer::OnDestroy()
@@ -789,13 +839,13 @@ void TrDeferredRenderer::LoadPipeline()
         mDsvHeap,
         mResourceHeap,
         TrRenderConfig::DepthClearValue);
-    mLightingHistory.Initialize(
+    mTaaHistory.Initialize(
         mDevice.Get(),
         mWidth,
         mHeight,
         TrDeferredRenderTargets::HdrLightingFormat,
         mResourceHeap,
-        L"Indirect Lighting History");
+        L"TAA HDR History");
     mHierarchicalDepth.Initialize(
         mDevice.Get(),
         mWidth,
@@ -864,6 +914,10 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
     mGpuDebug.Reset();
     mGpuDebug.RegisterView(
         L"Final Lighting",
+        mTaaHistory.GetCurrentSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
+    mGpuDebug.RegisterView(
+        L"Raw Lighting",
         mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mGpuDebug.RegisterView(
@@ -894,6 +948,10 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         L"Linear Depth",
         mDeferredRenderTargets.GetDepthSrv().GpuHandle,
         TrDebugVisualization::DeviceDepth);
+    mGpuDebug.RegisterView(
+        L"Velocity",
+        mDeferredRenderTargets.GetVelocitySrv().GpuHandle,
+        TrDebugVisualization::MotionVectors);
     for(UINT mip = 0;
         mip < mHierarchicalDepth.GetDescription().MipCount;
         ++mip)
@@ -922,6 +980,12 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
     mGpuDebug.RegisterView(
         L"Lumen Probe Irradiance",
         mScreenProbeResources.GetIrradianceSrv().GpuHandle,
+        TrDebugVisualization::HdrColor);
+    mProbeTemporalDebugViewIndex = mGpuDebug.GetViewCount();
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Irradiance Temporal",
+        mScreenProbeResources.GetIrradianceHistory()
+            .GetCurrentSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
 }
 
@@ -975,6 +1039,12 @@ void TrDeferredRenderer::LoadAssets()
     mScreenProbeIrradiancePass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Lumen/screen_probe_irradiance.hlsl"));
+    mScreenProbeTemporalPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Lumen/screen_probe_temporal.hlsl"));
+    mTaaPass.Initialize(
+        mDevice.Get(),
+        GetAssetFullPath(SHADER_DIR L"Compute/taa.hlsl"));
     mDeferredLightingPass.Initialize(
         mDevice.Get(),
         GetAssetFullPath(SHADER_DIR L"Raster/deferred_lighting.hlsl"));
@@ -1389,6 +1459,17 @@ void TrDeferredRenderer::PopulateCommandList()
         mCommandList.Get(),
         mResourceHeap,
         mScreenProbeResources);
+    const UINT renderFrameNumber = mFrameNumber > 0 ? mFrameNumber - 1u : 0u;
+    const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =
+        mScreenProbeTemporalPass.Resolve(
+            mCommandList.Get(),
+            mResourceHeap,
+            frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+            renderFrameNumber,
+            mScreenProbeResources);
+    mGpuDebug.UpdateViewSource(
+        mProbeTemporalDebugViewIndex,
+        probeTemporalOutputs.IrradianceSrv);
 
     mDeferredLightingPass.Render(
         mCommandList.Get(),
@@ -1397,7 +1478,10 @@ void TrDeferredRenderer::PopulateCommandList()
         frame.SceneConstantBuffer.GetGpuVirtualAddress(),
         frame.ViewConstantBuffer.GetGpuVirtualAddress(),
         frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
-        mScreenProbeResources);
+        mScreenProbeResources,
+        *probeTemporalOutputs.Irradiance,
+        probeTemporalOutputs.IrradianceSrv);
+    mScreenProbeResources.AdvanceHistory();
 
     if(!transparentDraws.empty())
     {
@@ -1448,10 +1532,40 @@ void TrDeferredRenderer::PopulateCommandList()
             mDeferredRenderTargets);
     }
 
+    TrTaaConstants taaConstants;
+    taaConstants.Width = mWidth;
+    taaConstants.Height = mHeight;
+    taaConstants.HistoryValid = mTaaHistory.IsValid() ? 1u : 0u;
+    taaConstants.FrameNumber = renderFrameNumber;
+    taaConstants.CurrentJitterNdc = mTemporalJitter;
+    taaConstants.PreviousJitterNdc = mPreviousTemporalJitter;
+    taaConstants.NearPlane = mCameraNearPlane;
+    taaConstants.FarPlane = mCameraFarPlane;
+    const D3D12_GPU_DESCRIPTOR_HANDLE taaOutputSrv = mTaaPass.Resolve(
+        mCommandList.Get(),
+        mResourceHeap,
+        {
+            &mDeferredRenderTargets.GetHdrLighting(),
+            mDeferredRenderTargets.GetHdrLightingSrv().GpuHandle,
+            &mDeferredRenderTargets.GetVelocity(),
+            mDeferredRenderTargets.GetVelocitySrv().GpuHandle,
+            &mDeferredRenderTargets.GetDepth(),
+            mDeferredRenderTargets.GetDepthSrv().GpuHandle
+        },
+        taaConstants,
+        mTaaHistory);
+    mTaaHistory.AdvanceFrame();
+
+    const TrGpuDebugView& selectedDebugView = mGpuDebug.GetSelectedView();
+    const D3D12_GPU_DESCRIPTOR_HANDLE compositeSource =
+        mGpuDebug.GetSelectedIndex() == 0u
+            ? taaOutputSrv
+            : selectedDebugView.SourceSrv;
+
     mCompositePass.Render(
         mCommandList.Get(),
         mResourceHeap,
-        mGpuDebug.GetSelectedView().SourceSrv,
+        compositeSource,
         frame.CompositePassConstantBuffer.GetGpuVirtualAddress(),
         mRenderTargets[mFrameIndex],
         mRenderTargetViews[mFrameIndex].CpuHandle);

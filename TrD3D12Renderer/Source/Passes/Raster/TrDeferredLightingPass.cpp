@@ -68,11 +68,14 @@ void TrDeferredLightingPass::Render(
     D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
     D3D12_GPU_VIRTUAL_ADDRESS passConstants,
-    TrScreenProbeResources& screenProbes)
+    TrScreenProbeResources& screenProbes,
+    TrTexture& probeIrradiance,
+    D3D12_GPU_DESCRIPTOR_HANDLE probeIrradianceSrv)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        !resourceHeap.IsShaderVisible() || sceneConstants == 0 ||
-       viewConstants == 0 || passConstants == 0)
+       viewConstants == 0 || passConstants == 0 ||
+       probeIrradianceSrv.ptr == 0)
     {
         throw std::invalid_argument("Deferred lighting pass inputs are invalid.");
     }
@@ -81,7 +84,7 @@ void TrDeferredLightingPass::Render(
     const D3D12_RESOURCE_DESC& hdrDescription =
         renderTargets.GetHdrLighting().GetDescription();
     const D3D12_RESOURCE_DESC& irradianceDescription =
-        screenProbes.GetIrradiance().GetDescription();
+        probeIrradiance.GetDescription();
     if(hdrDescription.Width != layout.RenderWidth ||
        hdrDescription.Height != layout.RenderHeight ||
        irradianceDescription.Width != layout.ProbeCountX ||
@@ -94,7 +97,7 @@ void TrDeferredLightingPass::Render(
     screenProbes.GetNormalDepth().Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
-    screenProbes.GetIrradiance().Transition(
+    probeIrradiance.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
@@ -113,7 +116,7 @@ void TrDeferredLightingPass::Render(
         screenProbes.GetNormalDepthSrv().GpuHandle);
     commandList->SetGraphicsRootDescriptorTable(
         5,
-        screenProbes.GetIrradianceSrv().GpuHandle);
+        probeIrradianceSrv);
 
     renderTargets.BeginDeferredLightingPass(commandList);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -101,7 +101,9 @@ set(TR_RASTER_PASS_FILES
 
 set(TR_COMPUTE_PASS_FILES
   Source/Passes/Compute/TrHzbPass.cpp
-  Source/Passes/Compute/TrHzbPass.h)
+  Source/Passes/Compute/TrHzbPass.h
+  Source/Passes/Compute/TrTaaPass.cpp
+  Source/Passes/Compute/TrTaaPass.h)
 
 set(TR_LUMEN_FILES
   Source/Lumen/TrScreenProbeIrradiancePass.cpp
@@ -112,6 +114,8 @@ set(TR_LUMEN_FILES
   Source/Lumen/TrScreenProbeRadiancePass.h
   Source/Lumen/TrScreenProbeResources.cpp
   Source/Lumen/TrScreenProbeResources.h
+  Source/Lumen/TrScreenProbeTemporalPass.cpp
+  Source/Lumen/TrScreenProbeTemporalPass.h
   Source/Lumen/TrScreenTraceHit.h
   Source/Lumen/TrScreenTracePass.cpp
   Source/Lumen/TrScreenTracePass.h)
@@ -215,10 +219,12 @@ set(HLSL_SOURCE_FILES
   shaders/Raster/forward_transparent.hlsl
   shaders/Raster/gbuffer.hlsl)
 set(COMPUTE_HLSL_SOURCE_FILES
-  shaders/Compute/hzb.hlsl)
+  shaders/Compute/hzb.hlsl
+  shaders/Compute/taa.hlsl)
 set(LUMEN_HLSL_SOURCE_FILES
   shaders/Lumen/screen_probe_irradiance.hlsl
   shaders/Lumen/screen_probe_radiance.hlsl
+  shaders/Lumen/screen_probe_temporal.hlsl
   shaders/Lumen/screen_probe.hlsl
   shaders/Lumen/screen_probe_common.header.hlsl
   shaders/Lumen/screen_trace_hit.header.hlsl

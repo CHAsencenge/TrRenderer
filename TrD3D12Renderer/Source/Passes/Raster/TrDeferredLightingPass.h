@@ -16,7 +16,9 @@ public:
         D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
         D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
         D3D12_GPU_VIRTUAL_ADDRESS passConstants,
-        TrScreenProbeResources& screenProbes);
+        TrScreenProbeResources& screenProbes,
+        TrTexture& probeIrradiance,
+        D3D12_GPU_DESCRIPTOR_HANDLE probeIrradianceSrv);
 
 private:
     TrGraphicsPipeline mPipeline;

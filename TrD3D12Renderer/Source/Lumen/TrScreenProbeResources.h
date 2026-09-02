@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Resources/TrDescriptorHeap.h"
+#include "Resources/TrHistoryTexture.h"
 #include "Resources/TrTexture.h"
 #include "TrScreenTraceHit.h"
 
@@ -20,9 +21,9 @@ struct TrScreenProbeLayout
 };
 
 // Persistent allocations shared by Screen Probe placement, Screen Trace and
-// lighting evaluation. Their contents are overwritten each frame; only the
-// resource objects and descriptors persist across frames. Resize rewrites the
-// descriptors in place so GPU debug view handles remain stable.
+// lighting evaluation. Per-frame working textures are overwritten each frame;
+// the temporal histories retain resolved irradiance and the geometry identity
+// used to validate reprojection. Resize rewrites descriptors in place.
 class TrScreenProbeResources
 {
 public:
@@ -45,6 +46,10 @@ public:
         UINT height,
         TrDescriptorHeap& resourceHeap);
     void Resize(ID3D12Device* device, UINT width, UINT height);
+    void AdvanceHistory();
+    void InvalidateHistory();
+
+    bool IsHistoryValid() const;
 
     const TrScreenProbeLayout& GetLayout() const { return mLayout; }
 
@@ -74,6 +79,13 @@ public:
     const TrDescriptorAllocation& GetIrradianceSrv() const { return mIrradianceSrv; }
     const TrDescriptorAllocation& GetIrradianceUav() const { return mIrradianceUav; }
 
+    TrHistoryTexture& GetIrradianceHistory() { return mIrradianceHistory; }
+    TrHistoryTexture& GetPositionHistory() { return mPositionHistory; }
+    TrHistoryTexture& GetNormalDepthHistory() { return mNormalDepthHistory; }
+    const TrHistoryTexture& GetIrradianceHistory() const { return mIrradianceHistory; }
+    const TrHistoryTexture& GetPositionHistory() const { return mPositionHistory; }
+    const TrHistoryTexture& GetNormalDepthHistory() const { return mNormalDepthHistory; }
+
 private:
     void CreateResources(ID3D12Device* device, UINT width, UINT height);
 
@@ -84,6 +96,9 @@ private:
     TrTexture mTraceDebug;
     TrTexture mRadiance;
     TrTexture mIrradiance;
+    TrHistoryTexture mIrradianceHistory;
+    TrHistoryTexture mPositionHistory;
+    TrHistoryTexture mNormalDepthHistory;
     TrDescriptorAllocation mPositionSrv;
     TrDescriptorAllocation mPositionUav;
     TrDescriptorAllocation mNormalDepthSrv;

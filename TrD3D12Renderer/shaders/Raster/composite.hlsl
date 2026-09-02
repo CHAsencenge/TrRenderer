@@ -109,6 +109,20 @@ float4 PSMain(FullscreenVertex input) : SV_Target
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
+    if(g_visualizationMode == 9u)
+    {
+        const float2 velocityPixels = source.xy * g_outputSize;
+        const float motionVisibility = saturate(length(velocityPixels) / 16.0f);
+        const float2 direction = velocityPixels / max(
+            length(velocityPixels),
+            1.0e-5f);
+        return float4(
+            0.5f + direction.x * 0.5f * motionVisibility,
+            0.5f - direction.y * 0.5f * motionVisibility,
+            motionVisibility,
+            1.0f);
+    }
+
     float3 linearColor = source.rgb;
     if(g_visualizationMode == 0u)
     {

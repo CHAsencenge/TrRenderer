@@ -7,13 +7,16 @@
 class TrDeferredRenderTargets
 {
 public:
-    static constexpr UINT RtvDescriptorCount = 4;
+    static constexpr UINT RtvDescriptorCount = 5;
     static constexpr UINT DsvDescriptorCount = 2;
-    static constexpr UINT ShaderResourceDescriptorCount = 6;
+    static constexpr UINT ShaderResourceDescriptorCount = 7;
 
     static constexpr DXGI_FORMAT BaseColorRoughnessFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     static constexpr DXGI_FORMAT NormalMetallicFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT EmissiveOcclusionFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    // XY stores non-jittered UV motion, Z stores previous device depth and W
+    // marks whether the previous clip position was valid.
+    static constexpr DXGI_FORMAT VelocityFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT DepthResourceFormat = DXGI_FORMAT_R32G8X24_TYPELESS;
     static constexpr DXGI_FORMAT DepthStencilViewFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
     static constexpr DXGI_FORMAT DepthSrvFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
@@ -45,7 +48,11 @@ public:
     const TrTexture& GetBaseColorRoughness() const { return mBaseColorRoughness; }
     const TrTexture& GetNormalMetallic() const { return mNormalMetallic; }
     const TrTexture& GetEmissiveOcclusion() const { return mEmissiveOcclusion; }
+    TrTexture& GetVelocity() { return mVelocity; }
+    const TrTexture& GetVelocity() const { return mVelocity; }
+    TrTexture& GetDepth() { return mDepth; }
     const TrTexture& GetDepth() const { return mDepth; }
+    TrTexture& GetHdrLighting() { return mHdrLighting; }
     const TrTexture& GetHdrLighting() const { return mHdrLighting; }
 
     const TrDescriptorAllocation& GetBaseColorSrv() const { return mBaseColorSrv; }
@@ -53,6 +60,7 @@ public:
     const TrDescriptorAllocation& GetDepthSrv() const { return mDepthSrv; }
     const TrDescriptorAllocation& GetStencilSrv() const { return mStencilSrv; }
     const TrDescriptorAllocation& GetEmissiveSrv() const { return mEmissiveSrv; }
+    const TrDescriptorAllocation& GetVelocitySrv() const { return mVelocitySrv; }
     const TrDescriptorAllocation& GetHdrLightingSrv() const { return mHdrLightingSrv; }
     TrDepthNormalView GetDepthNormalView() const;
 
@@ -63,11 +71,13 @@ private:
     TrTexture mNormalMetallic;
     TrTexture mDepth;
     TrTexture mEmissiveOcclusion;
+    TrTexture mVelocity;
     TrTexture mHdrLighting;
 
     TrDescriptorAllocation mBaseColorRtv;
     TrDescriptorAllocation mNormalRtv;
     TrDescriptorAllocation mEmissiveRtv;
+    TrDescriptorAllocation mVelocityRtv;
     TrDescriptorAllocation mHdrLightingRtv;
     TrDescriptorAllocation mDepthDsv;
     TrDescriptorAllocation mReadOnlyDepthDsv;
@@ -76,6 +86,7 @@ private:
     TrDescriptorAllocation mNormalSrv;
     TrDescriptorAllocation mDepthSrv;
     TrDescriptorAllocation mEmissiveSrv;
+    TrDescriptorAllocation mVelocitySrv;
     TrDescriptorAllocation mHdrLightingSrv;
     TrDescriptorAllocation mStencilSrv;
     float mDepthClearValue = 1.0f;

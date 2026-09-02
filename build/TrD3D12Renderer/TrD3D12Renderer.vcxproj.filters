@@ -31,6 +31,9 @@
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.cpp">
       <Filter>Passes\Compute</Filter>
     </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrTaaPass.cpp">
+      <Filter>Passes\Compute</Filter>
+    </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeIrradiancePass.cpp">
       <Filter>Lumen</Filter>
     </ClCompile>
@@ -41,6 +44,9 @@
       <Filter>Lumen</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.cpp">
+      <Filter>Lumen</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeTemporalPass.cpp">
       <Filter>Lumen</Filter>
     </ClCompile>
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTracePass.cpp">
@@ -165,6 +171,9 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrHzbPass.h">
       <Filter>Passes\Compute</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Compute\TrTaaPass.h">
+      <Filter>Passes\Compute</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeIrradiancePass.h">
       <Filter>Lumen</Filter>
     </ClInclude>
@@ -175,6 +184,9 @@
       <Filter>Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeResources.h">
+      <Filter>Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenProbeTemporalPass.h">
       <Filter>Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Lumen\TrScreenTraceHit.h">
@@ -282,10 +294,16 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\hzb.hlsl">
       <Filter>Shaders\Compute</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Compute\taa.hlsl">
+      <Filter>Shaders\Compute</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_irradiance.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_radiance.hlsl">
+      <Filter>Shaders\Lumen</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_temporal.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe.hlsl">

@@ -8,10 +8,12 @@
 #include "App/TrRendererBase.h"
 #include "Passes/Raster/TrCompositePass.h"
 #include "Passes/Compute/TrHzbPass.h"
+#include "Passes/Compute/TrTaaPass.h"
 #include "Lumen/TrScreenProbePass.h"
 #include "Lumen/TrScreenProbeIrradiancePass.h"
 #include "Lumen/TrScreenProbeRadiancePass.h"
 #include "Lumen/TrScreenProbeResources.h"
+#include "Lumen/TrScreenProbeTemporalPass.h"
 #include "Lumen/TrScreenTracePass.h"
 #include "Resources/TrConstantBuffer.h"
 #include "Passes/Raster/TrDeferredLightingPass.h"
@@ -134,7 +136,9 @@ private:
     TrScreenTracePass mScreenTracePass;
     TrScreenProbeRadiancePass mScreenProbeRadiancePass;
     TrScreenProbeIrradiancePass mScreenProbeIrradiancePass;
-    TrHistoryTexture mLightingHistory;
+    TrScreenProbeTemporalPass mScreenProbeTemporalPass;
+    TrTaaPass mTaaPass;
+    TrHistoryTexture mTaaHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;
 
@@ -172,6 +176,9 @@ private:
     INT mLastMouseY = 0;
     std::chrono::steady_clock::time_point mLastCameraUpdateTime;
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
+    DirectX::XMFLOAT2 mTemporalJitter = {0.0f, 0.0f};
+    DirectX::XMFLOAT2 mPreviousTemporalJitter = {0.0f, 0.0f};
+    UINT mProbeTemporalDebugViewIndex = UINT_MAX;
     float mExposure = 1.0f;
     float mDepthVisualizationRange = 10.0f;
     bool mInitialized = false;
