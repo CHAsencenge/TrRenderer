@@ -194,8 +194,11 @@ void TrMaterialResources::Initialize(
         throw std::invalid_argument("Material resource initialization is incomplete.");
     }
 
+    const UINT resourceDescriptorStart = resourceHeap.GetAllocatedCount();
+    const UINT samplerDescriptorStart = samplerHeap.GetAllocatedCount();
     mImages.clear();
     mFallbackImages.clear();
+    mSamplerTables.clear();
     mConstantBuffers.clear();
     mMaterials.clear();
 
@@ -328,6 +331,20 @@ void TrMaterialResources::Initialize(
                 true));
         }
     }
+
+    const std::size_t loadedImageCount = static_cast<std::size_t>(std::count_if(
+        mImages.begin(),
+        mImages.end(),
+        [](const std::unique_ptr<TrGpuImage>& image) { return image != nullptr; }));
+    TrLog::Info(
+        "Material resources initialized: " +
+        std::to_string(loadedImageCount) + " source images, " +
+        std::to_string(mMaterials.size()) + " materials, " +
+        std::to_string(mSamplerTables.size()) + " unique sampler tables, " +
+        std::to_string(resourceHeap.GetAllocatedCount() - resourceDescriptorStart) +
+        " resource descriptors, " +
+        std::to_string(samplerHeap.GetAllocatedCount() - samplerDescriptorStart) +
+        " sampler descriptors.");
 }
 
 TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
@@ -343,6 +360,8 @@ TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
     constantBuffer->Update(CreateConstants(material, gltfDefaults));
 
     const TextureBindingArray textureBindings = GetTextureBindings(material);
+    std::array<std::int32_t, TextureSlotCount> samplerIndices;
+    samplerIndices.fill(-1);
     const std::array<const TrGpuImage*, TextureSlotCount> fallbackImages =
     {
         mFallbackImages[0].get(),
@@ -366,7 +385,6 @@ TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
         : TrSceneAlphaMode::Opaque;
     result.Constants = constantBuffer->GetGpuVirtualAddress();
     UINT firstTextureIndex = UINT_MAX;
-    UINT firstSamplerIndex = UINT_MAX;
     for(std::size_t slot = 0; slot < TextureSlotCount; ++slot)
     {
         const TrSceneTexture* texture = ResolveTexture(scene, textureBindings[slot]);
@@ -381,18 +399,14 @@ TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
         }
 
         const TrDescriptorAllocation textureDestination = resourceHeap.Allocate();
-        const TrDescriptorAllocation samplerDestination = samplerHeap.Allocate();
         if(slot == 0)
         {
             firstTextureIndex = textureDestination.Index;
-            firstSamplerIndex = samplerDestination.Index;
             result.TextureTable = textureDestination.GpuHandle;
-            result.SamplerTable = samplerDestination.GpuHandle;
         }
-        else if(textureDestination.Index != firstTextureIndex + slot ||
-                samplerDestination.Index != firstSamplerIndex + slot)
+        else if(textureDestination.Index != firstTextureIndex + slot)
         {
-            throw std::logic_error("Material texture and sampler tables must be contiguous.");
+            throw std::logic_error("Material texture tables must be contiguous.");
         }
 
         const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle = useSrgb[slot]
@@ -403,9 +417,51 @@ TrMaterialGpuBinding TrMaterialResources::CreateMaterialBinding(
             textureDestination.CpuHandle,
             sourceHandle,
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        const D3D12_SAMPLER_DESC samplerDescription = CreateSamplerDesc(
-            ResolveSampler(scene, texture));
-        device->CreateSampler(&samplerDescription, samplerDestination.CpuHandle);
+        if(texture != nullptr)
+        {
+            samplerIndices[slot] = texture->SamplerIndex;
+        }
+    }
+
+    const auto existingSamplerTable = std::find_if(
+        mSamplerTables.begin(),
+        mSamplerTables.end(),
+        [&samplerIndices](const TrSamplerTable& table)
+        {
+            return table.SamplerIndices == samplerIndices;
+        });
+    if(existingSamplerTable != mSamplerTables.end())
+    {
+        result.SamplerTable = existingSamplerTable->Handle;
+    }
+    else
+    {
+        UINT firstSamplerIndex = UINT_MAX;
+        for(std::size_t slot = 0; slot < TextureSlotCount; ++slot)
+        {
+            const TrDescriptorAllocation samplerDestination =
+                samplerHeap.Allocate();
+            if(slot == 0)
+            {
+                firstSamplerIndex = samplerDestination.Index;
+                result.SamplerTable = samplerDestination.GpuHandle;
+            }
+            else if(samplerDestination.Index != firstSamplerIndex + slot)
+            {
+                throw std::logic_error("Material sampler tables must be contiguous.");
+            }
+
+            const TrSceneSampler* sampler = samplerIndices[slot] >= 0
+                ? &scene->Samplers[static_cast<std::size_t>(samplerIndices[slot])]
+                : nullptr;
+            const D3D12_SAMPLER_DESC samplerDescription =
+                CreateSamplerDesc(sampler);
+            device->CreateSampler(
+                &samplerDescription,
+                samplerDestination.CpuHandle);
+        }
+
+        mSamplerTables.push_back({samplerIndices, result.SamplerTable});
     }
 
     mConstantBuffers.push_back(std::move(constantBuffer));

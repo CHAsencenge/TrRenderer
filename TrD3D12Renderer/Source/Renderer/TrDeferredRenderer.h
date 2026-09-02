@@ -28,7 +28,9 @@
 #include "Scene/TrRuntimeScene.h"
 #include "TrScene.h"
 
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <vector>
 
 class TrWindowApp;
@@ -45,11 +47,23 @@ public:
 
     void OnKeyDown(UINT8 wParam) override;
     void OnKeyUp(UINT8 wParam) override;
+    void OnMouseMove(INT x, INT y) override;
+    void OnRightMouseButtonDown(INT x, INT y) override;
+    void OnRightMouseButtonUp() override;
+    void OnInputFocusLost() override;
+
+    const std::optional<std::wstring>& GetRequestedScenePath() const
+    {
+        return mRequestedScenePath;
+    }
 
 private:
     void LoadPipeline();
     void LoadAssets();
     void CreateBackBufferResources();
+    void BuildSceneSelectionList();
+    void InitializeCamera();
+    void UpdateCamera(float deltaSeconds);
     void RegisterGpuDebugViews();
     void UpdateWindowTitle() const;
 
@@ -127,10 +141,14 @@ private:
     // app resources
     TrScene mLoadedScene;
     TrRuntimeScene mRuntimeScene;
+    TrAxisAlignedBounds mCameraBounds;
     TrMaterialResources mMaterialResources;
     bool mUsingImportedScene = false;
     TrNodeId mProceduralAnimationNodeId = TrInvalidRuntimeId;
     TrGeometryVisualization mGeometryVisualization = TrGeometryVisualization::Shaded;
+    std::vector<TrSceneSelectionEntry> mSceneSelectionEntries;
+    std::size_t mCurrentSceneSelectionIndex = 0;
+    std::optional<std::wstring> mRequestedScenePath;
 
     // synchronization objects
     UINT64 mNextFenceValue = 1;
@@ -140,6 +158,19 @@ private:
     UINT mFrameIndex;
     UINT mFrameNumber = 0;
     DirectX::XMFLOAT3 mCameraPosition = {0.0f, 0.0f, 0.0f};
+    float mCameraYaw = 0.0f;
+    float mCameraPitch = 0.0f;
+    float mCameraMoveSpeed = 2.0f;
+    float mCameraNearPlane = 0.1f;
+    float mCameraFarPlane = 100.0f;
+    bool mMoveForward = false;
+    bool mMoveBackward = false;
+    bool mMoveLeft = false;
+    bool mMoveRight = false;
+    bool mMouseLookActive = false;
+    INT mLastMouseX = 0;
+    INT mLastMouseY = 0;
+    std::chrono::steady_clock::time_point mLastCameraUpdateTime;
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
     float mExposure = 1.0f;
     float mDepthVisualizationRange = 10.0f;

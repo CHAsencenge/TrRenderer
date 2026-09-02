@@ -1,13 +1,20 @@
 #pragma once
 #include "Utilities/TrUtil.h"
 
+#include <optional>
+#include <string>
+
 class TrRendererBase;
 
 class TrWindowApp
 {
 public:
 
-    static int Run(TrRendererBase* renderer, HINSTANCE hInstance, int nCmdShow);
+    static int Run(
+        TrRendererBase* renderer,
+        HINSTANCE hInstance,
+        int nCmdShow,
+        const std::optional<std::wstring>& sceneOverride = std::nullopt);
 
     static HWND GetHwnd();
 

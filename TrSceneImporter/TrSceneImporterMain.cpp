@@ -49,6 +49,23 @@ namespace
                 ++meshInstanceCount;
             }
         }
+        std::uint64_t uv2TextureBindingCount = 0;
+        for(const TrSceneMaterial& material : verifiedScene.Materials)
+        {
+            const TrSceneTextureBinding* bindings[] =
+            {
+                &material.BaseColorTexture,
+                &material.MetallicRoughnessTexture,
+                &material.NormalTexture,
+                &material.OcclusionTexture,
+                &material.EmissiveTexture
+            };
+            for(const TrSceneTextureBinding* binding : bindings)
+            {
+                uv2TextureBindingCount +=
+                    binding->TextureIndex >= 0 && binding->TexCoord == 2 ? 1u : 0u;
+            }
+        }
 
         std::ostringstream summary;
         summary
@@ -59,6 +76,7 @@ namespace
             << "  Active nodes: " << activeNodes.size() << '\n'
             << "  Mesh instances: " << meshInstanceCount << '\n'
             << "  Materials: " << verifiedScene.Materials.size() << '\n'
+            << "  Samplers: " << verifiedScene.Samplers.size() << '\n'
             << "  Textures: " << verifiedScene.Textures.size() << '\n'
             << "  Images: " << verifiedScene.Images.size() << '\n'
             << "  Embedded image bytes: " << embeddedImageBytes << '\n'
@@ -67,6 +85,7 @@ namespace
             << "  Geometry vertices: " << vertexCount << '\n'
             << "  Geometry indices: " << indexCount << '\n'
             << "  Primitives: " << primitiveCount << '\n'
+            << "  UV2 texture bindings: " << uv2TextureBindingCount << '\n'
             << "  World AABB: min ("
             << worldBounds.Minimum[0] << ", "
             << worldBounds.Minimum[1] << ", "

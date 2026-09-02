@@ -221,7 +221,8 @@ void TrRuntimeScene::Initialize(
                 {vertex.Normal[0], vertex.Normal[1], vertex.Normal[2]},
                 {vertex.Color[0], vertex.Color[1], vertex.Color[2]},
                 {vertex.TexCoord0[0], vertex.TexCoord0[1]},
-                {vertex.TexCoord1[0], vertex.TexCoord1[1]}
+                {vertex.TexCoord1[0], vertex.TexCoord1[1]},
+                {vertex.TexCoord2[0], vertex.TexCoord2[1]}
             });
         }
 

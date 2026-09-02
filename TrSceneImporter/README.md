@@ -44,7 +44,7 @@ sphere/cube meshes instanced under nested, animated parent nodes.
 
 - Active-scene node hierarchy, transforms, and mesh instances
 - Static triangle meshes with 16-bit or 32-bit source indices
-- Positions, normals, tangents, UV0/UV1, and vertex colors
+- Positions, normals, tangents, UV0/UV1/UV2, and vertex colors
 - Metallic/roughness PBR factors and texture bindings
 - Embedded image payloads, samplers, and texture references
 - Punctual lights and cameras
@@ -53,8 +53,8 @@ sphere/cube meshes instanced under nested, animated parent nodes.
 
 The DX12 renderer preserves mesh/primitive/instance relationships, uploads
 embedded WIC-decodable textures, and samples base-color, metallic-roughness,
-normal, occlusion, and emissive maps. Alpha mask is supported; alpha blend is
-still rendered through the opaque path.
+normal, occlusion, and emissive maps. Alpha mask participates in the prepass;
+alpha blend is rendered by the forward transparent pass.
 
 Draco/meshopt meshes, skins, animation, morph targets, and GPU-instancing
 extensions are not expanded. Unsupported static-scene features produce warnings

@@ -16,6 +16,29 @@
 
 namespace
 {
+    std::wstring NormalizeScenePath(const std::filesystem::path& path)
+    {
+        std::error_code error;
+        std::filesystem::path normalized = std::filesystem::absolute(path, error);
+        if(error)
+        {
+            normalized = path;
+            error.clear();
+        }
+        const std::filesystem::path canonical =
+            std::filesystem::weakly_canonical(normalized, error);
+        if(!error)
+        {
+            normalized = canonical;
+        }
+        return normalized.lexically_normal().wstring();
+    }
+
+    bool ScenePathsEqual(const std::wstring& lhs, const std::wstring& rhs)
+    {
+        return _wcsicmp(lhs.c_str(), rhs.c_str()) == 0;
+    }
+
     bool ShouldRenderInDepthNormalPrepass(TrSceneAlphaMode alphaMode)
     {
         if(!TrRenderConfig::IsDepthNormalPrepassEnabled ||
@@ -56,6 +79,8 @@ void TrDeferredRenderer::OnInitialize()
     LoadPipeline();
     RegisterGpuDebugViews();
     LoadAssets();
+    InitializeCamera();
+    BuildSceneSelectionList();
     mGpuDebugPanel.Initialize(
         TrWindowApp::GetHwnd(),
         mDevice.Get(),
@@ -123,48 +148,55 @@ void TrDeferredRenderer::OnUpdate()
         }
     }
 
+    std::optional<std::wstring> sceneChangeRequest;
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
            mRuntimeScene,
            mGeometryVisualization,
            mExposure,
-           mDepthVisualizationRange))
+           mDepthVisualizationRange,
+           mSceneSelectionEntries,
+           mCurrentSceneSelectionIndex,
+           sceneChangeRequest))
     {
         UpdateWindowTitle();
     }
+    if(sceneChangeRequest.has_value())
+    {
+        mRequestedScenePath = std::move(sceneChangeRequest);
+        const std::wstring displayPath = mRequestedScenePath->empty()
+            ? L"Procedural Cornell Box"
+            : *mRequestedScenePath;
+        TrLog::Info(L"Scene switch requested: " + displayPath);
+        PostMessageW(TrWindowApp::GetHwnd(), WM_CLOSE, 0, 0);
+        return;
+    }
 
-    const TrAxisAlignedBounds& sceneBounds = mRuntimeScene.GetWorldBounds();
-    const XMFLOAT3 sceneBoundsCenter = sceneBounds.GetCenter();
-    const float sceneBoundsRadius = std::max(sceneBounds.GetRadius(), 0.001f);
-    const float cameraDistance = mUsingImportedScene
-        ? std::max(sceneBoundsRadius * 3.2f, 0.1f)
-        : 0.0f;
-    const XMVECTOR cameraPosition = mUsingImportedScene
-        ? XMVectorSet(
-            sceneBoundsCenter.x,
-            sceneBoundsCenter.y + sceneBoundsRadius * 0.15f,
-            sceneBoundsCenter.z - cameraDistance,
-            1.0f)
-        : XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
-    const XMVECTOR cameraTarget = mUsingImportedScene
-        ? XMLoadFloat3(&sceneBoundsCenter)
-        : XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f);
-    XMStoreFloat3(&mCameraPosition, cameraPosition);
-    const XMMATRIX view = XMMatrixLookAtLH(
+    const auto updateTime = std::chrono::steady_clock::now();
+    const float deltaSeconds = std::clamp(
+        std::chrono::duration<float>(updateTime - mLastCameraUpdateTime).count(),
+        0.0f,
+        0.1f);
+    mLastCameraUpdateTime = updateTime;
+    UpdateCamera(deltaSeconds);
+
+    constexpr float verticalFieldOfView = XM_PIDIV4;
+    const float cosPitch = std::cos(mCameraPitch);
+    const XMVECTOR cameraForward = XMVectorSet(
+        std::sin(mCameraYaw) * cosPitch,
+        std::sin(mCameraPitch),
+        std::cos(mCameraYaw) * cosPitch,
+        0.0f);
+    const XMVECTOR cameraPosition = XMLoadFloat3(&mCameraPosition);
+    const XMMATRIX view = XMMatrixLookToLH(
         cameraPosition,
-        cameraTarget,
+        cameraForward,
         XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-    const float nearPlane = mUsingImportedScene
-        ? std::max(sceneBoundsRadius * 0.001f, 0.001f)
-        : 0.1f;
-    const float farPlane = mUsingImportedScene
-        ? std::max(sceneBoundsRadius * 10.0f, 100.0f)
-        : 100.0f;
     const XMMATRIX projection = TrRenderConfig::CreatePerspectiveFovLH(
-        XM_PIDIV4,
+        verticalFieldOfView,
         mAspectRatio,
-        nearPlane,
-        farPlane);
+        mCameraNearPlane,
+        mCameraFarPlane);
     const XMMATRIX viewProjection = view * projection;
     const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
     TrSceneConstants sceneConstants = {};
@@ -186,8 +218,8 @@ void TrDeferredRenderer::OnUpdate()
         &viewConstants.PreviousViewProjection,
         XMMatrixTranspose(previousViewProjection));
     XMStoreFloat3(&viewConstants.CameraPosition, cameraPosition);
-    viewConstants.NearPlane = nearPlane;
-    viewConstants.FarPlane = farPlane;
+    viewConstants.NearPlane = mCameraNearPlane;
+    viewConstants.FarPlane = mCameraFarPlane;
     viewConstants.RenderSize = XMFLOAT2(
         static_cast<float>(mWidth),
         static_cast<float>(mHeight));
@@ -344,10 +376,309 @@ void TrDeferredRenderer::OnDestroy()
 
 void TrDeferredRenderer::OnKeyDown(UINT8 wParam)
 {
+    switch(wParam)
+    {
+    case 'W':
+        mMoveForward = true;
+        break;
+    case 'S':
+        mMoveBackward = true;
+        break;
+    case 'A':
+        mMoveLeft = true;
+        break;
+    case 'D':
+        mMoveRight = true;
+        break;
+    }
 }
 
 void TrDeferredRenderer::OnKeyUp(UINT8 wParam)
 {
+    switch(wParam)
+    {
+    case 'W':
+        mMoveForward = false;
+        break;
+    case 'S':
+        mMoveBackward = false;
+        break;
+    case 'A':
+        mMoveLeft = false;
+        break;
+    case 'D':
+        mMoveRight = false;
+        break;
+    }
+}
+
+void TrDeferredRenderer::OnMouseMove(INT x, INT y)
+{
+    if(!mMouseLookActive)
+    {
+        return;
+    }
+
+    constexpr float mouseSensitivity = 0.003f;
+    const INT deltaX = x - mLastMouseX;
+    const INT deltaY = y - mLastMouseY;
+    mLastMouseX = x;
+    mLastMouseY = y;
+
+    mCameraYaw += static_cast<float>(deltaX) * mouseSensitivity;
+    mCameraPitch -= static_cast<float>(deltaY) * mouseSensitivity;
+    constexpr float maximumPitch = DirectX::XM_PIDIV2 - 0.01f;
+    mCameraPitch = std::clamp(mCameraPitch, -maximumPitch, maximumPitch);
+}
+
+void TrDeferredRenderer::OnRightMouseButtonDown(INT x, INT y)
+{
+    mMouseLookActive = true;
+    mLastMouseX = x;
+    mLastMouseY = y;
+}
+
+void TrDeferredRenderer::OnRightMouseButtonUp()
+{
+    mMouseLookActive = false;
+}
+
+void TrDeferredRenderer::OnInputFocusLost()
+{
+    mMoveForward = false;
+    mMoveBackward = false;
+    mMoveLeft = false;
+    mMoveRight = false;
+    mMouseLookActive = false;
+}
+
+void TrDeferredRenderer::InitializeCamera()
+{
+    using namespace DirectX;
+
+    const TrAxisAlignedBounds& sceneBounds = mUsingImportedScene
+        ? mCameraBounds
+        : mRuntimeScene.GetWorldBounds();
+    const TrAxisAlignedBounds& fullSceneBounds = mRuntimeScene.GetWorldBounds();
+    const XMFLOAT3 sceneBoundsCenter = sceneBounds.GetCenter();
+    const float sceneBoundsRadius = std::max(sceneBounds.GetRadius(), 0.001f);
+    const float fullSceneBoundsRadius = std::max(
+        fullSceneBounds.GetRadius(),
+        0.001f);
+    const float halfWidth =
+        (sceneBounds.Maximum.x - sceneBounds.Minimum.x) * 0.5f;
+    const float halfHeight =
+        (sceneBounds.Maximum.y - sceneBounds.Minimum.y) * 0.5f;
+    const float halfDepth =
+        (sceneBounds.Maximum.z - sceneBounds.Minimum.z) * 0.5f;
+    constexpr float verticalFieldOfView = XM_PIDIV4;
+    const float tangentHalfFov = std::tan(verticalFieldOfView * 0.5f);
+    const float distanceToFitHeight = halfHeight / tangentHalfFov;
+    const float distanceToFitWidth = halfWidth /
+        std::max(mAspectRatio * tangentHalfFov, 0.001f);
+    const float cameraDistance = mUsingImportedScene
+        ? std::max(
+            (std::max(distanceToFitHeight, distanceToFitWidth) + halfDepth) *
+                1.15f,
+            0.1f)
+        : 0.0f;
+
+    const XMVECTOR cameraPosition = mUsingImportedScene
+        ? XMVectorSet(
+            sceneBoundsCenter.x,
+            sceneBoundsCenter.y + halfHeight * 0.15f,
+            sceneBoundsCenter.z - cameraDistance,
+            1.0f)
+        : XMVectorSet(0.0f, 1.0f, -3.2f, 1.0f);
+    const XMVECTOR cameraTarget = mUsingImportedScene
+        ? XMLoadFloat3(&sceneBoundsCenter)
+        : XMVectorSet(0.0f, 0.95f, 1.0f, 1.0f);
+    const XMVECTOR cameraForward = XMVector3Normalize(
+        XMVectorSubtract(cameraTarget, cameraPosition));
+    XMFLOAT3 initialForward;
+    XMStoreFloat3(&initialForward, cameraForward);
+    XMStoreFloat3(&mCameraPosition, cameraPosition);
+    mCameraYaw = std::atan2(initialForward.x, initialForward.z);
+    mCameraPitch = std::asin(std::clamp(initialForward.y, -1.0f, 1.0f));
+    mCameraMoveSpeed = mUsingImportedScene
+        ? std::max(sceneBoundsRadius * 0.5f, 0.1f)
+        : 2.0f;
+    mCameraNearPlane = mUsingImportedScene
+        ? std::max(sceneBoundsRadius * 0.001f, 0.001f)
+        : 0.1f;
+    mCameraFarPlane = mUsingImportedScene
+        ? std::max(
+            std::max(sceneBoundsRadius * 10.0f, fullSceneBoundsRadius * 2.0f),
+            100.0f)
+        : 100.0f;
+    mLastCameraUpdateTime = std::chrono::steady_clock::now();
+}
+
+void TrDeferredRenderer::UpdateCamera(float deltaSeconds)
+{
+    using namespace DirectX;
+
+    const float forwardInput =
+        static_cast<float>(mMoveForward) - static_cast<float>(mMoveBackward);
+    const float rightInput =
+        static_cast<float>(mMoveRight) - static_cast<float>(mMoveLeft);
+    if(forwardInput == 0.0f && rightInput == 0.0f)
+    {
+        return;
+    }
+
+    const float cosPitch = std::cos(mCameraPitch);
+    const XMVECTOR forward = XMVectorSet(
+        std::sin(mCameraYaw) * cosPitch,
+        std::sin(mCameraPitch),
+        std::cos(mCameraYaw) * cosPitch,
+        0.0f);
+    const XMVECTOR worldUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    const XMVECTOR right = XMVector3Normalize(XMVector3Cross(worldUp, forward));
+    XMVECTOR movement = XMVectorAdd(
+        XMVectorScale(forward, forwardInput),
+        XMVectorScale(right, rightInput));
+    movement = XMVector3Normalize(movement);
+
+    XMVECTOR position = XMLoadFloat3(&mCameraPosition);
+    position = XMVectorMultiplyAdd(
+        movement,
+        XMVectorReplicate(mCameraMoveSpeed * deltaSeconds),
+        position);
+    XMStoreFloat3(&mCameraPosition, position);
+}
+
+void TrDeferredRenderer::BuildSceneSelectionList()
+{
+    mSceneSelectionEntries.clear();
+    mSceneSelectionEntries.push_back({
+        L"Cornell Box [Procedural]",
+        L"Built-in procedural validation scene",
+        L""});
+
+    const std::filesystem::path projectRoot(SLN_ROOT_DIR);
+    const std::filesystem::path searchRoots[] = {
+        projectRoot / "Assets",
+        projectRoot / "artifacts"};
+
+    auto addScene = [&](const std::filesystem::path& path)
+    {
+        std::wstring extension = path.extension().wstring();
+        std::transform(
+            extension.begin(), extension.end(), extension.begin(), ::towlower);
+        if(extension != L".glb" && extension != L".trscene")
+        {
+            return;
+        }
+
+        const std::wstring normalizedPath = NormalizeScenePath(path);
+        const auto duplicate = std::find_if(
+            mSceneSelectionEntries.begin(),
+            mSceneSelectionEntries.end(),
+            [&](const TrSceneSelectionEntry& entry)
+            {
+                return !entry.ScenePath.empty() &&
+                    ScenePathsEqual(entry.ScenePath, normalizedPath);
+            });
+        if(duplicate != mSceneSelectionEntries.end())
+        {
+            return;
+        }
+
+        std::error_code relativeError;
+        std::filesystem::path detail =
+            std::filesystem::relative(path, projectRoot, relativeError);
+        if(relativeError)
+        {
+            detail = path;
+        }
+        const std::wstring type = extension == L".glb" ? L"GLB" : L"TRSCENE";
+        mSceneSelectionEntries.push_back({
+            path.stem().wstring() + L" [" + type + L"]",
+            detail.generic_wstring(),
+            normalizedPath});
+    };
+
+    for(const std::filesystem::path& searchRoot : searchRoots)
+    {
+        std::error_code existsError;
+        if(!std::filesystem::is_directory(searchRoot, existsError))
+        {
+            continue;
+        }
+
+        try
+        {
+            for(const std::filesystem::directory_entry& entry :
+                std::filesystem::recursive_directory_iterator(
+                    searchRoot,
+                    std::filesystem::directory_options::skip_permission_denied))
+            {
+                if(entry.is_regular_file())
+                {
+                    addScene(entry.path());
+                }
+            }
+        }
+        catch(const std::filesystem::filesystem_error& error)
+        {
+            TrLog::Warn(
+                "Scene list skipped part of '" +
+                searchRoot.string() + "': " + error.what());
+        }
+    }
+
+    const std::wstring currentPath = GetScenePath().empty()
+        ? std::wstring()
+        : NormalizeScenePath(GetScenePath());
+    if(!currentPath.empty())
+    {
+        const auto current = std::find_if(
+            mSceneSelectionEntries.begin(),
+            mSceneSelectionEntries.end(),
+            [&](const TrSceneSelectionEntry& entry)
+            {
+                return !entry.ScenePath.empty() &&
+                    ScenePathsEqual(entry.ScenePath, currentPath);
+            });
+        if(current == mSceneSelectionEntries.end())
+        {
+            addScene(currentPath);
+        }
+    }
+
+    std::sort(
+        mSceneSelectionEntries.begin() + 1,
+        mSceneSelectionEntries.end(),
+        [](const TrSceneSelectionEntry& lhs, const TrSceneSelectionEntry& rhs)
+        {
+            const int nameOrder = _wcsicmp(
+                lhs.DisplayName.c_str(), rhs.DisplayName.c_str());
+            if(nameOrder != 0)
+            {
+                return nameOrder < 0;
+            }
+            return _wcsicmp(lhs.Detail.c_str(), rhs.Detail.c_str()) < 0;
+        });
+
+    mCurrentSceneSelectionIndex = 0;
+    if(!currentPath.empty())
+    {
+        for(std::size_t index = 1; index < mSceneSelectionEntries.size(); ++index)
+        {
+            if(ScenePathsEqual(
+                   mSceneSelectionEntries[index].ScenePath,
+                   currentPath))
+            {
+                mCurrentSceneSelectionIndex = index;
+                break;
+            }
+        }
+    }
+
+    TrLog::Info(
+        "Scene selection list contains " +
+        std::to_string(mSceneSelectionEntries.size()) + " entries.");
 }
 
 void TrDeferredRenderer::LoadPipeline()
@@ -704,6 +1035,52 @@ void TrDeferredRenderer::LoadAssets()
     }
     mRuntimeScene.Initialize(uploadContext, mLoadedScene);
     const TrAxisAlignedBounds& runtimeBounds = mRuntimeScene.GetWorldBounds();
+    mCameraBounds = runtimeBounds;
+    if(mUsingImportedScene)
+    {
+        TrAxisAlignedBounds litGeometryBounds;
+        std::size_t excludedUnlitInstances = 0;
+        for(const TrRuntimeInstance& instance : mRuntimeScene.GetInstances())
+        {
+            const TrSceneMesh& mesh = mLoadedScene.Meshes[instance.MeshId];
+            bool hasLitOrDefaultMaterial = false;
+            for(const TrScenePrimitive& primitive : mesh.Primitives)
+            {
+                if(primitive.MaterialIndex == TrInvalidSceneIndex ||
+                   !mLoadedScene.Materials[primitive.MaterialIndex].Unlit)
+                {
+                    hasLitOrDefaultMaterial = true;
+                    break;
+                }
+            }
+
+            if(hasLitOrDefaultMaterial)
+            {
+                litGeometryBounds.Expand(instance.CurrentWorldBounds);
+            }
+            else
+            {
+                ++excludedUnlitInstances;
+            }
+        }
+
+        if(litGeometryBounds.IsValid() && litGeometryBounds.GetRadius() > 0.001f)
+        {
+            mCameraBounds = litGeometryBounds;
+            const DirectX::XMFLOAT3 framingMinimum = mCameraBounds.Minimum;
+            const DirectX::XMFLOAT3 framingMaximum = mCameraBounds.Maximum;
+            TrLog::Info(
+                "Imported-scene camera framing excluded " +
+                std::to_string(excludedUnlitInstances) +
+                " unlit-only background instances. Framing AABB min (" +
+                std::to_string(framingMinimum.x) + ", " +
+                std::to_string(framingMinimum.y) + ", " +
+                std::to_string(framingMinimum.z) + "), max (" +
+                std::to_string(framingMaximum.x) + ", " +
+                std::to_string(framingMaximum.y) + ", " +
+                std::to_string(framingMaximum.z) + ").");
+        }
+    }
     TrLog::Info(
         "Loaded Runtime Scene '" + mLoadedScene.Name + "': " +
         std::to_string(mRuntimeScene.GetUploadedMeshCount()) + " GPU meshes, " +

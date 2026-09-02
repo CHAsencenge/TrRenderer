@@ -87,6 +87,7 @@ struct TrSceneVertex
     std::array<float, 4> Tangent = {1.0f, 0.0f, 0.0f, 1.0f};
     std::array<float, 2> TexCoord0 = {};
     std::array<float, 2> TexCoord1 = {};
+    std::array<float, 2> TexCoord2 = {};
     std::array<float, 4> Color = {1.0f, 1.0f, 1.0f, 1.0f};
 };
 
@@ -161,7 +162,7 @@ struct TrSceneBounds
 class TrScene
 {
 public:
-    static constexpr std::uint32_t FileVersion = 1;
+    static constexpr std::uint32_t FileVersion = 2;
 
     std::string Name;
     std::string SourceGenerator;

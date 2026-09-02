@@ -483,17 +483,20 @@ TrGlbImportResult TrGlbImporter::Import(const std::filesystem::path& path)
             const cgltf_accessor* tangents = FindAttribute(source, cgltf_attribute_type_tangent);
             const cgltf_accessor* texCoords = FindAttribute(source, cgltf_attribute_type_texcoord, 0);
             const cgltf_accessor* texCoords1 = FindAttribute(source, cgltf_attribute_type_texcoord, 1);
+            const cgltf_accessor* texCoords2 = FindAttribute(source, cgltf_attribute_type_texcoord, 2);
             const cgltf_accessor* colors = FindAttribute(source, cgltf_attribute_type_color, 0);
             if((normals != nullptr && normals->type != cgltf_type_vec3) ||
                (tangents != nullptr && tangents->type != cgltf_type_vec4) ||
                (texCoords != nullptr && texCoords->type != cgltf_type_vec2) ||
                (texCoords1 != nullptr && texCoords1->type != cgltf_type_vec2) ||
+               (texCoords2 != nullptr && texCoords2->type != cgltf_type_vec2) ||
                (colors != nullptr && colors->type != cgltf_type_vec3 &&
                 colors->type != cgltf_type_vec4))
             {
                 throw std::runtime_error("GLB vertex attribute has an invalid element type.");
             }
-            for(const cgltf_accessor* attribute : {normals, tangents, texCoords, texCoords1, colors})
+            for(const cgltf_accessor* attribute :
+                {normals, tangents, texCoords, texCoords1, texCoords2, colors})
             {
                 if(attribute != nullptr && attribute->count != positions->count)
                 {
@@ -504,6 +507,7 @@ TrGlbImportResult TrGlbImporter::Import(const std::filesystem::path& path)
             const std::vector<float> tangentValues = ReadAccessorFloats(tangents);
             const std::vector<float> texCoordValues = ReadAccessorFloats(texCoords);
             const std::vector<float> texCoord1Values = ReadAccessorFloats(texCoords1);
+            const std::vector<float> texCoord2Values = ReadAccessorFloats(texCoords2);
             const std::vector<float> colorValues = ReadAccessorFloats(colors);
             const std::size_t colorComponents = colors != nullptr
                 ? cgltf_num_components(colors->type)
@@ -557,6 +561,14 @@ TrGlbImportResult TrGlbImporter::Import(const std::filesystem::path& path)
                     {
                         texCoord1Values[vertexIndex * 2 + 0],
                         texCoord1Values[vertexIndex * 2 + 1]
+                    };
+                }
+                if(texCoords2 != nullptr)
+                {
+                    vertex.TexCoord2 =
+                    {
+                        texCoord2Values[vertexIndex * 2 + 0],
+                        texCoord2Values[vertexIndex * 2 + 1]
                     };
                 }
                 if(colors != nullptr && colorComponents >= 3)

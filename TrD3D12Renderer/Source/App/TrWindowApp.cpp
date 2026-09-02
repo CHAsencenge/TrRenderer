@@ -17,7 +17,11 @@ bool TrWindowApp::mResizePending = false;
 bool TrWindowApp::mMinimized = false;
 
 
-int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdShow)
+int TrWindowApp::Run(
+	TrRendererBase* pRenderer,
+	HINSTANCE hInstance,
+	int nCmdShow,
+	const std::optional<std::wstring>& sceneOverride)
 {
 	mResizePending = false;
 	mMinimized = false;
@@ -27,6 +31,10 @@ int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdSho
 	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	pRenderer->ParseCommandLineArgs(argv, argc);
 	LocalFree(argv);
+	if(sceneOverride.has_value())
+	{
+		pRenderer->SetScenePath(*sceneOverride);
+	}
 
 	// initialize the window class
 	WNDCLASSEX wndClass = {0};
@@ -96,6 +104,7 @@ int TrWindowApp::Run(TrRendererBase* pRenderer, HINSTANCE hInstance, int nCmdSho
 	}
 
 	pRenderer->OnDestroy();
+	mHwnd = nullptr;
 
 	// return quit message to window
 	return static_cast<char>(msg.wParam);
@@ -109,10 +118,14 @@ HWND TrWindowApp::GetHwnd()
 // must be static for wndClass.lpfnWndProc
 LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-	{
-		return 1;
-	}
+	const LRESULT imguiResult =
+		ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+	const bool imguiWantsKeyboard =
+		ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureKeyboard;
+	const bool imguiWantsTextInput =
+		ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantTextInput;
+	const bool imguiWantsMouse =
+		ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse;
 
 	// each window has a long ptr, to store a custom data
 	// GWLP_USERDATA is an index to access this user data
@@ -128,9 +141,51 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 		case WM_KEYDOWN:
 		{
-			if (pRenderer)
+			const bool isCameraMovementKey =
+				wParam == 'W' || wParam == 'A' || wParam == 'S' || wParam == 'D';
+			const bool rendererMayUseKey =
+				!imguiWantsKeyboard ||
+				(isCameraMovementKey && !imguiWantsTextInput);
+			if (pRenderer && rendererMayUseKey)
 			{
 				pRenderer->OnKeyDown(static_cast<UINT8>(wParam));
+			}
+			return 0;
+		}
+		case WM_MOUSEMOVE:
+		{
+			if(pRenderer)
+			{
+				pRenderer->OnMouseMove(
+					static_cast<INT>(static_cast<short>(LOWORD(lParam))),
+					static_cast<INT>(static_cast<short>(HIWORD(lParam))));
+			}
+			return 0;
+		}
+		case WM_RBUTTONDOWN:
+		{
+			if(pRenderer && !imguiWantsMouse)
+			{
+				pRenderer->OnRightMouseButtonDown(
+					static_cast<INT>(static_cast<short>(LOWORD(lParam))),
+					static_cast<INT>(static_cast<short>(HIWORD(lParam))));
+			}
+			return 0;
+		}
+		case WM_RBUTTONUP:
+		case WM_CAPTURECHANGED:
+		{
+			if(pRenderer)
+			{
+				pRenderer->OnRightMouseButtonUp();
+			}
+			return 0;
+		}
+		case WM_KILLFOCUS:
+		{
+			if(pRenderer)
+			{
+				pRenderer->OnInputFocusLost();
 			}
 			return 0;
 		}
@@ -169,6 +224,10 @@ LRESULT CALLBACK TrWindowApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			PostQuitMessage(0);
 			return 0;
 		}
+	}
+	if(imguiResult != 0)
+	{
+		return imguiResult;
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }

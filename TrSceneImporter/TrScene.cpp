@@ -301,6 +301,41 @@ namespace
         return mesh;
     }
 
+    struct TrSceneVertexV1
+    {
+        std::array<float, 3> Position;
+        std::array<float, 3> Normal;
+        std::array<float, 4> Tangent;
+        std::array<float, 2> TexCoord0;
+        std::array<float, 2> TexCoord1;
+        std::array<float, 4> Color;
+    };
+
+    static_assert(sizeof(TrSceneVertexV1) == sizeof(float) * 18);
+
+    TrSceneMesh ReadMeshV1(BinaryReader& reader)
+    {
+        TrSceneMesh mesh;
+        mesh.Name = reader.String();
+        const std::vector<TrSceneVertexV1> sourceVertices =
+            reader.PodVector<TrSceneVertexV1>();
+        mesh.Vertices.reserve(sourceVertices.size());
+        for(const TrSceneVertexV1& source : sourceVertices)
+        {
+            TrSceneVertex vertex;
+            vertex.Position = source.Position;
+            vertex.Normal = source.Normal;
+            vertex.Tangent = source.Tangent;
+            vertex.TexCoord0 = source.TexCoord0;
+            vertex.TexCoord1 = source.TexCoord1;
+            vertex.Color = source.Color;
+            mesh.Vertices.push_back(vertex);
+        }
+        mesh.Indices = reader.PodVector<std::uint32_t>();
+        mesh.Primitives = reader.PodVector<TrScenePrimitive>();
+        return mesh;
+    }
+
     void WriteLight(BinaryWriter& writer, const TrSceneLight& light)
     {
         writer.String(light.Name);
@@ -624,7 +659,7 @@ TrScene TrScene::Load(const std::filesystem::path& path)
         throw std::runtime_error("Input is not a Tr Scene file.");
     }
     const std::uint32_t version = reader.Value<std::uint32_t>();
-    if(version != FileVersion)
+    if(version != 1 && version != FileVersion)
     {
         throw std::runtime_error("Unsupported Tr Scene file version.");
     }
@@ -632,7 +667,9 @@ TrScene TrScene::Load(const std::filesystem::path& path)
     TrScene scene;
     scene.Name = reader.String();
     scene.SourceGenerator = reader.String();
-    scene.Meshes = ReadObjectVector(reader, ReadMesh);
+    scene.Meshes = version == 1
+        ? ReadObjectVector(reader, ReadMeshV1)
+        : ReadObjectVector(reader, ReadMesh);
     scene.Materials = ReadObjectVector(reader, ReadMaterial);
     scene.Images = ReadObjectVector(reader, ReadImage);
     scene.Samplers = ReadObjectVector(reader, ReadSampler);

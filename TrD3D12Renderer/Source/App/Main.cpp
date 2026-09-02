@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <optional>
 
 _Use_decl_annotations_
 int WINAPI WinMain(
@@ -20,8 +21,19 @@ int WINAPI WinMain(
     {
         TrLog::InitializeForApplication("TrD3D12Renderer");
         TrLog::Info("Application starting.");
-        TrDeferredRenderer renderer(1920, 1080, L"Tr Cornell Box");
-        const int exitCode = TrWindowApp::Run(&renderer, instance, showCommand);
+        std::optional<std::wstring> sceneOverride;
+        int exitCode = EXIT_SUCCESS;
+        do
+        {
+            TrDeferredRenderer renderer(1920, 1080, L"Tr Cornell Box");
+            exitCode = TrWindowApp::Run(
+                &renderer,
+                instance,
+                showCommand,
+                sceneOverride);
+            sceneOverride = renderer.GetRequestedScenePath();
+        }
+        while(sceneOverride.has_value());
         TrLog::Info("Application stopped normally.");
         TrLog::Shutdown();
         return exitCode;

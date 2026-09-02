@@ -7,6 +7,7 @@
 #include "TrTexture.h"
 
 #include <cstdint>
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -42,6 +43,12 @@ private:
         TrDescriptorAllocation SrgbSrv;
     };
 
+    struct TrSamplerTable
+    {
+        std::array<std::int32_t, TextureSlotCount> SamplerIndices = {};
+        D3D12_GPU_DESCRIPTOR_HANDLE Handle = {};
+    };
+
     TrMaterialGpuBinding CreateMaterialBinding(
         ID3D12Device* device,
         TrDescriptorHeap& resourceHeap,
@@ -52,6 +59,7 @@ private:
 
     std::vector<std::unique_ptr<TrGpuImage>> mImages;
     std::vector<std::unique_ptr<TrGpuImage>> mFallbackImages;
+    std::vector<TrSamplerTable> mSamplerTables;
     TrDescriptorHeap mTextureViewHeap;
     std::vector<std::unique_ptr<TrConstantBuffer>> mConstantBuffers;
     std::vector<TrMaterialGpuBinding> mMaterials;

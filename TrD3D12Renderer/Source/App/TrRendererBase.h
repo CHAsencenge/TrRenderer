@@ -2,6 +2,8 @@
 #pragma once
 #include "Utilities/TrUtil.h"
 
+#include <utility>
+
 
 class TrRendererBase
 {
@@ -20,6 +22,10 @@ public:
 
 	virtual void OnKeyDown(UINT8 wParam) = 0;
 	virtual void OnKeyUp(UINT8 wParam) = 0;
+	virtual void OnMouseMove(INT x, INT y) = 0;
+	virtual void OnRightMouseButtonDown(INT x, INT y) = 0;
+	virtual void OnRightMouseButtonUp() = 0;
+	virtual void OnInputFocusLost() = 0;
 #pragma endregion
 
 	
@@ -31,6 +37,7 @@ public:
 	UINT GetHeight() { return mHeight; }
 	const WCHAR* GetTitle() const  { return mTitle.c_str(); }
 	const std::wstring& GetScenePath() const { return mScenePath; }
+	void SetScenePath(std::wstring scenePath) { mScenePath = std::move(scenePath); }
 
 	UINT mWidth;
 	UINT mHeight;

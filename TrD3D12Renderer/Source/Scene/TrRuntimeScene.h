@@ -28,9 +28,10 @@ struct TrRuntimeVertex
     DirectX::XMFLOAT3 Color;
     DirectX::XMFLOAT2 TexCoord0;
     DirectX::XMFLOAT2 TexCoord1;
+    DirectX::XMFLOAT2 TexCoord2;
 };
 
-static_assert(sizeof(TrRuntimeVertex) == sizeof(float) * 13);
+static_assert(sizeof(TrRuntimeVertex) == sizeof(float) * 15);
 
 struct TrAxisAlignedBounds
 {

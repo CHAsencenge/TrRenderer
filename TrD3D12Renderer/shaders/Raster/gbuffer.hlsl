@@ -7,6 +7,7 @@ struct VSInput
     float3 color : COLOR;
     float2 texCoord0 : TEXCOORD0;
     float2 texCoord1 : TEXCOORD1;
+    float2 texCoord2 : TEXCOORD2;
 };
 
 struct PSInput
@@ -17,6 +18,7 @@ struct PSInput
     float3 color : COLOR;
     float2 texCoord0 : TEXCOORD0;
     float2 texCoord1 : TEXCOORD1;
+    float2 texCoord2 : TEXCOORD2;
 };
 
 struct GBufferOutput
@@ -115,7 +117,9 @@ SamplerState g_emissiveSampler : register(s4);
 
 float2 SelectTexCoord(PSInput input, uint texCoord)
 {
-    return texCoord == 1u ? input.texCoord1 : input.texCoord0;
+    return texCoord == 2u
+        ? input.texCoord2
+        : (texCoord == 1u ? input.texCoord1 : input.texCoord0);
 }
 
 float2 TransformTexCoord(PSInput input, TextureTransformConstants transform)
@@ -188,6 +192,7 @@ PSInput VSMain(VSInput input)
     result.color = input.color;
     result.texCoord0 = input.texCoord0;
     result.texCoord1 = input.texCoord1;
+    result.texCoord2 = input.texCoord2;
     return result;
 }
 
