@@ -25,6 +25,7 @@
 #include "Debug/TrGpuDebug.h"
 #include "Debug/TrGpuDebugPanel.h"
 #include "Debug/TrPerformanceMonitor.h"
+#include "TrPipelineFeatures.h"
 #include "Resources/TrHistoryTexture.h"
 #include "Resources/TrMaterialResources.h"
 #include "TrRenderConstants.h"
@@ -143,6 +144,7 @@ private:
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;
     TrPerformanceMonitor mPerformanceMonitor;
+    TrPipelineFeatures mPipelineFeatures;
 
     // app resources
     TrScene mLoadedScene;

@@ -85,7 +85,8 @@ set(TR_RENDERER_FILES
   Source/Renderer/TrDeferredRenderer.cpp
   Source/Renderer/TrDeferredRenderer.h
   Source/Renderer/TrRenderConfig.h
-  Source/Renderer/TrRenderConstants.h)
+  Source/Renderer/TrRenderConstants.h
+  Source/Renderer/TrPipelineFeatures.h)
 
 set(TR_RASTER_PASS_FILES
   Source/Passes/Raster/TrCompositePass.cpp

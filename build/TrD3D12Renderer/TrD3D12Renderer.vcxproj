@@ -390,6 +390,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrDeferredRenderer.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConfig.h" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrPipelineFeatures.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\TrRenderPass.cpp" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\TrRenderPass.h" />
     <ClCompile Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\Raster\TrCompositePass.cpp" />

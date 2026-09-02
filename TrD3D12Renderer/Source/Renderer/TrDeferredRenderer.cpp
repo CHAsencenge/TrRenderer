@@ -180,10 +180,13 @@ void TrDeferredRenderer::OnUpdate()
     std::optional<std::wstring> sceneChangeRequest;
     const TrGeometryVisualization previousGeometryVisualization =
         mGeometryVisualization;
+    const bool previousIndirectLighting = mPipelineFeatures.IsEnabled(
+        TrPipelineFeature::IndirectLighting);
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
            mRuntimeScene,
            mPerformanceMonitor.GetSnapshot(),
+           mPipelineFeatures,
            mGeometryVisualization,
            mExposure,
            mDepthVisualizationRange,
@@ -193,10 +196,19 @@ void TrDeferredRenderer::OnUpdate()
     {
         UpdateWindowTitle();
     }
-    if(previousGeometryVisualization != mGeometryVisualization)
+    const bool indirectLightingEnabled = mPipelineFeatures.IsEnabled(
+        TrPipelineFeature::IndirectLighting);
+    if(previousGeometryVisualization != mGeometryVisualization ||
+       previousIndirectLighting != indirectLightingEnabled)
     {
         mScreenProbeResources.InvalidateHistory();
         mTaaHistory.Invalidate();
+    }
+    if(previousIndirectLighting != indirectLightingEnabled)
+    {
+        TrLog::Info(
+            std::string("Screen Probe indirect lighting ") +
+            (indirectLightingEnabled ? "enabled." : "disabled."));
     }
     if(sceneChangeRequest.has_value())
     {
@@ -283,7 +295,8 @@ void TrDeferredRenderer::OnUpdate()
     TrGBufferPassConstants gBufferPassConstants = {};
     gBufferPassConstants.Visualization = mGeometryVisualization;
 
-    const TrDeferredLightingPassConstants lightingPassConstants = {};
+    TrDeferredLightingPassConstants lightingPassConstants = {};
+    lightingPassConstants.FeatureMask = mPipelineFeatures.GetEnabledMask();
     const TrForwardTransparentPassConstants transparentPassConstants = {};
     TrCompositePassConstants compositePassConstants = {};
     compositePassConstants.Exposure = mExposure;
@@ -1468,72 +1481,83 @@ void TrDeferredRenderer::PopulateCommandList()
                 mHierarchicalDepth);
         });
 
-    const TrScreenProbePass::Outputs screenProbeOutputs =
-        mScreenProbePass.ExecuteProfiled(
-            mPerformanceMonitor,
-            mCommandList.Get(),
-            [&]()
-            {
-                return mScreenProbePass.Build(
-                    mCommandList.Get(),
-                    mResourceHeap,
-                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-                    {mDepthNormalView},
-                    mScreenProbeResources);
-            });
-    mScreenTracePass.ExecuteProfiled(
-        mPerformanceMonitor,
-        mCommandList.Get(),
-        [&]()
-        {
-            mScreenTracePass.Trace(
-                mCommandList.Get(),
-                mResourceHeap,
-                frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-                {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
-                mScreenProbeResources);
-        });
-
-    mScreenProbeRadiancePass.ExecuteProfiled(
-        mPerformanceMonitor,
-        mCommandList.Get(),
-        [&]()
-        {
-            mScreenProbeRadiancePass.Resolve(
-                mCommandList.Get(),
-                mResourceHeap,
-                frame.SceneConstantBuffer.GetGpuVirtualAddress(),
-                frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
-                mDeferredRenderTargets,
-                mScreenProbeResources);
-        });
-    mScreenProbeIrradiancePass.ExecuteProfiled(
-        mPerformanceMonitor,
-        mCommandList.Get(),
-        [&]()
-        {
-            mScreenProbeIrradiancePass.Integrate(
-                mCommandList.Get(),
-                mResourceHeap,
-                mScreenProbeResources);
-        });
+    TrTexture* probeIrradiance = &mScreenProbeResources.GetIrradiance();
+    D3D12_GPU_DESCRIPTOR_HANDLE probeIrradianceSrv =
+        mScreenProbeResources.GetIrradianceSrv().GpuHandle;
     const UINT renderFrameNumber = mFrameNumber > 0 ? mFrameNumber - 1u : 0u;
-    const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =
-        mScreenProbeTemporalPass.ExecuteProfiled(
+    const bool indirectLightingEnabled = mPipelineFeatures.IsEnabled(
+        TrPipelineFeature::IndirectLighting);
+    if(indirectLightingEnabled)
+    {
+        const TrScreenProbePass::Outputs screenProbeOutputs =
+            mScreenProbePass.ExecuteProfiled(
+                mPerformanceMonitor,
+                mCommandList.Get(),
+                [&]()
+                {
+                    return mScreenProbePass.Build(
+                        mCommandList.Get(),
+                        mResourceHeap,
+                        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                        {mDepthNormalView},
+                        mScreenProbeResources);
+                });
+        mScreenTracePass.ExecuteProfiled(
             mPerformanceMonitor,
             mCommandList.Get(),
             [&]()
             {
-                return mScreenProbeTemporalPass.Resolve(
+                mScreenTracePass.Trace(
                     mCommandList.Get(),
                     mResourceHeap,
                     frame.ViewConstantBuffer.GetGpuVirtualAddress(),
-                    renderFrameNumber,
+                    {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
                     mScreenProbeResources);
             });
-    mGpuDebug.UpdateViewSource(
-        mProbeTemporalDebugViewIndex,
-        probeTemporalOutputs.IrradianceSrv);
+
+        mScreenProbeRadiancePass.ExecuteProfiled(
+            mPerformanceMonitor,
+            mCommandList.Get(),
+            [&]()
+            {
+                mScreenProbeRadiancePass.Resolve(
+                    mCommandList.Get(),
+                    mResourceHeap,
+                    frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                    frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+                    mDeferredRenderTargets,
+                    mScreenProbeResources);
+            });
+        mScreenProbeIrradiancePass.ExecuteProfiled(
+            mPerformanceMonitor,
+            mCommandList.Get(),
+            [&]()
+            {
+                mScreenProbeIrradiancePass.Integrate(
+                    mCommandList.Get(),
+                    mResourceHeap,
+                    mScreenProbeResources);
+            });
+        const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =
+            mScreenProbeTemporalPass.ExecuteProfiled(
+                mPerformanceMonitor,
+                mCommandList.Get(),
+                [&]()
+                {
+                    return mScreenProbeTemporalPass.Resolve(
+                        mCommandList.Get(),
+                        mResourceHeap,
+                        frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                        renderFrameNumber,
+                        mScreenProbeResources);
+                });
+        probeIrradiance = probeTemporalOutputs.Irradiance;
+        probeIrradianceSrv = probeTemporalOutputs.IrradianceSrv;
+        mGpuDebug.UpdateViewSource(
+            mProbeTemporalDebugViewIndex,
+            probeIrradianceSrv);
+        mScreenProbeResources.AdvanceHistory();
+    }
 
     mDeferredLightingPass.ExecuteProfiled(
         mPerformanceMonitor,
@@ -1548,10 +1572,9 @@ void TrDeferredRenderer::PopulateCommandList()
                 frame.ViewConstantBuffer.GetGpuVirtualAddress(),
                 frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
                 mScreenProbeResources,
-                *probeTemporalOutputs.Irradiance,
-                probeTemporalOutputs.IrradianceSrv);
+                *probeIrradiance,
+                probeIrradianceSrv);
         });
-    mScreenProbeResources.AdvanceHistory();
 
     if(!transparentDraws.empty())
     {

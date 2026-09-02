@@ -113,7 +113,8 @@ struct alignas(16) TrDeferredLightingPassConstants
     float RelativeDepthThreshold = 0.02f;
     float MinimumDepthThreshold = 0.05f;
     float NormalWeightPower = 8.0f;
-    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    std::uint32_t FeatureMask = 0;
+    float Padding = 0.0f;
 };
 
 struct alignas(16) TrForwardTransparentPassConstants

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Resources/TrDescriptorHeap.h"
+#include "Renderer/TrPipelineFeatures.h"
 #include "TrGpuDebug.h"
 #include "TrPerformanceMonitor.h"
 
@@ -18,6 +19,7 @@ enum class TrDebugPanelFeature : std::uint32_t
 {
     GeometryView,
     DisplaySettings,
+    PipelineFeatures,
     Performance,
     RuntimeHierarchy,
     SceneSelection
@@ -49,6 +51,7 @@ public:
         TrGpuDebug& gpuDebug,
         const TrRuntimeScene& runtimeScene,
         const TrPerformanceSnapshot& performance,
+        TrPipelineFeatures& pipelineFeatures,
         TrGeometryVisualization& geometryVisualization,
         float& exposure,
         float& depthVisualizationRange,

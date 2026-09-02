@@ -39,6 +39,8 @@ namespace
             return "Geometry View";
         case TrDebugPanelFeature::DisplaySettings:
             return "Display Settings";
+        case TrDebugPanelFeature::PipelineFeatures:
+            return "Pipeline Features";
         case TrDebugPanelFeature::Performance:
             return "Performance";
         case TrDebugPanelFeature::RuntimeHierarchy:
@@ -223,6 +225,7 @@ bool TrGpuDebugPanel::BuildFrame(
     TrGpuDebug& gpuDebug,
     const TrRuntimeScene& runtimeScene,
     const TrPerformanceSnapshot& performance,
+    TrPipelineFeatures& pipelineFeatures,
     TrGeometryVisualization& geometryVisualization,
     float& exposure,
     float& depthVisualizationRange,
@@ -285,6 +288,13 @@ bool TrGpuDebugPanel::BuildFrame(
                    mSelectedFeature == TrDebugPanelFeature::DisplaySettings))
             {
                 mSelectedFeature = TrDebugPanelFeature::DisplaySettings;
+            }
+            if(ImGui::MenuItem(
+                   "Pipeline Features",
+                   nullptr,
+                   mSelectedFeature == TrDebugPanelFeature::PipelineFeatures))
+            {
+                mSelectedFeature = TrDebugPanelFeature::PipelineFeatures;
             }
             if(ImGui::MenuItem(
                    "Performance",
@@ -423,6 +433,28 @@ bool TrGpuDebugPanel::BuildFrame(
                 {
                     ImGui::PopStyleColor();
                 }
+            }
+            else if(mSelectedFeature == TrDebugPanelFeature::PipelineFeatures)
+            {
+                ImGui::TextUnformatted("Runtime Pipeline Features");
+                ImGui::TextDisabled(
+                    "Changes apply to the command list recorded this frame.");
+                ImGui::Separator();
+
+                bool indirectLighting = pipelineFeatures.IsEnabled(
+                    TrPipelineFeature::IndirectLighting);
+                if(ImGui::Checkbox(
+                       "Screen Probe Indirect Lighting",
+                       &indirectLighting))
+                {
+                    pipelineFeatures.SetEnabled(
+                        TrPipelineFeature::IndirectLighting,
+                        indirectLighting);
+                }
+                ImGui::TextWrapped(
+                    "Disabling this skips Screen Probe placement, tracing, "
+                    "radiance resolve, irradiance integration and temporal resolve. "
+                    "Direct and ambient lighting remain enabled.");
             }
             else if(mSelectedFeature == TrDebugPanelFeature::Performance)
             {

@@ -139,10 +139,6 @@ float4 PSMain(FullscreenVertex input) : SV_Target
     const float4 normalMetallic = g_normalMetallic.Load(int3(pixel, 0));
     const float3 worldNormal = normalize(normalMetallic.xyz);
     const float4 emissiveOcclusion = g_emissiveOcclusion.Load(int3(pixel, 0));
-    const float3 irradiance = TrUpsampleProbeIrradiance(
-        uint2(pixel),
-        depth,
-        worldNormal);
     const float3 directRadiance = TrEvaluateDirectSurfaceRadiance(
         baseColor,
         worldNormal,
@@ -150,11 +146,19 @@ float4 PSMain(FullscreenVertex input) : SV_Target
     const float3 ambientRadiance = TrEvaluateAmbientSurfaceRadiance(
         baseColor,
         emissiveOcclusion.a);
-    const float3 indirectRadiance = TrEvaluateIndirectSurfaceRadiance(
-        baseColor,
-        normalMetallic.a,
-        emissiveOcclusion.a,
-        irradiance);
+    float3 indirectRadiance = 0.0f;
+    if((g_pipelineFeatureMask & TR_FEATURE_INDIRECT_LIGHTING) != 0u)
+    {
+        const float3 irradiance = TrUpsampleProbeIrradiance(
+            uint2(pixel),
+            depth,
+            worldNormal);
+        indirectRadiance = TrEvaluateIndirectSurfaceRadiance(
+            baseColor,
+            normalMetallic.a,
+            emissiveOcclusion.a,
+            irradiance);
+    }
     return float4(
         directRadiance + ambientRadiance + indirectRadiance,
         1.0f);

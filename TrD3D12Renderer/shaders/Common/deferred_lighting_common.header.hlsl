@@ -17,10 +17,12 @@ cbuffer DeferredLightingPassConstants : register(b2)
     float g_relativeDepthThreshold;
     float g_minimumDepthThreshold;
     float g_normalWeightPower;
-    float2 g_lightingPadding;
+    uint g_pipelineFeatureMask;
+    float g_lightingPadding;
 };
 
 static const float TR_LIGHTING_INV_PI = 0.31830988618f;
+static const uint TR_FEATURE_INDIRECT_LIGHTING = 1u << 0u;
 
 float3 TrEvaluateDirectSurfaceRadiance(
     float3 baseColor,

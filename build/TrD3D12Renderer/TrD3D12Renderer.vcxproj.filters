@@ -159,6 +159,9 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrRenderConstants.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Renderer\TrPipelineFeatures.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\Source\Passes\TrRenderPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
