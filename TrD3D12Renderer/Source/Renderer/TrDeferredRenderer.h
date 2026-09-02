@@ -140,7 +140,8 @@ private:
     TrScreenProbeIrradiancePass mScreenProbeIrradiancePass;
     TrScreenProbeTemporalPass mScreenProbeTemporalPass;
     TrTaaPass mTaaPass;
-    TrHistoryTexture mTaaHistory;
+    TrHistoryTexture mTaaColorHistory;
+    TrHistoryTexture mTaaDepthHistory;
     TrGpuDebug mGpuDebug;
     TrGpuDebugPanel mGpuDebugPanel;
     TrPerformanceMonitor mPerformanceMonitor;

@@ -1,11 +1,14 @@
 #include "../Common/depth.header.hlsl"
 
 Texture2D<float4> g_currentColor : register(t0);
-Texture2D<float4> g_previousHistory : register(t1);
+Texture2D<float4> g_previousColorHistory : register(t1);
 Texture2D<float4> g_velocityPreviousDepth : register(t2);
 Texture2D<float> g_depth : register(t3);
-RWTexture2D<float4> g_outputHistory : register(u0);
+Texture2D<float> g_previousDepthHistory : register(t4);
+RWTexture2D<float4> g_outputColorHistory : register(u0);
+RWTexture2D<float> g_outputDepthHistory : register(u1);
 SamplerState g_linearClampSampler : register(s0);
+SamplerState g_pointClampSampler : register(s1);
 
 cbuffer TaaConstants : register(b2)
 {
@@ -42,7 +45,8 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const float currentDepth = g_depth.Load(int3(pixel, 0));
     if(g_historyValid == 0u)
     {
-        g_outputHistory[pixel] = float4(current.rgb, currentDepth);
+        g_outputColorHistory[pixel] = float4(current.rgb, 1.0f);
+        g_outputDepthHistory[pixel] = currentDepth;
         return;
     }
 
@@ -61,15 +65,23 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     if(!historyUvValid ||
        (!currentIsBackground && velocityPreviousDepth.w < 0.5f))
     {
-        g_outputHistory[pixel] = float4(current.rgb, currentDepth);
+        g_outputColorHistory[pixel] = float4(current.rgb, 1.0f);
+        g_outputDepthHistory[pixel] = currentDepth;
         return;
     }
 
-    const float4 history = g_previousHistory.SampleLevel(
+    const float3 historyColor = g_previousColorHistory.SampleLevel(
         g_linearClampSampler,
         historyUv,
+        0.0f).rgb;
+    // Depth represents geometry identity, not a continuously filterable color.
+    // Point sampling prevents foreground and background device depths from being
+    // blended together at silhouettes before the history rejection test.
+    const float historyDepth = g_previousDepthHistory.SampleLevel(
+        g_pointClampSampler,
+        historyUv,
         0.0f);
-    const bool historyIsBackground = TrIsBackgroundDepth(history.a);
+    const bool historyIsBackground = TrIsBackgroundDepth(historyDepth);
     float depthHistoryWeight = 1.0f;
     if(currentIsBackground != historyIsBackground)
     {
@@ -85,7 +97,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             g_nearPlane,
             g_farPlane);
         const float historyViewDepth = TrDeviceDepthToViewDepth(
-            saturate(history.a),
+            saturate(historyDepth),
             g_nearPlane,
             g_farPlane);
         const float depthThreshold = max(
@@ -121,7 +133,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     neighborhoodMinimum -= neighborhoodExtent * 0.05f;
     neighborhoodMaximum += neighborhoodExtent * 0.05f;
     const float3 clippedHistory = clamp(
-        history.rgb,
+        historyColor,
         neighborhoodMinimum,
         neighborhoodMaximum);
 
@@ -136,5 +148,6 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         current.rgb,
         clippedHistory,
         historyWeight);
-    g_outputHistory[pixel] = float4(resolvedColor, currentDepth);
+    g_outputColorHistory[pixel] = float4(resolvedColor, 1.0f);
+    g_outputDepthHistory[pixel] = currentDepth;
 }

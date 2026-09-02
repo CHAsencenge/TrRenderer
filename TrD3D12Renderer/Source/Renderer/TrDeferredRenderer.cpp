@@ -202,7 +202,8 @@ void TrDeferredRenderer::OnUpdate()
        previousIndirectLighting != indirectLightingEnabled)
     {
         mScreenProbeResources.InvalidateHistory();
-        mTaaHistory.Invalidate();
+        mTaaColorHistory.Invalidate();
+        mTaaDepthHistory.Invalidate();
     }
     if(previousIndirectLighting != indirectLightingEnabled)
     {
@@ -411,7 +412,8 @@ void TrDeferredRenderer::OnResize(UINT width, UINT height)
     mDeferredRenderTargets.Resize(mDevice.Get(), width, height);
     mHierarchicalDepth.Resize(mDevice.Get(), width, height);
     mScreenProbeResources.Resize(mDevice.Get(), width, height);
-    mTaaHistory.Resize(mDevice.Get(), width, height);
+    mTaaColorHistory.Resize(mDevice.Get(), width, height);
+    mTaaDepthHistory.Resize(mDevice.Get(), width, height);
     RegisterGpuDebugViews();
 
     for(TrFrameContext& frame : mFrameContexts)
@@ -857,13 +859,20 @@ void TrDeferredRenderer::LoadPipeline()
         mDsvHeap,
         mResourceHeap,
         TrRenderConfig::DepthClearValue);
-    mTaaHistory.Initialize(
+    mTaaColorHistory.Initialize(
         mDevice.Get(),
         mWidth,
         mHeight,
         TrDeferredRenderTargets::HdrLightingFormat,
         mResourceHeap,
-        L"TAA HDR History");
+        L"TAA Color History");
+    mTaaDepthHistory.Initialize(
+        mDevice.Get(),
+        mWidth,
+        mHeight,
+        DXGI_FORMAT_R32_FLOAT,
+        mResourceHeap,
+        L"TAA Depth History");
     mHierarchicalDepth.Initialize(
         mDevice.Get(),
         mWidth,
@@ -936,7 +945,7 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
     mGpuDebug.Reset();
     mGpuDebug.RegisterView(
         L"Final Lighting",
-        mTaaHistory.GetCurrentSrv().GpuHandle,
+        mTaaColorHistory.GetCurrentSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mGpuDebug.RegisterView(
         L"Raw Lighting",
@@ -1639,7 +1648,8 @@ void TrDeferredRenderer::PopulateCommandList()
     TrTaaConstants taaConstants;
     taaConstants.Width = mWidth;
     taaConstants.Height = mHeight;
-    taaConstants.HistoryValid = mTaaHistory.IsValid() ? 1u : 0u;
+    taaConstants.HistoryValid =
+        mTaaColorHistory.IsValid() && mTaaDepthHistory.IsValid() ? 1u : 0u;
     taaConstants.FrameNumber = renderFrameNumber;
     taaConstants.CurrentJitterNdc = mTemporalJitter;
     taaConstants.PreviousJitterNdc = mPreviousTemporalJitter;
@@ -1663,9 +1673,11 @@ void TrDeferredRenderer::PopulateCommandList()
                         mDeferredRenderTargets.GetDepthSrv().GpuHandle
                     },
                     taaConstants,
-                    mTaaHistory);
+                    mTaaColorHistory,
+                    mTaaDepthHistory);
             });
-    mTaaHistory.AdvanceFrame();
+    mTaaColorHistory.AdvanceFrame();
+    mTaaDepthHistory.AdvanceFrame();
 
     const TrGpuDebugView& selectedDebugView = mGpuDebug.GetSelectedView();
     const D3D12_GPU_DESCRIPTOR_HANDLE compositeSource =

@@ -49,7 +49,8 @@ public:
         TrDescriptorHeap& resourceHeap,
         const TrTaaInputs& inputs,
         const TrTaaConstants& constants,
-        TrHistoryTexture& history);
+        TrHistoryTexture& colorHistory,
+        TrHistoryTexture& depthHistory);
 
 private:
     TrComputePipeline mPipeline;
