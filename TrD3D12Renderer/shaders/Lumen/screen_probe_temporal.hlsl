@@ -125,16 +125,18 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const int2 baseProbe = int2(floor(previousProbeCoordinate));
     const float2 probeFraction = frac(previousProbeCoordinate);
 
-    float3 weightedHistory[TR_SH_L2_COEFFICIENT_COUNT];
+    float3 confidenceWeightedHistory[TR_SH_L2_COEFFICIENT_COUNT];
     [unroll]
     for(uint coefficientIndex = 0u;
         coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
         ++coefficientIndex)
     {
-        weightedHistory[coefficientIndex] = 0.0f;
+        confidenceWeightedHistory[coefficientIndex] = 0.0f;
     }
-    float weightedHistoryConfidence = 0.0f;
-    float historyWeightSum = 0.0f;
+    
+    float geometryWeightSum = 0.0f;
+    float radianceWeightSum = 0.0f;
+    
     [unroll]
     for(int y = 0; y < 2; ++y)
     {
@@ -191,8 +193,11 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 max(1.0f - g_normalSimilarityThreshold, 1.0e-4f));
             const float positionWeight = saturate(
                 1.0f - positionDistance / positionThreshold);
-            const float weight = spatialWeight * normalWeight *
-                positionWeight * saturate(previousSh0.a);
+            
+            float geometryWeight = spatialWeight * normalWeight * positionWeight; 
+            float previousConfidence = saturate(previousSh0.a); // previousSh0.a: 上一帧该 Probe 的历史光照置信度
+            float radianceWeight = geometryWeight * previousConfidence;
+            
             [unroll]
             for(uint coefficientIndex = 0u;
                 coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
@@ -204,35 +209,53 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                             candidateProbe,
                             coefficientIndex),
                         0)).rgb;
-                weightedHistory[coefficientIndex] +=
-                    previousCoefficient * weight;
+                confidenceWeightedHistory[coefficientIndex] += previousCoefficient * radianceWeight;
             }
-            weightedHistoryConfidence += previousSh0.a * weight;
-            historyWeightSum += weight;
+            geometryWeightSum += geometryWeight;
+            radianceWeightSum += radianceWeight;
         }
     }
 
-    if(historyWeightSum <= 1.0e-6f)
+    if (geometryWeightSum <= 1.0e-6f)
     {
         StoreCurrentIrradianceSh(probeCoordinate);
         return;
     }
-
-    const float historyConfidence = saturate(
-        weightedHistoryConfidence / historyWeightSum);
+    
     const float currentConfidence = saturate(
         g_currentIrradiance.Load(int3(
             TrShL2AtlasCoordinate(probeCoordinate, 0u),
             0)).a);
-    // Ramp history in over the first few frames after a reset. The frame
-    // number also restarts on resize, matching history invalidation.
-    const float startupRamp = saturate(float(g_temporalFrameNumber) / 4.0f);
-    const float historyWeight = saturate(
-        g_staticHistoryWeight * startupRamp * historyConfidence);
+    
+    float historyConfidence = radianceWeightSum / geometryWeightSum;
+    
+    // 归一化置信度混合
+    // 当前 confidence 低、历史高：更多使用历史
+    // 当前 confidence 高、历史低：更多使用当前
+    // 两者都高：保持默认约 90% 历史
+    // 历史几何验证失败：完全使用当前
+    const float currentEvidence =
+    (1.0f - g_staticHistoryWeight) *
+    currentConfidence; // (1-α)C_c
+
+    const float historyEvidence =
+    g_staticHistoryWeight *
+    historyConfidence; // αC_h
+
+    const float evidenceSum =
+    currentEvidence + historyEvidence;
+
+    // αC_h / {(1-α)C_c + αC_h}
+    const float historyWeight =
+    evidenceSum > 1.0e-6f
+        ? historyEvidence / evidenceSum
+        : 0.0f;
+    
     const float resolvedConfidence = lerp(
         currentConfidence,
         historyConfidence,
         historyWeight);
+    
     [unroll]
     for(uint coefficientIndex = 0u;
         coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
@@ -241,10 +264,10 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         const uint2 atlasCoordinate = TrShL2AtlasCoordinate(
             probeCoordinate,
             coefficientIndex);
-        const float3 currentCoefficient =
-            g_currentIrradiance.Load(int3(atlasCoordinate, 0)).rgb;
-        const float3 historyCoefficient =
-            weightedHistory[coefficientIndex] / historyWeightSum;
+        
+        const float3 currentCoefficient = g_currentIrradiance.Load(int3(atlasCoordinate, 0)).rgb;
+        const float3 historyCoefficient = confidenceWeightedHistory[coefficientIndex] / radianceWeightSum;
+        
         g_outputIrradiance[atlasCoordinate] = float4(
             lerp(currentCoefficient, historyCoefficient, historyWeight),
             resolvedConfidence);

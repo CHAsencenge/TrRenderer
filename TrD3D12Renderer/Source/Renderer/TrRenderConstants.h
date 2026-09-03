@@ -111,7 +111,7 @@ struct alignas(16) TrDeferredLightingPassConstants
     float AmbientLightingScale = 1.0f;
     float IndirectLightingScale = 1.0f;
     float RelativeDepthThreshold = 0.02f;
-    float MinimumDepthThreshold = 0.05f;
+    float MinimumDepthThreshold = 0.3f; // 掩盖横纹但加重漏光
     float NormalWeightPower = 8.0f;
     std::uint32_t FeatureMask = 0;
     float Padding = 0.0f;

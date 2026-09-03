@@ -85,8 +85,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             1.0e-4f);
         float shBasis[TR_SH_L2_COEFFICIENT_COUNT];
         TrEvaluateShL2Basis(rayDirection, shBasis);
-        const float3 weightedRadiance = max(radiance.rgb, 0.0f) *
-            (confidence / samplePdf);
+        const float3 weightedRadiance = max(radiance.rgb, 0.0f) * confidence / samplePdf;
         
         // L_lm = 1/N Σ {L(wi) Y_lm(wi) / p(wi)}
         // 把 Radiance 球面函数与 Clamped Cosine 核进行球面卷积 = 每个 SH band 分别乘一个常数，E_{lm}=A_l L_{lm}
@@ -105,15 +104,23 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     const float inverseRayCount = 1.0f / max(float(g_raysPerProbe), 1.0f);
     const float confidence = confidenceSum * inverseRayCount;
+    
+    if (confidenceSum > 1.0e-6f)
+    {
+        for (uint coefficientIndex = 0u;
+            coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+            ++coefficientIndex)
+        {
+            irradianceCoefficients[coefficientIndex] /= confidenceSum;
+        }
+    }
+    
     [unroll]
     for(uint coefficientIndex = 0u;
         coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
         ++coefficientIndex)
     {
-        g_irradiance[TrShL2AtlasCoordinate(
-            probeCoordinate,
-            coefficientIndex)] = float4(
-                irradianceCoefficients[coefficientIndex] * inverseRayCount,
-                confidence);
+        g_irradiance[TrShL2AtlasCoordinate(probeCoordinate, coefficientIndex)] = 
+            float4(irradianceCoefficients[coefficientIndex], confidence);
     }
 }
