@@ -121,9 +121,9 @@ HZB Build、Screen Probe 布置和首版 Screen Trace 已接入 Renderer。当�
 
 Screen Trace 从较粗 HZB Mip 开始。射线采样点位于场景深度之前时，按当前 Mip 对应的步长前进并逐步提升 Mip；检测到潜在穿越后逐级下降，在 Mip0 上做二分细化和 View Depth 厚度测试。正式命中图集使用 `R32G32B32A32_UINT`，每条射线保存 16 字节 `TrScreenTraceHit`：打包后的精确命中像素、未归一化世界空间 `HitT`、状态/来源/最后 Mip/迭代次数 Flag，以及厚度和屏幕边缘共同评估的置信度。未命中像素统一为 `0xffffffff`，状态区分无效 Probe、屏幕命中、超过距离、离开屏幕和迭代耗尽。原 `RGBA16_FLOAT` 图集已降为独立的 GPU 调试输出，只编码 Hit UV、归一化距离和状态。正式命中数据已连接屏幕 Radiance 采样和 Probe Irradiance 积分，但尚无 RayQuery fallback。
 
-Radiance 和 Irradiance 保持为两个轻量 Compute Pass，不直接合并。Radiance Resolve 在 Deferred Lighting 之前根据精确命中像素读取 GBuffer，使用与 Deferred Lighting 共享的光照函数评估命中表面的直接光和自发光，输出与 Trace Atlas 同尺寸的 `RGBA16_FLOAT` 逐射线 Radiance，其中 Alpha 保存命中置信度。它刻意不采样 Probe GI，避免同帧递归反馈。该资源每帧完全覆盖，不作为历史保存；保留它是为了给后续 RayQuery fallback 提供统一的逐射线汇合点，并支持逐射线调试。Irradiance Integrate 随后按 Probe 的 `4x4` 射线块积分，以 `PI / RayCount * sum(Li * Confidence)` 估计余弦半球漫反射辐照度，并在 Alpha 中保存有效覆盖率。输出是每 Probe 一个 `RGBA16_FLOAT` Texel。
+Radiance 和 Irradiance 保持为两个轻量 Compute Pass，不直接合并。Radiance Resolve 在 Deferred Lighting 之前根据精确命中像素读取 GBuffer，使用与 Deferred Lighting 共享的光照函数评估命中表面的直接光和自发光，输出与 Trace Atlas 同尺寸的 `RGBA16_FLOAT` 逐射线 Radiance，其中 Alpha 保存命中置信度。它刻意不采样 Probe GI，避免同帧递归反馈。该资源每帧完全覆盖，不作为历史保存；保留它是为了给后续 RayQuery fallback 提供统一的逐射线汇合点，并支持逐射线调试。Irradiance Integrate 随后重建每条射线的世界空间方向和余弦采样 PDF，将 Radiance 投影到经过 Lambert 核卷积的 SH L2。每个 Probe 的九个 RGB 系数以 `3x3` `RGBA16_FLOAT` 图集块保存，Alpha 保存有效覆盖率，不再把方向信息压缩为只适用于 Probe 法线的单个 RGB。
 
-最终 Deferred Lighting 同时完成直接光和间接光材质评估。它对每个全分辨率不透明像素读取邻近 `2x2` Probe，以屏幕双线性权重、世界法线相似度、线性深度差和 Probe 覆盖率联合过滤，降低跨轮廓和跨表面漏光；随后计算 `BaseColor * (1 - Metallic) * Irradiance / PI * AO` 并与直接光、环境光和 Emissive 一次写入 HDR。当前仍没有 RayQuery fallback、时间积累、更宽范围空间滤波和 History Rejection；常量 Ambient 属于过渡照明，正式调节 GI 时应降低或关闭，避免掩盖真实间接光。
+最终 Deferred Lighting 同时完成直接光和间接光材质评估。它对每个全分辨率不透明像素读取邻近 `2x2` Probe，以屏幕双线性权重、世界法线相似度、线性深度差和 Probe 覆盖率联合过滤，随后使用该像素自己的世界空间法线求值九个 SH 系数，再计算 `BaseColor * (1 - Metallic) * Irradiance / PI * AO` 并与直接光、环境光和 Emissive 一次写入 HDR。Probe Temporal 对九个系数统一重投影和积累，位置与法线历史负责拒绝不属于同一表面的历史。当前仍没有 RayQuery fallback、更宽范围空间滤波和完整的遮挡可见性表示；常量 Ambient 属于过渡照明，正式调节 GI 时应降低或关闭，避免掩盖真实间接光。
 
 HZB 使用“最近深度金字塔”：Mip0 从场景 Device Depth 构建，Mip N 从 Mip N-1 保守归约。Reversed-Z 中较大的值离相机更近，因此使用 `max`；Forward-Z 使用 `min`。保留非线性的 Device Depth 可以直接配合硬件深度约定，也避免每级重复线性化。每个低分辨率 Texel 表示其覆盖区域内最近的潜在遮挡面，后续 Screen Trace 可以先在粗 Mip 快速跳过空区域，再逐级下降确认命中。
 

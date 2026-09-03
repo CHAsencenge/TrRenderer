@@ -56,7 +56,7 @@ float3 TrEvaluateIndirectSurfaceRadiance(
 {
     const float3 diffuseAlbedo = baseColor * (1.0f - saturate(metallic));
     return diffuseAlbedo * max(irradiance, 0.0f) *
-        (ambientOcclusion * g_indirectLightingScale * TR_LIGHTING_INV_PI);
+        (ambientOcclusion * g_indirectLightingScale * TR_LIGHTING_INV_PI); // TR_LIGHTING_INV_PI: Lambert BRDF, 半球上的投影立体角积分
 }
 
 #endif

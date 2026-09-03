@@ -235,12 +235,14 @@ set(LUMEN_HLSL_SOURCE_FILES
   shaders/Lumen/screen_probe_temporal.hlsl
   shaders/Lumen/screen_probe.hlsl
   shaders/Lumen/screen_probe_common.header.hlsl
+  shaders/Lumen/screen_probe_sampling.header.hlsl
   shaders/Lumen/screen_trace_hit.header.hlsl
   shaders/Lumen/screen_trace.hlsl)
 set(COMMON_HLSL_SOURCE_FILES
   shaders/Common/deferred_lighting_common.header.hlsl
   shaders/Common/depth.header.hlsl
-  shaders/Common/material_flags.header.hlsl)
+  shaders/Common/material_flags.header.hlsl
+  shaders/Common/spherical_harmonics.header.hlsl)
 set(LEGACY_HLSL_SOURCE_FILES
   shaders/Legacy/cornell_box.hlsl
   shaders/Legacy/shaders.hlsl

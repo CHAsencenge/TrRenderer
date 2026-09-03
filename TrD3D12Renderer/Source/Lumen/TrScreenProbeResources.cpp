@@ -45,8 +45,8 @@ void TrScreenProbeResources::Initialize(
 
     mIrradianceHistory.Initialize(
         device,
-        mLayout.ProbeCountX,
-        mLayout.ProbeCountY,
+        mLayout.IrradianceAtlasWidth,
+        mLayout.IrradianceAtlasHeight,
         IrradianceFormat,
         resourceHeap,
         L"Lumen Screen Probe Irradiance History");
@@ -84,8 +84,8 @@ void TrScreenProbeResources::Resize(
     CreateResources(device, width, height);
     mIrradianceHistory.Resize(
         device,
-        mLayout.ProbeCountX,
-        mLayout.ProbeCountY);
+        mLayout.IrradianceAtlasWidth,
+        mLayout.IrradianceAtlasHeight);
     mPositionHistory.Resize(
         device,
         mLayout.ProbeCountX,
@@ -133,6 +133,10 @@ void TrScreenProbeResources::CreateResources(
         probeCountX * TrScreenProbeLayout::RayGridDimension;
     const UINT traceHeight =
         probeCountY * TrScreenProbeLayout::RayGridDimension;
+    const UINT irradianceWidth =
+        probeCountX * TrScreenProbeLayout::ShCoefficientGridDimension;
+    const UINT irradianceHeight =
+        probeCountY * TrScreenProbeLayout::ShCoefficientGridDimension;
     if(traceWidth > D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION ||
        traceHeight > D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION)
     {
@@ -145,6 +149,8 @@ void TrScreenProbeResources::CreateResources(
     mLayout.ProbeCountY = probeCountY;
     mLayout.TraceAtlasWidth = traceWidth;
     mLayout.TraceAtlasHeight = traceHeight;
+    mLayout.IrradianceAtlasWidth = irradianceWidth;
+    mLayout.IrradianceAtlasHeight = irradianceHeight;
 
     constexpr D3D12_RESOURCE_FLAGS flags =
         D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -197,8 +203,8 @@ void TrScreenProbeResources::CreateResources(
         L"Lumen Screen Probe Radiance");
     mIrradiance.Initialize2D(
         device,
-        probeCountX,
-        probeCountY,
+        irradianceWidth,
+        irradianceHeight,
         IrradianceFormat,
         flags,
         initialState,

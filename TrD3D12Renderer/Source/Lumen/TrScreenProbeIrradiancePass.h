@@ -10,17 +10,20 @@ struct alignas(16) TrScreenProbeIrradianceConstants
     UINT ProbeCountY = 0;
     UINT RayGridDimension = 0;
     UINT RaysPerProbe = 0;
+    UINT FrameNumber = 0;
+    UINT Padding[3] = {};
 };
 
-static_assert(sizeof(TrScreenProbeIrradianceConstants) == 16);
+static_assert(sizeof(TrScreenProbeIrradianceConstants) == 32);
 
 struct TrScreenProbeIrradiancePassOutputs
 {
     TrTexture* Irradiance = nullptr;
 };
 
-// Integrates cosine-weighted per-ray radiance into one diffuse irradiance
-// value per screen probe. Temporal accumulation is intentionally separate.
+// Projects cosine-weighted per-ray radiance into world-space, Lambert-
+// convolved SH L2 coefficients. Temporal accumulation is intentionally
+// separate.
 class TrScreenProbeIrradiancePass : public TrRenderPass
 {
 public:
@@ -32,6 +35,7 @@ public:
     Outputs Integrate(
         ID3D12GraphicsCommandList* commandList,
         TrDescriptorHeap& resourceHeap,
+        UINT frameNumber,
         TrScreenProbeResources& screenProbes);
 
 private:

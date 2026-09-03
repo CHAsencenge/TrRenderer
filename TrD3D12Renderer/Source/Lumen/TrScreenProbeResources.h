@@ -11,6 +11,11 @@ struct TrScreenProbeLayout
     static constexpr UINT RayGridDimension = 4;
     static constexpr UINT RaysPerProbe =
         RayGridDimension * RayGridDimension;
+    static constexpr UINT ShCoefficientCount = 9;
+    static constexpr UINT ShCoefficientGridDimension = 3;
+    static_assert(
+        ShCoefficientCount ==
+        ShCoefficientGridDimension * ShCoefficientGridDimension);
 
     UINT RenderWidth = 0;
     UINT RenderHeight = 0;
@@ -18,6 +23,8 @@ struct TrScreenProbeLayout
     UINT ProbeCountY = 0;
     UINT TraceAtlasWidth = 0;
     UINT TraceAtlasHeight = 0;
+    UINT IrradianceAtlasWidth = 0;
+    UINT IrradianceAtlasHeight = 0;
 };
 
 // Persistent allocations shared by Screen Probe placement, Screen Trace and
@@ -95,6 +102,8 @@ private:
     TrTexture mTraceHit;
     TrTexture mTraceDebug;
     TrTexture mRadiance;
+    // Each probe occupies a 3x3 block containing its nine world-space SH L2
+    // diffuse-irradiance coefficients.
     TrTexture mIrradiance;
     TrHistoryTexture mIrradianceHistory;
     TrHistoryTexture mPositionHistory;

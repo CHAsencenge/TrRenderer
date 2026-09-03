@@ -1,4 +1,5 @@
 #include "screen_probe_common.header.hlsl"
+#include "screen_probe_sampling.header.hlsl"
 #include "screen_trace_hit.header.hlsl"
 
 Texture2D<float4> g_probePositionValidity : register(t0);
@@ -22,68 +23,6 @@ cbuffer ScreenTraceConstants : register(b2)
     float g_surfaceThickness;
     float g_baseStep;
 };
-
-static const float TR_PI = 3.14159265359f;
-uint HashUint(uint value)
-{
-    value ^= value >> 16u;
-    value *= 0x7feb352du;
-    value ^= value >> 15u;
-    value *= 0x846ca68bu;
-    value ^= value >> 16u;
-    return value;
-}
-
-float RadicalInverse(uint bits)
-{
-    bits = (bits << 16u) | (bits >> 16u);
-    bits = ((bits & 0x55555555u) << 1u) |
-        ((bits & 0xaaaaaaaau) >> 1u);
-    bits = ((bits & 0x33333333u) << 2u) |
-        ((bits & 0xccccccccu) >> 2u);
-    bits = ((bits & 0x0f0f0f0fu) << 4u) |
-        ((bits & 0xf0f0f0f0u) >> 4u);
-    bits = ((bits & 0x00ff00ffu) << 8u) |
-        ((bits & 0xff00ff00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10f;
-}
-
-float3 GenerateProbeRay(
-    uint2 probeCoordinate,
-    uint rayIndex,
-    uint rayCount,
-    float3 worldNormal)
-{
-    const uint probeHash = HashUint(
-        probeCoordinate.x + probeCoordinate.y * max(g_probeCountX, 1u));
-    const float probeRotation = float(probeHash & 0xffffu) / 65536.0f;
-    const uint temporalIndex = g_frameNumber + 1u;
-    const float2 temporalShift = float2(
-        RadicalInverse(temporalIndex),
-        frac(float(temporalIndex) * 0.7548776662466927f));
-    const float2 samplePoint = frac(float2(
-        (float(rayIndex) + 0.5f) / float(rayCount),
-        RadicalInverse(rayIndex) + probeRotation) + temporalShift);
-
-    // Cosine-weighted hemisphere: denser rays around the surface normal where
-    // diffuse irradiance has the largest contribution.
-    const float radius = sqrt(samplePoint.x);
-    const float phi = 2.0f * TR_PI * samplePoint.y;
-    const float3 localDirection = float3(
-        radius * cos(phi),
-        radius * sin(phi),
-        sqrt(max(0.0f, 1.0f - samplePoint.x)));
-
-    const float3 helperAxis = abs(worldNormal.z) < 0.999f
-        ? float3(0.0f, 0.0f, 1.0f)
-        : float3(0.0f, 1.0f, 0.0f);
-    const float3 tangent = normalize(cross(helperAxis, worldNormal));
-    const float3 bitangent = cross(worldNormal, tangent);
-    return normalize(
-        tangent * localDirection.x +
-        bitangent * localDirection.y +
-        worldNormal * localDirection.z);
-}
 
 float LoadHzb(float2 screenUv, uint mipLevel)
 {
@@ -249,10 +188,12 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     const float3 worldNormal = normalize(normalDepth.xyz);
-    const float3 rayDirection = GenerateProbeRay(
+    const float3 rayDirection = TrGenerateScreenProbeRay(
         probeCoordinate,
+        g_probeCountX,
         rayIndex,
         rayCount,
+        g_frameNumber,
         worldNormal);
     const float3 rayOrigin =
         positionValidity.xyz + worldNormal * g_surfaceBias;

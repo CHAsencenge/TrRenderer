@@ -1009,12 +1009,12 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         mScreenProbeResources.GetRadianceSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mGpuDebug.RegisterView(
-        L"Lumen Probe Irradiance",
+        L"Lumen Probe Irradiance SH L2 Atlas",
         mScreenProbeResources.GetIrradianceSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mProbeTemporalDebugViewIndex = mGpuDebug.GetViewCount();
     mGpuDebug.RegisterView(
-        L"Lumen Probe Irradiance Temporal",
+        L"Lumen Probe Irradiance SH L2 Temporal Atlas",
         mScreenProbeResources.GetIrradianceHistory()
             .GetCurrentSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
@@ -1545,6 +1545,7 @@ void TrDeferredRenderer::PopulateCommandList()
                 mScreenProbeIrradiancePass.Integrate(
                     mCommandList.Get(),
                     mResourceHeap,
+                    renderFrameNumber,
                     mScreenProbeResources);
             });
         const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =

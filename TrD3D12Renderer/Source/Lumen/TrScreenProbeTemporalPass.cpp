@@ -85,11 +85,17 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
         return description.Width == layout.ProbeCountX &&
             description.Height == layout.ProbeCountY;
     };
+    const auto hasIrradianceDimensions = [&layout](const TrTexture& texture)
+    {
+        const D3D12_RESOURCE_DESC& description = texture.GetDescription();
+        return description.Width == layout.IrradianceAtlasWidth &&
+            description.Height == layout.IrradianceAtlasHeight;
+    };
     if(layout.ProbeCountX == 0 || layout.ProbeCountY == 0 ||
-       !hasProbeDimensions(screenProbes.GetIrradiance()) ||
+       !hasIrradianceDimensions(screenProbes.GetIrradiance()) ||
        !hasProbeDimensions(screenProbes.GetPositionValidity()) ||
        !hasProbeDimensions(screenProbes.GetNormalDepth()) ||
-       !hasProbeDimensions(irradianceHistory.GetCurrent()) ||
+       !hasIrradianceDimensions(irradianceHistory.GetCurrent()) ||
        !hasProbeDimensions(positionHistory.GetCurrent()) ||
        !hasProbeDimensions(normalDepthHistory.GetCurrent()))
     {

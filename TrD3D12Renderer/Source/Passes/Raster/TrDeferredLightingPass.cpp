@@ -87,8 +87,8 @@ void TrDeferredLightingPass::Render(
         probeIrradiance.GetDescription();
     if(hdrDescription.Width != layout.RenderWidth ||
        hdrDescription.Height != layout.RenderHeight ||
-       irradianceDescription.Width != layout.ProbeCountX ||
-       irradianceDescription.Height != layout.ProbeCountY)
+       irradianceDescription.Width != layout.IrradianceAtlasWidth ||
+       irradianceDescription.Height != layout.IrradianceAtlasHeight)
     {
         throw std::logic_error(
             "Deferred lighting Screen Probe resources have incompatible dimensions.");

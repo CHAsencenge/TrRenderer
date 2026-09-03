@@ -1,4 +1,5 @@
 #include "screen_probe_common.header.hlsl"
+#include "../Common/spherical_harmonics.header.hlsl"
 
 Texture2D<float4> g_currentIrradiance : register(t0);
 Texture2D<float4> g_currentPositionValidity : register(t1);
@@ -46,6 +47,34 @@ bool ProjectToPreviousProbeGrid(
         previousNdc.z >= 0.0f && previousNdc.z <= 1.0f;
 }
 
+void StoreCurrentIrradianceSh(uint2 probeCoordinate)
+{
+    [unroll]
+    for(uint coefficientIndex = 0u;
+        coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+        ++coefficientIndex)
+    {
+        const uint2 atlasCoordinate = TrShL2AtlasCoordinate(
+            probeCoordinate,
+            coefficientIndex);
+        g_outputIrradiance[atlasCoordinate] =
+            g_currentIrradiance.Load(int3(atlasCoordinate, 0));
+    }
+}
+
+void StoreZeroIrradianceSh(uint2 probeCoordinate)
+{
+    [unroll]
+    for(uint coefficientIndex = 0u;
+        coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+        ++coefficientIndex)
+    {
+        g_outputIrradiance[TrShL2AtlasCoordinate(
+            probeCoordinate,
+            coefficientIndex)] = 0.0f;
+    }
+}
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -59,9 +88,6 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         g_currentPositionValidity.Load(int3(probeCoordinate, 0));
     const float4 currentNormalDepth =
         g_currentNormalDepth.Load(int3(probeCoordinate, 0));
-    const float4 currentIrradiance =
-        g_currentIrradiance.Load(int3(probeCoordinate, 0));
-
     // Geometry history always follows the current probe placement, even when
     // lighting history is rejected. It becomes next frame's identity test.
     g_outputPositionValidity[probeCoordinate] = currentPosition;
@@ -72,12 +98,12 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         currentNormalDepth.xyz);
     if(currentPosition.w < 0.5f || currentNormalLengthSquared < 1.0e-6f)
     {
-        g_outputIrradiance[probeCoordinate] = 0.0f;
+        StoreZeroIrradianceSh(probeCoordinate);
         return;
     }
     if(g_historyValid == 0u)
     {
-        g_outputIrradiance[probeCoordinate] = currentIrradiance;
+        StoreCurrentIrradianceSh(probeCoordinate);
         return;
     }
 
@@ -86,7 +112,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
            currentPosition.xyz,
            previousProbeCoordinate))
     {
-        g_outputIrradiance[probeCoordinate] = currentIrradiance;
+        StoreCurrentIrradianceSh(probeCoordinate);
         return;
     }
 
@@ -99,7 +125,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const int2 baseProbe = int2(floor(previousProbeCoordinate));
     const float2 probeFraction = frac(previousProbeCoordinate);
 
-    float3 weightedHistory = 0.0f;
+    float3 weightedHistory[TR_SH_L2_COEFFICIENT_COUNT];
+    [unroll]
+    for(uint coefficientIndex = 0u;
+        coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+        ++coefficientIndex)
+    {
+        weightedHistory[coefficientIndex] = 0.0f;
+    }
     float weightedHistoryConfidence = 0.0f;
     float historyWeightSum = 0.0f;
     [unroll]
@@ -119,14 +152,16 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 g_previousPositionValidity.Load(int3(candidate, 0));
             const float4 previousNormalDepth =
                 g_previousNormalDepth.Load(int3(candidate, 0));
-            const float4 previousIrradiance =
-                g_previousIrradiance.Load(int3(candidate, 0));
+            const uint2 candidateProbe = uint2(candidate);
+            const float4 previousSh0 = g_previousIrradiance.Load(int3(
+                TrShL2AtlasCoordinate(candidateProbe, 0u),
+                0));
             const float previousNormalLengthSquared = dot(
                 previousNormalDepth.xyz,
                 previousNormalDepth.xyz);
             if(previousPosition.w < 0.5f ||
                previousNormalLengthSquared < 1.0e-6f ||
-               previousIrradiance.a <= 1.0e-6f)
+               previousSh0.a <= 1.0e-6f)
             {
                 continue;
             }
@@ -157,32 +192,61 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             const float positionWeight = saturate(
                 1.0f - positionDistance / positionThreshold);
             const float weight = spatialWeight * normalWeight *
-                positionWeight * saturate(previousIrradiance.a);
-            weightedHistory += previousIrradiance.rgb * weight;
-            weightedHistoryConfidence += previousIrradiance.a * weight;
+                positionWeight * saturate(previousSh0.a);
+            [unroll]
+            for(uint coefficientIndex = 0u;
+                coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+                ++coefficientIndex)
+            {
+                const float3 previousCoefficient =
+                    g_previousIrradiance.Load(int3(
+                        TrShL2AtlasCoordinate(
+                            candidateProbe,
+                            coefficientIndex),
+                        0)).rgb;
+                weightedHistory[coefficientIndex] +=
+                    previousCoefficient * weight;
+            }
+            weightedHistoryConfidence += previousSh0.a * weight;
             historyWeightSum += weight;
         }
     }
 
     if(historyWeightSum <= 1.0e-6f)
     {
-        g_outputIrradiance[probeCoordinate] = currentIrradiance;
+        StoreCurrentIrradianceSh(probeCoordinate);
         return;
     }
 
-    const float3 historyIrradiance = weightedHistory / historyWeightSum;
     const float historyConfidence = saturate(
         weightedHistoryConfidence / historyWeightSum);
+    const float currentConfidence = saturate(
+        g_currentIrradiance.Load(int3(
+            TrShL2AtlasCoordinate(probeCoordinate, 0u),
+            0)).a);
     // Ramp history in over the first few frames after a reset. The frame
     // number also restarts on resize, matching history invalidation.
     const float startupRamp = saturate(float(g_temporalFrameNumber) / 4.0f);
     const float historyWeight = saturate(
         g_staticHistoryWeight * startupRamp * historyConfidence);
     const float resolvedConfidence = lerp(
-        saturate(currentIrradiance.a),
+        currentConfidence,
         historyConfidence,
         historyWeight);
-    g_outputIrradiance[probeCoordinate] = float4(
-        lerp(currentIrradiance.rgb, historyIrradiance, historyWeight),
-        resolvedConfidence);
+    [unroll]
+    for(uint coefficientIndex = 0u;
+        coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+        ++coefficientIndex)
+    {
+        const uint2 atlasCoordinate = TrShL2AtlasCoordinate(
+            probeCoordinate,
+            coefficientIndex);
+        const float3 currentCoefficient =
+            g_currentIrradiance.Load(int3(atlasCoordinate, 0)).rgb;
+        const float3 historyCoefficient =
+            weightedHistory[coefficientIndex] / historyWeightSum;
+        g_outputIrradiance[atlasCoordinate] = float4(
+            lerp(currentCoefficient, historyCoefficient, historyWeight),
+            resolvedConfidence);
+    }
 }

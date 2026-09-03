@@ -1,5 +1,6 @@
 #include "../Common/depth.header.hlsl"
 #include "../Common/deferred_lighting_common.header.hlsl"
+#include "../Common/spherical_harmonics.header.hlsl"
 
 struct FullscreenVertex
 {
@@ -38,7 +39,7 @@ float3 TrUpsampleProbeIrradiance(
 {
     uint probeCountX;
     uint probeCountY;
-    g_probeIrradiance.GetDimensions(probeCountX, probeCountY);
+    g_probeNormalDepth.GetDimensions(probeCountX, probeCountY);
     const float2 continuousProbeCoordinate =
         (float2(pixel) + 0.5f) *
         float2(probeCountX, probeCountY) / g_renderSize - 0.5f;
@@ -54,6 +55,8 @@ float3 TrUpsampleProbeIrradiance(
 
     float3 weightedIrradiance = 0.0f;
     float weightSum = 0.0f;
+    float shBasis[TR_SH_L2_COEFFICIENT_COUNT];
+    TrEvaluateShL2Basis(worldNormal, shBasis);
     [unroll]
     for(int y = 0; y < 2; ++y)
     {
@@ -73,13 +76,14 @@ float3 TrUpsampleProbeIrradiance(
 
             const float4 probeNormalDepth =
                 g_probeNormalDepth.Load(int3(probeCoordinate, 0));
-            const float4 probeIrradiance =
-                g_probeIrradiance.Load(int3(probeCoordinate, 0));
+            const float4 probeSh0 = g_probeIrradiance.Load(int3(
+                TrShL2AtlasCoordinate(probeCoordinate, 0u),
+                0));
             const float probeNormalLengthSquared = dot(
                 probeNormalDepth.xyz,
                 probeNormalDepth.xyz);
             if(probeNormalLengthSquared < 1.0e-6f ||
-               probeIrradiance.a <= 1.0e-6f)
+               probeSh0.a <= 1.0e-6f)
             {
                 continue;
             }
@@ -99,8 +103,24 @@ float3 TrUpsampleProbeIrradiance(
             depthWeight *= depthWeight;
 
             const float weight = spatialWeight * normalWeight * depthWeight *
-                saturate(probeIrradiance.a);
-            weightedIrradiance += probeIrradiance.rgb * weight;
+                saturate(probeSh0.a);
+            
+            // E(N_pixel) = ¦²_lm E_lm Y_lm(N_pixel)
+            float3 probeIrradiance = probeSh0.rgb * shBasis[0];
+            [unroll]
+            for(uint coefficientIndex = 1u;
+                coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
+                ++coefficientIndex)
+            {
+                // ÖØ½¨ irradiance£¬E(N_pixel) = ¦²_lm E_lm Y_lm(N_pixel)
+                const float3 coefficient = g_probeIrradiance.Load(int3(
+                    TrShL2AtlasCoordinate(
+                        probeCoordinate,
+                        coefficientIndex),
+                    0)).rgb;
+                probeIrradiance += coefficient * shBasis[coefficientIndex];
+            }
+            weightedIrradiance += max(probeIrradiance, 0.0f) * weight;
             weightSum += weight;
         }
     }

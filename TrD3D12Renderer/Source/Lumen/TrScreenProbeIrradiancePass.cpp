@@ -10,13 +10,16 @@ void TrScreenProbeIrradiancePass::Initialize(
 {
     CD3DX12_DESCRIPTOR_RANGE radianceRange;
     radianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE normalDepthRange;
+    normalDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     CD3DX12_DESCRIPTOR_RANGE irradianceRange;
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[3];
+    CD3DX12_ROOT_PARAMETER rootParameters[4];
     rootParameters[0].InitAsDescriptorTable(1, &radianceRange);
-    rootParameters[1].InitAsDescriptorTable(1, &irradianceRange);
-    rootParameters[2].InitAsConstants(
+    rootParameters[1].InitAsDescriptorTable(1, &normalDepthRange);
+    rootParameters[2].InitAsDescriptorTable(1, &irradianceRange);
+    rootParameters[3].InitAsConstants(
         sizeof(TrScreenProbeIrradianceConstants) / sizeof(std::uint32_t),
         TrConstantRegister::Pass);
 
@@ -38,6 +41,7 @@ TrScreenProbeIrradiancePass::Outputs
 TrScreenProbeIrradiancePass::Integrate(
     ID3D12GraphicsCommandList* commandList,
     TrDescriptorHeap& resourceHeap,
+    UINT frameNumber,
     TrScreenProbeResources& screenProbes)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
@@ -54,16 +58,20 @@ TrScreenProbeIrradiancePass::Integrate(
         screenProbes.GetIrradiance().GetDescription();
     if(radianceDescription.Width != layout.TraceAtlasWidth ||
        radianceDescription.Height != layout.TraceAtlasHeight ||
-       irradianceDescription.Width != layout.ProbeCountX ||
-       irradianceDescription.Height != layout.ProbeCountY)
+       irradianceDescription.Width != layout.IrradianceAtlasWidth ||
+       irradianceDescription.Height != layout.IrradianceAtlasHeight)
     {
         throw std::logic_error(
             "Screen Probe Irradiance resources have incompatible dimensions.");
     }
 
     TrTexture& radiance = screenProbes.GetRadiance();
+    TrTexture& normalDepth = screenProbes.GetNormalDepth();
     TrTexture& irradiance = screenProbes.GetIrradiance();
     radiance.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+    normalDepth.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     irradiance.Transition(
@@ -79,6 +87,9 @@ TrScreenProbeIrradiancePass::Integrate(
         screenProbes.GetRadianceSrv().GpuHandle);
     commandList->SetComputeRootDescriptorTable(
         1,
+        screenProbes.GetNormalDepthSrv().GpuHandle);
+    commandList->SetComputeRootDescriptorTable(
+        2,
         screenProbes.GetIrradianceUav().GpuHandle);
 
     const TrScreenProbeIrradianceConstants constants =
@@ -86,10 +97,11 @@ TrScreenProbeIrradiancePass::Integrate(
         layout.ProbeCountX,
         layout.ProbeCountY,
         TrScreenProbeLayout::RayGridDimension,
-        TrScreenProbeLayout::RaysPerProbe
+        TrScreenProbeLayout::RaysPerProbe,
+        frameNumber
     };
     commandList->SetComputeRoot32BitConstants(
-        2,
+        3,
         sizeof(constants) / sizeof(std::uint32_t),
         &constants,
         0);
