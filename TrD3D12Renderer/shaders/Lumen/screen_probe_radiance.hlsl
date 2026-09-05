@@ -1,11 +1,26 @@
 #include "screen_trace_hit.header.hlsl"
-#include "../Common/deferred_lighting_common.header.hlsl"
+#include "../Common/ABI/light_types.header.hlsl"
+#include "../Common/ABI/scene_constants.header.hlsl"
+#include "../Common/ABI/view_constants.header.hlsl"
+#include "../Common/Lighting/light_evaluation.header.hlsl"
+#include "../Common/Lighting/surface_lighting.header.hlsl"
+#include "../Common/Utility/view_projection.header.hlsl"
+
+ConstantBuffer<TrSceneConstants> g_sceneConstants : register(b0);
+ConstantBuffer<TrViewConstants> g_viewConstants : register(b1);
+
+cbuffer ScreenProbeRadiancePassConstants : register(b2)
+{
+    float g_directLightingScale;
+    float3 g_radiancePadding;
+};
 
 Texture2D<uint4> g_traceHit : register(t0);
 Texture2D<float4> g_baseColorRoughness : register(t1);
 Texture2D<float4> g_normalMetallic : register(t2);
 Texture2D<float> g_depth : register(t3);
 Texture2D<float4> g_emissiveOcclusion : register(t4);
+StructuredBuffer<TrGpuLight> g_lights : register(t6);
 RWTexture2D<float4> g_radiance : register(u0);
 
 [numthreads(8, 8, 1)]
@@ -43,6 +58,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         g_normalMetallic.Load(int3(hitPixel, 0)).xyz;
     const float3 emissive =
         g_emissiveOcclusion.Load(int3(hitPixel, 0)).rgb;
+    const float hitDepth = g_depth.Load(int3(hitPixel, 0));
     const float normalLengthSquared = dot(normal, normal);
     if(normalLengthSquared < 1.0e-6f)
     {
@@ -53,10 +69,20 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // One-bounce bootstrap: the hit surface contributes only direct lighting
     // and emissive. Probe indirect lighting is deliberately excluded to avoid
     // same-frame recursive feedback.
-    const float3 incidentRadiance = TrEvaluateDirectSurfaceRadiance(
+    const float3 hitWorldPosition = TrReconstructWorldPosition(
+        hitPixel,
+        hitDepth,
+        g_viewConstants.inverseRenderSize,
+        g_viewConstants.inverseViewProjection);
+    const float3 directIrradiance = TrEvaluateDirectIrradiance(
+        g_lights,
+        g_sceneConstants.lightCount,
+        hitWorldPosition,
+        normal * rsqrt(normalLengthSquared));
+    const float3 incidentRadiance = TrEvaluateDirectDiffuseRadiance(
         baseColor,
-        normal * rsqrt(normalLengthSquared),
-        emissive);
+        directIrradiance,
+        g_directLightingScale) + emissive;
     g_radiance[tracePixel] = float4(
         max(incidentRadiance, 0.0f),
         TrGetTraceConfidence(encodedHit));

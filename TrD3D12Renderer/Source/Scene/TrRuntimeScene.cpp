@@ -65,6 +65,12 @@ namespace
         }
         return true;
     }
+
+    bool IsFiniteVector(const DirectX::XMFLOAT3& value)
+    {
+        return std::isfinite(value.x) && std::isfinite(value.y) &&
+            std::isfinite(value.z);
+    }
 }
 
 TrAxisAlignedBounds::TrAxisAlignedBounds()
@@ -145,6 +151,7 @@ void TrRuntimeScene::Initialize(
     mNodes.clear();
     mNodes.resize(scene.Nodes.size());
     mInstances.clear();
+    mLights.clear();
     mNodeToInstance.assign(scene.Nodes.size(), TrInvalidRuntimeId);
     mWorldBounds.Reset();
     mUploadedMeshCount = 0;
@@ -172,6 +179,7 @@ void TrRuntimeScene::Initialize(
         destination.ParentNodeId = source.ParentIndex;
         destination.Children = source.Children;
         destination.MeshId = source.MeshIndex;
+        destination.SourceLightIndex = source.LightIndex;
         destination.LocalTransform = CopyMatrix(source.LocalTransform);
         destination.CurrentWorldTransform = CopyMatrix(source.WorldTransform);
         destination.PreviousWorldTransform = destination.CurrentWorldTransform;
@@ -183,6 +191,35 @@ void TrRuntimeScene::Initialize(
         node.PreviousWorldTransform = node.CurrentWorldTransform;
         node.DirtyFlags = TrRuntimeNodeDirtyFlags::None;
     }
+
+    mLights.reserve(scene.Lights.size());
+    for(const std::uint32_t nodeIndex : activeNodes)
+    {
+        const TrRuntimeNode& node = mNodes[nodeIndex];
+        if(node.SourceLightIndex == TrInvalidSceneIndex)
+        {
+            continue;
+        }
+
+        const TrSceneLight& sourceLight = scene.Lights[node.SourceLightIndex];
+        TrRuntimeLight light;
+        light.LightId = static_cast<TrLightId>(mLights.size());
+        light.NodeId = node.NodeId;
+        light.SourceLightIndex = node.SourceLightIndex;
+        light.Type = sourceLight.Type;
+        light.Color =
+        {
+            sourceLight.Color[0],
+            sourceLight.Color[1],
+            sourceLight.Color[2]
+        };
+        light.Intensity = sourceLight.Intensity;
+        light.Range = sourceLight.Range;
+        light.InnerConeCos = std::cos(sourceLight.InnerConeAngle);
+        light.OuterConeCos = std::cos(sourceLight.OuterConeAngle);
+        mLights.push_back(light);
+    }
+    RecalculateLights();
 
     std::uint64_t nextPrimitiveId = 0;
     for(std::size_t meshIndex = 0; meshIndex < scene.Meshes.size(); ++meshIndex)
@@ -346,6 +383,7 @@ bool TrRuntimeScene::UpdateWorldTransforms()
 
     RecalculateWorldTransforms();
     RecalculateInstanceBounds();
+    RecalculateLights();
     mTransformsDirty = false;
     return true;
 }
@@ -357,6 +395,53 @@ void TrRuntimeScene::Validate() const
        mNodeToInstance.size() != mNodes.size())
     {
         throw std::logic_error("Runtime Scene storage does not match its source Scene.");
+    }
+
+    std::unordered_set<TrLightId> lightIds;
+    for(std::size_t lightIndex = 0; lightIndex < mLights.size(); ++lightIndex)
+    {
+        const TrRuntimeLight& light = mLights[lightIndex];
+        if(light.LightId != lightIndex ||
+           !lightIds.insert(light.LightId).second ||
+           light.NodeId >= mNodes.size() ||
+           light.SourceLightIndex >= mSourceScene->Lights.size() ||
+           !mNodes[light.NodeId].Active ||
+           mNodes[light.NodeId].SourceLightIndex != light.SourceLightIndex ||
+           !IsFiniteVector(light.Position) ||
+           !IsFiniteVector(light.Direction) ||
+           !IsFiniteVector(light.Color) ||
+           !std::isfinite(light.Intensity) ||
+           !std::isfinite(light.Range) ||
+           !std::isfinite(light.InnerConeCos) ||
+           !std::isfinite(light.OuterConeCos))
+        {
+            throw std::logic_error("Runtime Scene light contract is invalid.");
+        }
+        switch(light.Type)
+        {
+        case TrSceneLightType::Directional:
+        case TrSceneLightType::Point:
+        case TrSceneLightType::Spot:
+            break;
+        default:
+            throw std::logic_error("Runtime Scene light type is invalid.");
+        }
+        if(light.Intensity < 0.0f || light.Range < 0.0f ||
+           light.Color.x < 0.0f || light.Color.y < 0.0f ||
+           light.Color.z < 0.0f ||
+           (light.Type == TrSceneLightType::Spot &&
+            light.InnerConeCos < light.OuterConeCos))
+        {
+            throw std::logic_error("Runtime Scene light parameters are invalid.");
+        }
+        const float directionLengthSquared =
+            light.Direction.x * light.Direction.x +
+            light.Direction.y * light.Direction.y +
+            light.Direction.z * light.Direction.z;
+        if(std::abs(directionLengthSquared - 1.0f) > 1.0e-3f)
+        {
+            throw std::logic_error("Runtime Scene light direction is not normalized.");
+        }
     }
 
     std::unordered_set<TrPrimitiveId> primitiveIds;
@@ -568,5 +653,41 @@ void TrRuntimeScene::RecalculateInstanceBounds()
             instance.CurrentWorldTransform);
         instance.DirtyFlags = node.DirtyFlags;
         mWorldBounds.Expand(instance.CurrentWorldBounds);
+    }
+}
+
+void TrRuntimeScene::RecalculateLights()
+{
+    using namespace DirectX;
+
+    // glTF punctual lights emit along local -Z. Scene matrices have already
+    // flipped the glTF Z axis, so the corresponding Tr local direction is +Z.
+    const XMVECTOR localEmissionDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+    for(TrRuntimeLight& light : mLights)
+    {
+        const TrRuntimeNode& node = mNodes[light.NodeId];
+        const XMMATRIX world = XMLoadFloat4x4(&node.CurrentWorldTransform);
+        XMStoreFloat3(
+            &light.Position,
+            XMVector3TransformCoord(XMVectorZero(), world));
+
+        if(light.Type == TrSceneLightType::Point)
+        {
+            continue;
+        }
+
+        XMVECTOR direction = XMVector3TransformNormal(
+            localEmissionDirection,
+            world);
+        const float directionLengthSquared = XMVectorGetX(
+            XMVector3LengthSq(direction));
+        if(!std::isfinite(directionLengthSquared) ||
+           directionLengthSquared <= 1.0e-8f)
+        {
+            throw std::runtime_error(
+                "Runtime Scene light has a degenerate world transform.");
+        }
+        direction = XMVector3Normalize(direction);
+        XMStoreFloat3(&light.Direction, direction);
     }
 }

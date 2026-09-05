@@ -16,6 +16,7 @@
 #include "Lumen/TrScreenProbeTemporalPass.h"
 #include "Lumen/TrScreenTracePass.h"
 #include "Resources/TrConstantBuffer.h"
+#include "Resources/TrBuffer.h"
 #include "Passes/Raster/TrDeferredLightingPass.h"
 #include "Passes/Raster/TrDepthNormalPass.h"
 #include "Passes/Raster/TrForwardTransparentPass.h"
@@ -100,10 +101,12 @@ private:
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
         TrConstantBuffer SceneConstantBuffer;
+        TrBuffer LightBuffer;
         TrConstantBuffer ViewConstantBuffer;
         TrConstantBuffer GBufferPassConstantBuffer;
         std::vector<std::unique_ptr<TrConstantBuffer>> PrimitiveConstantBuffers;
         TrConstantBuffer LightingPassConstantBuffer;
+        TrConstantBuffer ScreenProbeRadiancePassConstantBuffer;
         TrConstantBuffer ForwardTransparentPassConstantBuffer;
         TrConstantBuffer CompositePassConstantBuffer;
         UINT64 FenceValue = 0;
@@ -150,6 +153,7 @@ private:
     // app resources
     TrScene mLoadedScene;
     TrRuntimeScene mRuntimeScene;
+    std::vector<TrGpuLight> mGpuLights;
     TrAxisAlignedBounds mCameraBounds;
     TrMaterialResources mMaterialResources;
     bool mUsingImportedScene = false;

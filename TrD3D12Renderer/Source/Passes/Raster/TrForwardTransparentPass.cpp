@@ -13,7 +13,7 @@ void TrForwardTransparentPass::Initialize(
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 5, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[8];
+    CD3DX12_ROOT_PARAMETER rootParameters[9];
     rootParameters[0].InitAsConstantBufferView(
         TrConstantRegister::Scene,
         0,
@@ -46,6 +46,10 @@ void TrForwardTransparentPass::Initialize(
     rootParameters[7].InitAsDescriptorTable(
         1,
         &samplerRange,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[8].InitAsShaderResourceView(
+        TrShaderResourceRegister::Lights,
+        0,
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -90,13 +94,14 @@ void TrForwardTransparentPass::Begin(
     TrDescriptorHeap& resourceHeap,
     TrDescriptorHeap& samplerHeap,
     D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS lights,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
     D3D12_GPU_VIRTUAL_ADDRESS passConstants)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        samplerHeap.Get() == nullptr || !resourceHeap.IsShaderVisible() ||
        !samplerHeap.IsShaderVisible() || sceneConstants == 0 ||
-       viewConstants == 0 || passConstants == 0)
+       lights == 0 || viewConstants == 0 || passConstants == 0)
     {
         throw std::invalid_argument("Forward transparent pass inputs are incomplete.");
     }
@@ -112,6 +117,7 @@ void TrForwardTransparentPass::Begin(
     commandList->SetGraphicsRootConstantBufferView(0, sceneConstants);
     commandList->SetGraphicsRootConstantBufferView(1, viewConstants);
     commandList->SetGraphicsRootConstantBufferView(2, passConstants);
+    commandList->SetGraphicsRootShaderResourceView(8, lights);
     renderTargets.BeginForwardTransparentPass(commandList);
 }
 

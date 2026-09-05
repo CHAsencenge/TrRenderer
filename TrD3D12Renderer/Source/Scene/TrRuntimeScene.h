@@ -16,6 +16,7 @@ using TrPrimitiveId = std::uint32_t;
 using TrInstanceId = std::uint32_t;
 using TrMaterialId = std::uint32_t;
 using TrNodeId = std::uint32_t;
+using TrLightId = std::uint32_t;
 
 constexpr std::uint32_t TrInvalidRuntimeId = TrInvalidSceneIndex;
 
@@ -84,12 +85,31 @@ struct TrRuntimeNode
     TrNodeId ParentNodeId = TrInvalidRuntimeId;
     std::vector<TrNodeId> Children;
     TrMeshId MeshId = TrInvalidRuntimeId;
+    std::uint32_t SourceLightIndex = TrInvalidSceneIndex;
     std::uint32_t HierarchyDepth = 0;
     DirectX::XMFLOAT4X4 LocalTransform;
     DirectX::XMFLOAT4X4 CurrentWorldTransform;
     DirectX::XMFLOAT4X4 PreviousWorldTransform;
     TrRuntimeNodeDirtyFlags DirtyFlags = TrRuntimeNodeDirtyFlags::None;
     bool Active = false;
+};
+
+// An active scene-light instance. TrSceneLight owns the imported intrinsic
+// properties, while this structure binds those properties to a scene node and
+// caches the world-space values consumed by rendering.
+struct TrRuntimeLight
+{
+    TrLightId LightId = TrInvalidRuntimeId;
+    TrNodeId NodeId = TrInvalidRuntimeId;
+    std::uint32_t SourceLightIndex = TrInvalidSceneIndex;
+    TrSceneLightType Type = TrSceneLightType::Point;
+    DirectX::XMFLOAT3 Position = {0.0f, 0.0f, 0.0f};
+    DirectX::XMFLOAT3 Direction = {0.0f, 0.0f, 1.0f};
+    DirectX::XMFLOAT3 Color = {1.0f, 1.0f, 1.0f};
+    float Intensity = 1.0f;
+    float Range = 0.0f;
+    float InnerConeCos = 1.0f;
+    float OuterConeCos = 0.707106781f;
 };
 
 struct TrRuntimeInstance
@@ -126,6 +146,7 @@ public:
     const TrRuntimeInstance* FindInstanceByNode(TrNodeId nodeId) const;
     const std::vector<TrRuntimeNode>& GetNodes() const { return mNodes; }
     const std::vector<TrRuntimeInstance>& GetInstances() const { return mInstances; }
+    const std::vector<TrRuntimeLight>& GetLights() const { return mLights; }
     const TrAxisAlignedBounds& GetWorldBounds() const { return mWorldBounds; }
     std::size_t GetUploadedMeshCount() const { return mUploadedMeshCount; }
     std::size_t GetDrawCount() const { return mDrawCount; }
@@ -134,11 +155,13 @@ private:
     void MarkNodeAndDescendantsTransformDirty(TrNodeId nodeId);
     void RecalculateWorldTransforms();
     void RecalculateInstanceBounds();
+    void RecalculateLights();
 
     const TrScene* mSourceScene = nullptr;
     std::vector<TrRuntimeMesh> mMeshes;
     std::vector<TrRuntimeNode> mNodes;
     std::vector<TrRuntimeInstance> mInstances;
+    std::vector<TrRuntimeLight> mLights;
     std::vector<std::uint32_t> mNodeToInstance;
     TrAxisAlignedBounds mWorldBounds;
     std::size_t mUploadedMeshCount = 0;

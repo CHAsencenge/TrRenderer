@@ -1,28 +1,28 @@
-#include "../Common/depth.header.hlsl"
-#include "../Common/deferred_lighting_common.header.hlsl"
-#include "../Common/spherical_harmonics.header.hlsl"
+#include "../Common/ABI/light_types.header.hlsl"
+#include "../Common/ABI/scene_constants.header.hlsl"
+#include "../Common/ABI/view_constants.header.hlsl"
+#include "../Common/Lighting/light_evaluation.header.hlsl"
+#include "../Common/Lighting/spherical_harmonics.header.hlsl"
+#include "../Common/Lighting/surface_lighting.header.hlsl"
+#include "../Common/Utility/depth.header.hlsl"
+#include "../Common/Utility/fullscreen_triangle.header.hlsl"
+#include "../Common/Utility/view_projection.header.hlsl"
 
-struct FullscreenVertex
-{
-    float4 position : SV_POSITION;
-};
+static const uint TR_FEATURE_INDIRECT_LIGHTING = 1u << 0u;
 
-cbuffer ViewConstants : register(b1)
+ConstantBuffer<TrSceneConstants> g_sceneConstants : register(b0);
+ConstantBuffer<TrViewConstants> g_viewConstants : register(b1);
+
+cbuffer DeferredLightingPassConstants : register(b2)
 {
-    float4x4 g_view;
-    float4x4 g_projection;
-    float4x4 g_viewProjection;
-    float4x4 g_inverseViewProjection;
-    float4x4 g_previousViewProjection;
-    float3 g_cameraPosition;
-    float g_nearPlane;
-    float2 g_renderSize;
-    float2 g_inverseRenderSize;
-    float2 g_temporalJitter;
-    float2 g_previousTemporalJitter;
-    uint g_frameNumber;
-    float g_farPlane;
-    float2 g_viewPadding;
+    float g_directLightingScale;
+    float g_ambientLightingScale;
+    float g_indirectLightingScale;
+    float g_relativeDepthThreshold;
+    float g_minimumDepthThreshold;
+    float g_normalWeightPower;
+    uint g_pipelineFeatureMask;
+    float g_lightingPadding;
 };
 
 Texture2D<float4> g_baseColorRoughness : register(t0);
@@ -31,6 +31,7 @@ Texture2D<float> g_depth : register(t2);
 Texture2D<float4> g_emissiveOcclusion : register(t3);
 Texture2D<float4> g_probeNormalDepth : register(t4);
 Texture2D<float4> g_probeIrradiance : register(t5);
+StructuredBuffer<TrGpuLight> g_lights : register(t6);
 
 float3 TrUpsampleProbeIrradiance(
     uint2 pixel,
@@ -42,13 +43,13 @@ float3 TrUpsampleProbeIrradiance(
     g_probeNormalDepth.GetDimensions(probeCountX, probeCountY);
     const float2 continuousProbeCoordinate =
         (float2(pixel) + 0.5f) *
-        float2(probeCountX, probeCountY) / g_renderSize - 0.5f;
+        float2(probeCountX, probeCountY) / g_viewConstants.renderSize - 0.5f;
     const int2 baseProbeCoordinate = int2(floor(continuousProbeCoordinate));
     const float2 probeFraction = frac(continuousProbeCoordinate);
     const float pixelViewDepth = TrDeviceDepthToViewDepth(
         deviceDepth,
-        g_nearPlane,
-        g_farPlane);
+        g_viewConstants.nearPlane,
+        g_viewConstants.farPlane);
     const float depthThreshold = max(
         g_minimumDepthThreshold,
         pixelViewDepth * g_relativeDepthThreshold);
@@ -95,8 +96,8 @@ float3 TrUpsampleProbeIrradiance(
                 max(g_normalWeightPower, 1.0f));
             const float probeViewDepth = TrDeviceDepthToViewDepth(
                 probeNormalDepth.w,
-                g_nearPlane,
-                g_farPlane);
+                g_viewConstants.nearPlane,
+                g_viewConstants.farPlane);
             float depthWeight = saturate(
                 1.0f - abs(pixelViewDepth - probeViewDepth) /
                 depthThreshold);
@@ -105,14 +106,14 @@ float3 TrUpsampleProbeIrradiance(
             const float weight = spatialWeight * normalWeight * depthWeight *
                 saturate(probeSh0.a);
             
-            // E(N_pixel) = ¦²_lm E_lm Y_lm(N_pixel)
+            // E(N_pixel) = Î£_lm E_lm Y_lm(N_pixel)
             float3 probeIrradiance = probeSh0.rgb * shBasis[0];
             [unroll]
             for(uint coefficientIndex = 1u;
                 coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
                 ++coefficientIndex)
             {
-                // ÖØ½¨ irradiance£¬E(N_pixel) = ¦²_lm E_lm Y_lm(N_pixel)
+                // é‡å»º irradianceï¼ŒE(N_pixel) = Î£_lm E_lm Y_lm(N_pixel)
                 const float3 coefficient = g_probeIrradiance.Load(int3(
                     TrShL2AtlasCoordinate(
                         probeCoordinate,
@@ -130,25 +131,16 @@ float3 TrUpsampleProbeIrradiance(
         : 0.0f;
 }
 
-FullscreenVertex VSMain(uint vertexId : SV_VertexID)
+TrFullscreenVertex VSMain(uint vertexId : SV_VertexID)
 {
-    const float2 positions[3] =
-    {
-        float2(-1.0f, -1.0f),
-        float2(-1.0f,  3.0f),
-        float2( 3.0f, -1.0f)
-    };
-
-    FullscreenVertex result;
-    result.position = float4(positions[vertexId], 0.0f, 1.0f);
-    return result;
+    return TrCreateFullscreenTriangleVertex(vertexId);
 }
 
-float4 PSMain(FullscreenVertex input) : SV_Target
+float4 PSMain(TrFullscreenVertex input) : SV_Target
 {
     const int2 pixel = min(
         int2(input.position.xy),
-        int2(g_renderSize) - 1);
+        int2(g_viewConstants.renderSize) - 1);
     const float depth = g_depth.Load(int3(pixel, 0));
     if(TrIsBackgroundDepth(depth))
     {
@@ -159,12 +151,25 @@ float4 PSMain(FullscreenVertex input) : SV_Target
     const float4 normalMetallic = g_normalMetallic.Load(int3(pixel, 0));
     const float3 worldNormal = normalize(normalMetallic.xyz);
     const float4 emissiveOcclusion = g_emissiveOcclusion.Load(int3(pixel, 0));
-    const float3 directRadiance = TrEvaluateDirectSurfaceRadiance(
+    const float3 worldPosition = TrReconstructWorldPosition(
+        uint2(pixel),
+        depth,
+        g_viewConstants.inverseRenderSize,
+        g_viewConstants.inverseViewProjection);
+    const float3 directIrradiance = TrEvaluateDirectIrradiance(
+        g_lights,
+        g_sceneConstants.lightCount,
+        worldPosition,
+        worldNormal);
+    const float3 directRadiance = TrEvaluateDirectDiffuseRadiance(
         baseColor,
-        worldNormal,
-        emissiveOcclusion.rgb);
-    const float3 ambientRadiance = TrEvaluateAmbientSurfaceRadiance(
+        directIrradiance,
+        g_directLightingScale) + emissiveOcclusion.rgb;
+    const float3 ambientRadiance = TrEvaluateAmbientDiffuseRadiance(
         baseColor,
+        g_sceneConstants.ambientColor,
+        g_sceneConstants.ambientStrength,
+        g_ambientLightingScale,
         emissiveOcclusion.a);
     float3 indirectRadiance = 0.0f;
     if((g_pipelineFeatureMask & TR_FEATURE_INDIRECT_LIGHTING) != 0u)
@@ -173,11 +178,12 @@ float4 PSMain(FullscreenVertex input) : SV_Target
             uint2(pixel),
             depth,
             worldNormal);
-        indirectRadiance = TrEvaluateIndirectSurfaceRadiance(
+        indirectRadiance = TrEvaluateIndirectDiffuseRadiance(
             baseColor,
             normalMetallic.a,
             emissiveOcclusion.a,
-            irradiance);
+            irradiance,
+            g_indirectLightingScale);
     }
     return float4(
         directRadiance + ambientRadiance + indirectRadiance,

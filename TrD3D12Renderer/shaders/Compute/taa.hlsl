@@ -1,4 +1,4 @@
-#include "../Common/depth.header.hlsl"
+#include "../Common/Utility/depth.header.hlsl"
 
 Texture2D<float4> g_currentColor : register(t0);
 Texture2D<float4> g_previousColorHistory : register(t1);

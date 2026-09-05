@@ -234,15 +234,39 @@ set(LUMEN_HLSL_SOURCE_FILES
   shaders/Lumen/screen_probe_radiance.hlsl
   shaders/Lumen/screen_probe_temporal.hlsl
   shaders/Lumen/screen_probe.hlsl
-  shaders/Lumen/screen_probe_common.header.hlsl
   shaders/Lumen/screen_probe_sampling.header.hlsl
   shaders/Lumen/screen_trace_hit.header.hlsl
   shaders/Lumen/screen_trace.hlsl)
+set(SHADER_ABI_FILES
+  shaders/Common/ABI/draw_constants.header.hlsl
+  shaders/Common/ABI/light_types.header.hlsl
+  shaders/Common/ABI/material_constants.header.hlsl
+  shaders/Common/ABI/material_flags.header.hlsl
+  shaders/Common/ABI/primitive_constants.header.hlsl
+  shaders/Common/ABI/scene_constants.header.hlsl
+  shaders/Common/ABI/view_constants.header.hlsl)
+set(SHADER_GEOMETRY_FILES
+  shaders/Common/Geometry/static_mesh.header.hlsl)
+set(SHADER_LIGHTING_FILES
+  shaders/Common/Lighting/light_evaluation.header.hlsl
+  shaders/Common/Lighting/spherical_harmonics.header.hlsl
+  shaders/Common/Lighting/surface_lighting.header.hlsl)
+set(SHADER_MATERIAL_FILES
+  shaders/Common/Material/material_flags.header.hlsl
+  shaders/Common/Material/material_sampling.header.hlsl
+  shaders/Common/Material/normal_mapping.header.hlsl)
+set(SHADER_UTILITY_FILES
+  shaders/Common/Utility/depth.header.hlsl
+  shaders/Common/Utility/fullscreen_triangle.header.hlsl
+  shaders/Common/Utility/view_projection.header.hlsl)
+set(SHADER_DOCUMENTATION_FILES
+  shaders/README.md)
 set(COMMON_HLSL_SOURCE_FILES
-  shaders/Common/deferred_lighting_common.header.hlsl
-  shaders/Common/depth.header.hlsl
-  shaders/Common/material_flags.header.hlsl
-  shaders/Common/spherical_harmonics.header.hlsl)
+  ${SHADER_ABI_FILES}
+  ${SHADER_GEOMETRY_FILES}
+  ${SHADER_LIGHTING_FILES}
+  ${SHADER_MATERIAL_FILES}
+  ${SHADER_UTILITY_FILES})
 set(LEGACY_HLSL_SOURCE_FILES
   shaders/Legacy/cornell_box.hlsl
   shaders/Legacy/shaders.hlsl
@@ -282,6 +306,7 @@ target_sources(${PROJNAME} PRIVATE
   ${COMPUTE_HLSL_SOURCE_FILES}
   ${LUMEN_HLSL_SOURCE_FILES}
   ${COMMON_HLSL_SOURCE_FILES}
+  ${SHADER_DOCUMENTATION_FILES}
   ${LEGACY_HLSL_SOURCE_FILES})
 
 target_include_directories(${PROJNAME} PRIVATE
@@ -303,6 +328,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "Shaders"
     ${COMPUTE_HLSL_SOURCE_FILES}
     ${LUMEN_HLSL_SOURCE_FILES}
     ${COMMON_HLSL_SOURCE_FILES}
+    ${SHADER_DOCUMENTATION_FILES}
     ${LEGACY_HLSL_SOURCE_FILES})
 source_group("Shared\\Common" FILES ${COMMON_SOURCE_FILES})
 source_group("ThirdParty" FILES ${TR_THIRD_PARTY_FILES})

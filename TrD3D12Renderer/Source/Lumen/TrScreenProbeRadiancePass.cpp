@@ -15,12 +15,15 @@ void TrScreenProbeRadiancePass::Initialize(
     CD3DX12_DESCRIPTOR_RANGE radianceRange;
     radianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[5];
+    CD3DX12_ROOT_PARAMETER rootParameters[7];
     rootParameters[0].InitAsConstantBufferView(TrConstantRegister::Scene);
     rootParameters[1].InitAsConstantBufferView(TrConstantRegister::Pass);
     rootParameters[2].InitAsDescriptorTable(1, &traceHitRange);
     rootParameters[3].InitAsDescriptorTable(1, &gBufferRange);
     rootParameters[4].InitAsDescriptorTable(1, &radianceRange);
+    rootParameters[5].InitAsConstantBufferView(TrConstantRegister::View);
+    rootParameters[6].InitAsShaderResourceView(
+        TrShaderResourceRegister::Lights);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(
@@ -40,13 +43,15 @@ TrScreenProbeRadiancePass::Outputs TrScreenProbeRadiancePass::Resolve(
     ID3D12GraphicsCommandList* commandList,
     TrDescriptorHeap& resourceHeap,
     D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
-    D3D12_GPU_VIRTUAL_ADDRESS lightingPassConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS lights,
+    D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS passConstants,
     const TrDeferredRenderTargets& renderTargets,
     TrScreenProbeResources& screenProbes)
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        !resourceHeap.IsShaderVisible() || sceneConstants == 0 ||
-       lightingPassConstants == 0)
+       lights == 0 || viewConstants == 0 || passConstants == 0)
     {
         throw std::invalid_argument(
             "Screen Probe Radiance pass inputs are invalid.");
@@ -86,7 +91,7 @@ TrScreenProbeRadiancePass::Outputs TrScreenProbeRadiancePass::Resolve(
     commandList->SetComputeRootConstantBufferView(0, sceneConstants);
     commandList->SetComputeRootConstantBufferView(
         1,
-        lightingPassConstants);
+        passConstants);
     commandList->SetComputeRootDescriptorTable(
         2,
         screenProbes.GetTraceHitSrv().GpuHandle);
@@ -96,6 +101,8 @@ TrScreenProbeRadiancePass::Outputs TrScreenProbeRadiancePass::Resolve(
     commandList->SetComputeRootDescriptorTable(
         4,
         screenProbes.GetRadianceUav().GpuHandle);
+    commandList->SetComputeRootConstantBufferView(5, viewConstants);
+    commandList->SetComputeRootShaderResourceView(6, lights);
     commandList->Dispatch(
         (layout.TraceAtlasWidth + 7u) / 8u,
         (layout.TraceAtlasHeight + 7u) / 8u,

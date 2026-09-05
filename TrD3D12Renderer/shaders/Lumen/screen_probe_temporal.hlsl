@@ -1,5 +1,7 @@
-#include "screen_probe_common.header.hlsl"
-#include "../Common/spherical_harmonics.header.hlsl"
+#include "../Common/ABI/view_constants.header.hlsl"
+#include "../Common/Lighting/spherical_harmonics.header.hlsl"
+
+ConstantBuffer<TrViewConstants> g_viewConstants : register(b1);
 
 Texture2D<float4> g_currentIrradiance : register(t0);
 Texture2D<float4> g_currentPositionValidity : register(t1);
@@ -29,7 +31,7 @@ bool ProjectToPreviousProbeGrid(
 {
     const float4 previousClip = mul(
         float4(worldPosition, 1.0f),
-        g_previousViewProjection);
+        g_viewConstants.previousViewProjection);
     if(previousClip.w <= 1.0e-6f)
     {
         continuousProbeCoordinate = 0.0f;
@@ -37,7 +39,7 @@ bool ProjectToPreviousProbeGrid(
     }
 
     float3 previousNdc = previousClip.xyz / previousClip.w;
-    previousNdc.xy += g_previousTemporalJitter;
+    previousNdc.xy += g_viewConstants.previousTemporalJitter;
     const float2 previousUv = float2(
         previousNdc.x * 0.5f + 0.5f,
         0.5f - previousNdc.y * 0.5f);
@@ -120,7 +122,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         rsqrt(currentNormalLengthSquared);
     const float positionThreshold = max(
         g_minimumPositionThreshold,
-        length(currentPosition.xyz - g_cameraPosition) *
+        length(currentPosition.xyz - g_viewConstants.cameraPosition) *
             g_relativePositionThreshold);
     const int2 baseProbe = int2(floor(previousProbeCoordinate));
     const float2 probeFraction = frac(previousProbeCoordinate);
@@ -195,7 +197,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 1.0f - positionDistance / positionThreshold);
             
             float geometryWeight = spatialWeight * normalWeight * positionWeight; 
-            float previousConfidence = saturate(previousSh0.a); // previousSh0.a: ÉÏÒ»Ö¡¸Ã Probe µÄÀúÊ·¹âÕÕÖÃÐÅ¶È
+            float previousConfidence = saturate(previousSh0.a); // previousSh0.a: ä¸Šä¸€å¸§è¯¥ Probe çš„åŽ†å²å…‰ç…§ç½®ä¿¡åº¦
             float radianceWeight = geometryWeight * previousConfidence;
             
             [unroll]
@@ -229,23 +231,23 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     float historyConfidence = radianceWeightSum / geometryWeightSum;
     
-    // ¹éÒ»»¯ÖÃÐÅ¶È»ìºÏ
-    // µ±Ç° confidence µÍ¡¢ÀúÊ·¸ß£º¸ü¶àÊ¹ÓÃÀúÊ·
-    // µ±Ç° confidence ¸ß¡¢ÀúÊ·µÍ£º¸ü¶àÊ¹ÓÃµ±Ç°
-    // Á½Õß¶¼¸ß£º±£³ÖÄ¬ÈÏÔ¼ 90% ÀúÊ·
-    // ÀúÊ·¼¸ºÎÑéÖ¤Ê§°Ü£ºÍêÈ«Ê¹ÓÃµ±Ç°
+    // å½’ä¸€åŒ–ç½®ä¿¡åº¦æ··åˆ
+    // å½“å‰ confidence ä½Žã€åŽ†å²é«˜ï¼šæ›´å¤šä½¿ç”¨åŽ†å²
+    // å½“å‰ confidence é«˜ã€åŽ†å²ä½Žï¼šæ›´å¤šä½¿ç”¨å½“å‰
+    // ä¸¤è€…éƒ½é«˜ï¼šä¿æŒé»˜è®¤çº¦ 90% åŽ†å²
+    // åŽ†å²å‡ ä½•éªŒè¯å¤±è´¥ï¼šå®Œå…¨ä½¿ç”¨å½“å‰
     const float currentEvidence =
     (1.0f - g_staticHistoryWeight) *
-    currentConfidence; // (1-¦Á)C_c
+    currentConfidence; // (1-Î±)C_c
 
     const float historyEvidence =
     g_staticHistoryWeight *
-    historyConfidence; // ¦ÁC_h
+    historyConfidence; // Î±C_h
 
     const float evidenceSum =
     currentEvidence + historyEvidence;
 
-    // ¦ÁC_h / {(1-¦Á)C_c + ¦ÁC_h}
+    // Î±C_h / {(1-Î±)C_c + Î±C_h}
     const float historyWeight =
     evidenceSum > 1.0e-6f
         ? historyEvidence / evidenceSum

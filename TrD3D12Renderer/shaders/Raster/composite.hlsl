@@ -1,9 +1,5 @@
-#include "../Common/depth.header.hlsl"
-
-struct FullscreenVertex
-{
-    float4 position : SV_POSITION;
-};
+#include "../Common/Utility/depth.header.hlsl"
+#include "../Common/Utility/fullscreen_triangle.header.hlsl"
 
 Texture2D<float4> g_debugSource : register(t0);
 
@@ -20,21 +16,12 @@ cbuffer CompositePassConstants : register(b2)
     float2 g_outputPadding;
 };
 
-FullscreenVertex VSMain(uint vertexId : SV_VertexID)
+TrFullscreenVertex VSMain(uint vertexId : SV_VertexID)
 {
-    const float2 positions[3] =
-    {
-        float2(-1.0f, -1.0f),
-        float2(-1.0f,  3.0f),
-        float2( 3.0f, -1.0f)
-    };
-
-    FullscreenVertex result;
-    result.position = float4(positions[vertexId], 0.0f, 1.0f);
-    return result;
+    return TrCreateFullscreenTriangleVertex(vertexId);
 }
 
-float4 PSMain(FullscreenVertex input) : SV_Target
+float4 PSMain(TrFullscreenVertex input) : SV_Target
 {
     uint sourceWidth;
     uint sourceHeight;

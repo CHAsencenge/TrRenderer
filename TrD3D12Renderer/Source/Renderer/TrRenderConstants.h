@@ -1,6 +1,7 @@
 #pragma once
 
 #include <DirectXMath.h>
+#include <cstddef>
 #include <cstdint>
 
 // UE-style logical constant-data domains. A logical domain does not have to
@@ -13,6 +14,11 @@ namespace TrConstantRegister
     constexpr std::uint32_t Primitive = 3;
     constexpr std::uint32_t Material = 4;
     constexpr std::uint32_t Draw = 5;
+}
+
+namespace TrShaderResourceRegister
+{
+    constexpr std::uint32_t Lights = 6;
 }
 
 namespace TrMaterialFlag
@@ -31,12 +37,34 @@ enum class TrGeometryVisualization : std::uint32_t
     PrimitiveDraw = 2
 };
 
+enum class TrGpuLightType : std::uint32_t
+{
+    Directional = 0,
+    Point = 1,
+    Spot = 2
+};
+
 struct alignas(16) TrSceneConstants
 {
-    DirectX::XMFLOAT3 LightDirection = {0.0f, 1.0f, 0.0f};
-    float LightIntensity = 1.0f;
-    DirectX::XMFLOAT3 LightColor = {1.0f, 1.0f, 1.0f};
+    DirectX::XMFLOAT3 AmbientColor = {1.0f, 1.0f, 1.0f};
     float AmbientStrength = 0.22f;
+    std::uint32_t LightCount = 0;
+    DirectX::XMFLOAT3 Padding = {0.0f, 0.0f, 0.0f};
+};
+
+// Matches shaders/Common/ABI/light_types.header.hlsl. Direction is
+// the direction in which a directional/spot light emits, not surface-to-light.
+struct alignas(16) TrGpuLight
+{
+    DirectX::XMFLOAT3 Position = {0.0f, 0.0f, 0.0f};
+    TrGpuLightType Type = TrGpuLightType::Directional;
+    DirectX::XMFLOAT3 Direction = {0.0f, 0.0f, 1.0f};
+    float Intensity = 1.0f;
+    DirectX::XMFLOAT3 Color = {1.0f, 1.0f, 1.0f};
+    float Range = 0.0f;
+    float InnerConeCos = 1.0f;
+    float OuterConeCos = 0.707106781f;
+    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
 };
 
 struct alignas(16) TrViewConstants
@@ -111,7 +139,7 @@ struct alignas(16) TrDeferredLightingPassConstants
     float AmbientLightingScale = 1.0f;
     float IndirectLightingScale = 1.0f;
     float RelativeDepthThreshold = 0.02f;
-    float MinimumDepthThreshold = 0.3f; // 掩盖横纹但加重漏光
+    float MinimumDepthThreshold = 0.3f; // Suppresses banding at the cost of more leaking.
     float NormalWeightPower = 8.0f;
     std::uint32_t FeatureMask = 0;
     float Padding = 0.0f;
@@ -122,6 +150,12 @@ struct alignas(16) TrForwardTransparentPassConstants
     float DirectLightingScale = 1.0f;
     float AmbientLightingScale = 1.0f;
     DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+};
+
+struct alignas(16) TrScreenProbeRadiancePassConstants
+{
+    float DirectLightingScale = 1.0f;
+    DirectX::XMFLOAT3 Padding = {0.0f, 0.0f, 0.0f};
 };
 
 struct alignas(16) TrCompositePassConstants
@@ -146,12 +180,31 @@ struct alignas(16) TrDrawConstants
 };
 
 static_assert(sizeof(TrSceneConstants) == 32);
+static_assert(offsetof(TrSceneConstants, AmbientStrength) == 12);
+static_assert(offsetof(TrSceneConstants, LightCount) == 16);
+static_assert(sizeof(TrGpuLight) == 64);
+static_assert(offsetof(TrGpuLight, Type) == 12);
+static_assert(offsetof(TrGpuLight, Direction) == 16);
+static_assert(offsetof(TrGpuLight, Intensity) == 28);
+static_assert(offsetof(TrGpuLight, Color) == 32);
+static_assert(offsetof(TrGpuLight, Range) == 44);
+static_assert(offsetof(TrGpuLight, InnerConeCos) == 48);
 static_assert(sizeof(TrViewConstants) == 384);
+static_assert(offsetof(TrViewConstants, CameraPosition) == 320);
+static_assert(offsetof(TrViewConstants, RenderSize) == 336);
+static_assert(offsetof(TrViewConstants, FrameNumber) == 368);
 static_assert(sizeof(TrGBufferPassConstants) == 16);
 static_assert(sizeof(TrPrimitiveConstants) == 224);
+static_assert(offsetof(TrPrimitiveConstants, BoundsCenter) == 192);
+static_assert(offsetof(TrPrimitiveConstants, InstanceId) == 208);
 static_assert(sizeof(TrMaterialConstants::TextureTransform) == 32);
 static_assert(sizeof(TrMaterialConstants) == 208);
+static_assert(offsetof(TrMaterialConstants, Roughness) == 32);
+static_assert(offsetof(TrMaterialConstants, Flags) == 44);
+static_assert(offsetof(TrMaterialConstants, BaseColorTexture) == 48);
+static_assert(offsetof(TrMaterialConstants, EmissiveTexture) == 176);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 32);
 static_assert(sizeof(TrForwardTransparentPassConstants) == 16);
+static_assert(sizeof(TrScreenProbeRadiancePassConstants) == 16);
 static_assert(sizeof(TrCompositePassConstants) == 48);
 static_assert(sizeof(TrDrawConstants) == 16);

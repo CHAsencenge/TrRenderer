@@ -262,10 +262,53 @@ void TrDeferredRenderer::OnUpdate()
     const XMMATRIX viewProjection = view * projection;
     const XMMATRIX unjitteredViewProjection = view * unjitteredProjection;
     const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
+
+    mGpuLights.clear();
+    mGpuLights.reserve(std::max<std::size_t>(
+        mRuntimeScene.GetLights().size(),
+        1u));
+    for(const TrRuntimeLight& runtimeLight : mRuntimeScene.GetLights())
+    {
+        TrGpuLight gpuLight;
+        gpuLight.Position = runtimeLight.Position;
+        switch(runtimeLight.Type)
+        {
+        case TrSceneLightType::Directional:
+            gpuLight.Type = TrGpuLightType::Directional;
+            break;
+        case TrSceneLightType::Point:
+            gpuLight.Type = TrGpuLightType::Point;
+            break;
+        case TrSceneLightType::Spot:
+            gpuLight.Type = TrGpuLightType::Spot;
+            break;
+        default:
+            throw std::logic_error("Runtime Scene contains an unknown light type.");
+        }
+        gpuLight.Direction = runtimeLight.Direction;
+        gpuLight.Intensity = std::max(runtimeLight.Intensity, 0.0f);
+        gpuLight.Color = runtimeLight.Color;
+        gpuLight.Range = std::max(runtimeLight.Range, 0.0f);
+        gpuLight.InnerConeCos = runtimeLight.InnerConeCos;
+        gpuLight.OuterConeCos = runtimeLight.OuterConeCos;
+        mGpuLights.push_back(gpuLight);
+    }
+    if(mGpuLights.empty())
+    {
+        // Preserve the procedural Cornell Box's previous default lighting.
+        // The old surface-to-light direction is negated because TrGpuLight
+        // stores the direction in which the light emits.
+        TrGpuLight fallbackLight;
+        fallbackLight.Type = TrGpuLightType::Directional;
+        XMStoreFloat3(
+            &fallbackLight.Direction,
+            XMVector3Normalize(XMVectorSet(0.25f, -1.0f, 0.35f, 0.0f)));
+        fallbackLight.Intensity = XM_PI * (1.0f - 0.22f);
+        mGpuLights.push_back(fallbackLight);
+    }
+
     TrSceneConstants sceneConstants = {};
-    XMStoreFloat3(
-        &sceneConstants.LightDirection,
-        XMVector3Normalize(XMVectorSet(-0.25f, 1.0f, -0.35f, 0.0f)));
+    sceneConstants.LightCount = static_cast<std::uint32_t>(mGpuLights.size());
 
     TrViewConstants viewConstants = {};
     XMStoreFloat4x4(&viewConstants.View, XMMatrixTranspose(view));
@@ -298,6 +341,9 @@ void TrDeferredRenderer::OnUpdate()
 
     TrDeferredLightingPassConstants lightingPassConstants = {};
     lightingPassConstants.FeatureMask = mPipelineFeatures.GetEnabledMask();
+    TrScreenProbeRadiancePassConstants screenProbeRadianceConstants = {};
+    screenProbeRadianceConstants.DirectLightingScale =
+        lightingPassConstants.DirectLightingScale;
     const TrForwardTransparentPassConstants transparentPassConstants = {};
     TrCompositePassConstants compositePassConstants = {};
     compositePassConstants.Exposure = mExposure;
@@ -310,6 +356,9 @@ void TrDeferredRenderer::OnUpdate()
 
     TrFrameContext& frame = mFrameContexts[mFrameIndex];
     frame.SceneConstantBuffer.Update(sceneConstants);
+    frame.LightBuffer.Update(
+        mGpuLights.data(),
+        mGpuLights.size() * sizeof(TrGpuLight));
     frame.ViewConstantBuffer.Update(viewConstants);
     frame.GBufferPassConstantBuffer.Update(gBufferPassConstants);
     const std::vector<TrRuntimeInstance>& instances = mRuntimeScene.GetInstances();
@@ -345,6 +394,8 @@ void TrDeferredRenderer::OnUpdate()
         frame.PrimitiveConstantBuffers[instanceIndex]->Update(primitiveConstants);
     }
     frame.LightingPassConstantBuffer.Update(lightingPassConstants);
+    frame.ScreenProbeRadiancePassConstantBuffer.Update(
+        screenProbeRadianceConstants);
     frame.ForwardTransparentPassConstantBuffer.Update(transparentPassConstants);
     frame.CompositePassConstantBuffer.Update(compositePassConstants);
 
@@ -1187,7 +1238,27 @@ void TrDeferredRenderer::LoadAssets()
         std::to_string(mRuntimeScene.GetUploadedMeshCount()) + " GPU meshes, " +
         std::to_string(mLoadedScene.Nodes.size()) + " hierarchy nodes, " +
         std::to_string(mRuntimeScene.GetInstances().size()) + " mesh instances, " +
-        std::to_string(mRuntimeScene.GetDrawCount()) + " primitive draws.");
+        std::to_string(mRuntimeScene.GetDrawCount()) + " primitive draws, " +
+        std::to_string(mRuntimeScene.GetLights().size()) + " active lights.");
+    std::size_t directionalLightCount = 0;
+    std::size_t pointLightCount = 0;
+    std::size_t spotLightCount = 0;
+    for(const TrRuntimeLight& light : mRuntimeScene.GetLights())
+    {
+        switch(light.Type)
+        {
+        case TrSceneLightType::Directional: ++directionalLightCount; break;
+        case TrSceneLightType::Point: ++pointLightCount; break;
+        case TrSceneLightType::Spot: ++spotLightCount; break;
+        }
+    }
+    TrLog::Info(
+        "Runtime lights: " + std::to_string(directionalLightCount) +
+        " directional, " + std::to_string(pointLightCount) + " point, " +
+        std::to_string(spotLightCount) + " spot." +
+        (mRuntimeScene.GetLights().empty()
+            ? " Using the procedural fallback directional light."
+            : ""));
     TrLog::Info(
         "Runtime Scene ID/AABB validation passed. World AABB min (" +
         std::to_string(runtimeBounds.Minimum.x) + ", " +
@@ -1246,6 +1317,14 @@ void TrDeferredRenderer::LoadAssets()
         frame.SceneConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrSceneConstants)));
+        TrBufferDesc lightBufferDescription;
+        lightBufferDescription.SizeInBytes = std::max<std::size_t>(
+            mRuntimeScene.GetLights().size(),
+            1u) * sizeof(TrGpuLight);
+        lightBufferDescription.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+        lightBufferDescription.InitialState = D3D12_RESOURCE_STATE_GENERIC_READ;
+        lightBufferDescription.DebugName = L"Frame Light Buffer";
+        frame.LightBuffer.Initialize(mDevice.Get(), lightBufferDescription);
         frame.ViewConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrViewConstants)));
@@ -1267,6 +1346,9 @@ void TrDeferredRenderer::LoadAssets()
         frame.LightingPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrDeferredLightingPassConstants)));
+        frame.ScreenProbeRadiancePassConstantBuffer.Initialize(
+            mDevice.Get(),
+            static_cast<UINT>(sizeof(TrScreenProbeRadiancePassConstants)));
         frame.ForwardTransparentPassConstantBuffer.Initialize(
             mDevice.Get(),
             static_cast<UINT>(sizeof(TrForwardTransparentPassConstants)));
@@ -1533,7 +1615,10 @@ void TrDeferredRenderer::PopulateCommandList()
                     mCommandList.Get(),
                     mResourceHeap,
                     frame.SceneConstantBuffer.GetGpuVirtualAddress(),
-                    frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
+                    frame.LightBuffer.GetGpuVirtualAddress(),
+                    frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    frame.ScreenProbeRadiancePassConstantBuffer
+                        .GetGpuVirtualAddress(),
                     mDeferredRenderTargets,
                     mScreenProbeResources);
             });
@@ -1579,6 +1664,7 @@ void TrDeferredRenderer::PopulateCommandList()
                 mDeferredRenderTargets,
                 mResourceHeap,
                 frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                frame.LightBuffer.GetGpuVirtualAddress(),
                 frame.ViewConstantBuffer.GetGpuVirtualAddress(),
                 frame.LightingPassConstantBuffer.GetGpuVirtualAddress(),
                 mScreenProbeResources,
@@ -1607,6 +1693,7 @@ void TrDeferredRenderer::PopulateCommandList()
                     mResourceHeap,
                     mSamplerHeap,
                     frame.SceneConstantBuffer.GetGpuVirtualAddress(),
+                    frame.LightBuffer.GetGpuVirtualAddress(),
                     frame.ViewConstantBuffer.GetGpuVirtualAddress(),
                     frame.ForwardTransparentPassConstantBuffer
                         .GetGpuVirtualAddress());

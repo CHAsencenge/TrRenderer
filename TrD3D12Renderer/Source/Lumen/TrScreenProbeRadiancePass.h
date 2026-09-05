@@ -24,7 +24,9 @@ public:
         ID3D12GraphicsCommandList* commandList,
         TrDescriptorHeap& resourceHeap,
         D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
-        D3D12_GPU_VIRTUAL_ADDRESS lightingPassConstants,
+        D3D12_GPU_VIRTUAL_ADDRESS lights,
+        D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+        D3D12_GPU_VIRTUAL_ADDRESS passConstants,
         const TrDeferredRenderTargets& renderTargets,
         TrScreenProbeResources& screenProbes);
 

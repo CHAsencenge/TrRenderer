@@ -1,6 +1,10 @@
-#include "screen_probe_common.header.hlsl"
+#include "../Common/ABI/view_constants.header.hlsl"
+#include "../Common/Utility/depth.header.hlsl"
+#include "../Common/Utility/view_projection.header.hlsl"
 #include "screen_probe_sampling.header.hlsl"
 #include "screen_trace_hit.header.hlsl"
+
+ConstantBuffer<TrViewConstants> g_viewConstants : register(b1);
 
 Texture2D<float4> g_probePositionValidity : register(t0);
 Texture2D<float4> g_probeNormalDepth : register(t1);
@@ -28,7 +32,7 @@ float LoadHzb(float2 screenUv, uint mipLevel)
 {
     const uint2 mipSize = max(
         uint2(1u, 1u),
-        uint2(g_renderSize) >> mipLevel);
+        uint2(g_viewConstants.renderSize) >> mipLevel);
     const uint2 pixel = min(
         uint2(screenUv * float2(mipSize)),
         mipSize - 1u);
@@ -66,6 +70,7 @@ bool RefineIntersection(
         float middleDepth;
         if(!TrProjectWorldToScreen(
                rayOrigin + rayDirection * middle,
+               g_viewConstants.viewProjection,
                middleUv,
                middleDepth))
         {
@@ -88,6 +93,7 @@ bool RefineIntersection(
     float hitDeviceDepth;
     if(!TrProjectWorldToScreen(
            rayOrigin + rayDirection * hitDistance,
+           g_viewConstants.viewProjection,
            hitUv,
            hitDeviceDepth))
     {
@@ -101,12 +107,12 @@ bool RefineIntersection(
     }
     const float rayViewDepth = TrDeviceDepthToViewDepth(
         hitDeviceDepth,
-        g_nearPlane,
-        g_farPlane);
+        g_viewConstants.nearPlane,
+        g_viewConstants.farPlane);
     const float sceneViewDepth = TrDeviceDepthToViewDepth(
         sceneDeviceDepth,
-        g_nearPlane,
-        g_farPlane);
+        g_viewConstants.nearPlane,
+        g_viewConstants.farPlane);
     const float separation = rayViewDepth - sceneViewDepth;
     const float thickness = max(
         g_surfaceThickness,
@@ -119,8 +125,8 @@ bool RefineIntersection(
             saturate(1.0f - abs(separation) / thickness);
         const float2 edgeDistanceUv = min(hitUv, 1.0f - hitUv);
         const float edgeDistancePixels = min(
-            edgeDistanceUv.x * g_renderSize.x,
-            edgeDistanceUv.y * g_renderSize.y);
+            edgeDistanceUv.x * g_viewConstants.renderSize.x,
+            edgeDistanceUv.y * g_viewConstants.renderSize.y);
         const float edgeConfidence = saturate(edgeDistancePixels / 4.0f);
         confidence = thicknessConfidence * edgeConfidence;
     }
@@ -193,7 +199,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         g_probeCountX,
         rayIndex,
         rayCount,
-        g_frameNumber,
+        g_viewConstants.frameNumber,
         worldNormal);
     const float3 rayOrigin =
         positionValidity.xyz + worldNormal * g_surfaceBias;
@@ -224,6 +230,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float rayDeviceDepth;
         if(!TrProjectWorldToScreen(
                rayOrigin + rayDirection * traceDistance,
+               g_viewConstants.viewProjection,
                screenUv,
                rayDeviceDepth))
         {
@@ -262,8 +269,8 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                    hitConfidence))
             {
                 const uint2 hitPixel = min(
-                    uint2(hitUv * g_renderSize),
-                    uint2(g_renderSize) - 1u);
+                    uint2(hitUv * g_viewConstants.renderSize),
+                    uint2(g_viewConstants.renderSize) - 1u);
                 StoreTraceResult(
                     tracePixel,
                     TR_SCREEN_TRACE_HIT,

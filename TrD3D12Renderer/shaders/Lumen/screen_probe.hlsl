@@ -1,4 +1,8 @@
-#include "screen_probe_common.header.hlsl"
+#include "../Common/ABI/view_constants.header.hlsl"
+#include "../Common/Utility/depth.header.hlsl"
+#include "../Common/Utility/view_projection.header.hlsl"
+
+ConstantBuffer<TrViewConstants> g_viewConstants : register(b1);
 
 Texture2D<float> g_sceneDepth : register(t0);
 Texture2D<float4> g_worldNormal : register(t1);
@@ -96,7 +100,9 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     const float3 worldPosition = TrReconstructWorldPosition(
         representativePixel,
-        representativeDepth);
+        representativeDepth,
+        g_viewConstants.inverseRenderSize,
+        g_viewConstants.inverseViewProjection);
     g_probePositionValidity[probeCoordinate] = float4(worldPosition, 1.0f);
     g_probeNormalDepth[probeCoordinate] = float4(
         representativeNormal,

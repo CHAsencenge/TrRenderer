@@ -17,6 +17,7 @@ public:
         TrDeferredRenderTargets& renderTargets,
         TrDescriptorHeap& resourceHeap,
         D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
+        D3D12_GPU_VIRTUAL_ADDRESS lights,
         D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
         D3D12_GPU_VIRTUAL_ADDRESS passConstants,
         TrScreenProbeResources& screenProbes,

@@ -1,5 +1,5 @@
 #include "screen_probe_sampling.header.hlsl"
-#include "../Common/spherical_harmonics.header.hlsl"
+#include "../Common/Lighting/spherical_harmonics.header.hlsl"
 
 Texture2D<float4> g_radiance : register(t0);
 Texture2D<float4> g_probeNormalDepth : register(t1);
@@ -79,7 +79,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             normalizedProbeNormal,
             rayDirection));
         
-        // ÓàÏÒ¼ÓÈ¨°ëÇò²ÉÑù p(w) = cos¦È / pi
+        // ä½™å¼¦åŠ æƒåŠçƒé‡‡æ · p(w) = cosÎ¸ / pi
         const float samplePdf = max(
             cosineAtProbe / TR_SCREEN_PROBE_PI,
             1.0e-4f);
@@ -87,9 +87,9 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         TrEvaluateShL2Basis(rayDirection, shBasis);
         const float3 weightedRadiance = max(radiance.rgb, 0.0f) * confidence / samplePdf;
         
-        // L_lm = 1/N ¦² {L(wi) Y_lm(wi) / p(wi)}
-        // °Ñ Radiance ÇòÃæº¯ÊıÓë Clamped Cosine ºË½øĞĞÇòÃæ¾í»ı = Ã¿¸ö SH band ·Ö±ğ³ËÒ»¸ö³£Êı£¬E_{lm}=A_l L_{lm}
-        // Ô¤¾í»ı³É Irradiance SH
+        // L_lm = 1/N Î£ {L(wi) Y_lm(wi) / p(wi)}
+        // æŠŠ Radiance çƒé¢å‡½æ•°ä¸ Clamped Cosine æ ¸è¿›è¡Œçƒé¢å·ç§¯ = æ¯ä¸ª SH band åˆ†åˆ«ä¹˜ä¸€ä¸ªå¸¸æ•°ï¼ŒE_{lm}=A_l L_{lm}
+        // é¢„å·ç§¯æˆ Irradiance SH
         [unroll]
         for(uint coefficientIndex = 0u;
             coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;

@@ -29,4 +29,13 @@ float TrDeviceDepthToViewDepth(
     return nearPlane * farPlane / max(denominator, 0.0001f);
 }
 
+bool TrRayIsBehindScene(float rayDeviceDepth, float sceneDeviceDepth)
+{
+#if TR_REVERSED_Z
+    return rayDeviceDepth <= sceneDeviceDepth;
+#else
+    return rayDeviceDepth >= sceneDeviceDepth;
+#endif
+}
+
 #endif

@@ -324,7 +324,7 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_common.header.hlsl">
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_probe_sampling.header.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace_hit.header.hlsl">
@@ -333,14 +333,56 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Lumen\screen_trace.hlsl">
       <Filter>Shaders\Lumen</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\deferred_lighting_common.header.hlsl">
-      <Filter>Shaders\Common</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\draw_constants.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\depth.header.hlsl">
-      <Filter>Shaders\Common</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\light_types.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
     </ClInclude>
-    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\material_flags.header.hlsl">
-      <Filter>Shaders\Common</Filter>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\material_constants.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\material_flags.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\primitive_constants.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\scene_constants.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\view_constants.header.hlsl">
+      <Filter>Shaders\Common\ABI</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Geometry\static_mesh.header.hlsl">
+      <Filter>Shaders\Common\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\light_evaluation.header.hlsl">
+      <Filter>Shaders\Common\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\spherical_harmonics.header.hlsl">
+      <Filter>Shaders\Common\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\surface_lighting.header.hlsl">
+      <Filter>Shaders\Common\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Material\material_flags.header.hlsl">
+      <Filter>Shaders\Common\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Material\material_sampling.header.hlsl">
+      <Filter>Shaders\Common\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Material\normal_mapping.header.hlsl">
+      <Filter>Shaders\Common\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Utility\depth.header.hlsl">
+      <Filter>Shaders\Common\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Utility\fullscreen_triangle.header.hlsl">
+      <Filter>Shaders\Common\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Utility\view_projection.header.hlsl">
+      <Filter>Shaders\Common\Utility</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Legacy\cornell_box.hlsl">
       <Filter>Shaders\Legacy</Filter>
@@ -354,6 +396,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="E:\UGit\TrRenderer\TrD3D12Renderer\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\README.md">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -394,6 +441,21 @@
     </Filter>
     <Filter Include="Shaders\Common">
       <UniqueIdentifier>{4C4E9FA2-1BE5-32A9-88F4-CDDF78A7D565}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\ABI">
+      <UniqueIdentifier>{6F115049-5E56-31C1-B52C-1A6BE9229CCC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\Geometry">
+      <UniqueIdentifier>{382C5D74-79D4-3A2A-BC73-0A978E01BB75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\Lighting">
+      <UniqueIdentifier>{0770F628-4DE7-3CB0-83AA-00BE689D17D3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\Material">
+      <UniqueIdentifier>{C603AB35-66FF-3E14-BBF8-5750042A477B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\Utility">
+      <UniqueIdentifier>{CD4B2433-C219-323D-82ED-E323CB795990}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Compute">
       <UniqueIdentifier>{A88270C4-D23C-38EE-B2A0-0ABE98C431DE}</UniqueIdentifier>

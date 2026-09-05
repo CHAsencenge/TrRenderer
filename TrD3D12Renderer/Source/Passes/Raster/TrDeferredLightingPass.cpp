@@ -7,7 +7,7 @@ void TrDeferredLightingPass::Initialize(
     ID3D12Device* device,
     const std::wstring& shaderPath)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[6];
+    CD3DX12_ROOT_PARAMETER rootParameters[7];
     rootParameters[0].InitAsConstantBufferView(
         TrConstantRegister::Scene,
         0,
@@ -39,6 +39,10 @@ void TrDeferredLightingPass::Initialize(
         1,
         &irradianceRange,
         D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[6].InitAsShaderResourceView(
+        TrShaderResourceRegister::Lights,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(
@@ -66,6 +70,7 @@ void TrDeferredLightingPass::Render(
     TrDeferredRenderTargets& renderTargets,
     TrDescriptorHeap& resourceHeap,
     D3D12_GPU_VIRTUAL_ADDRESS sceneConstants,
+    D3D12_GPU_VIRTUAL_ADDRESS lights,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
     D3D12_GPU_VIRTUAL_ADDRESS passConstants,
     TrScreenProbeResources& screenProbes,
@@ -74,7 +79,7 @@ void TrDeferredLightingPass::Render(
 {
     if(commandList == nullptr || resourceHeap.Get() == nullptr ||
        !resourceHeap.IsShaderVisible() || sceneConstants == 0 ||
-       viewConstants == 0 || passConstants == 0 ||
+       lights == 0 || viewConstants == 0 || passConstants == 0 ||
        probeIrradianceSrv.ptr == 0)
     {
         throw std::invalid_argument("Deferred lighting pass inputs are invalid.");
@@ -117,6 +122,7 @@ void TrDeferredLightingPass::Render(
     commandList->SetGraphicsRootDescriptorTable(
         5,
         probeIrradianceSrv);
+    commandList->SetGraphicsRootShaderResourceView(6, lights);
 
     renderTargets.BeginDeferredLightingPass(commandList);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
