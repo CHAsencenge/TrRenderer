@@ -18,9 +18,9 @@ cbuffer DeferredLightingPassConstants : register(b2)
     float g_directLightingScale;
     float g_ambientLightingScale;
     float g_indirectLightingScale;
-    float g_relativeDepthThreshold;
-    float g_minimumDepthThreshold;
     float g_normalWeightPower;
+    float g_planeDistanceWeight;
+    float g_upsamplePadding;
     uint g_pipelineFeatureMask;
     uint g_lightingVisualization;
 };
@@ -32,10 +32,12 @@ Texture2D<float4> g_emissiveOcclusion : register(t3);
 Texture2D<float4> g_probeNormalDepth : register(t4);
 Texture2D<float4> g_probeIrradiance : register(t5);
 StructuredBuffer<TrGpuLight> g_lights : register(t6);
+Texture2D<float4> g_probePositionValidity : register(t7);
 
 float3 TrUpsampleProbeIrradiance(
     uint2 pixel,
     float deviceDepth,
+    float3 worldPosition,
     float3 worldNormal)
 {
     uint probeCountX;
@@ -50,9 +52,7 @@ float3 TrUpsampleProbeIrradiance(
         deviceDepth,
         g_viewConstants.nearPlane,
         g_viewConstants.farPlane);
-    const float depthThreshold = max(
-        g_minimumDepthThreshold,
-        pixelViewDepth * g_relativeDepthThreshold);
+    const float inverseDepthScale = rcp(max(pixelViewDepth, 1.0e-4f));
 
     float3 weightedIrradiance = 0.0f;
     float weightSum = 0.0f;
@@ -75,16 +75,17 @@ float3 TrUpsampleProbeIrradiance(
             const float spatialWeight = spatialWeightX *
                 (y == 0 ? 1.0f - probeFraction.y : probeFraction.y);
 
-            const float4 probeNormalDepth =
-                g_probeNormalDepth.Load(int3(probeCoordinate, 0));
-            const float4 probeSh0 = g_probeIrradiance.Load(int3(
-                TrShL2AtlasCoordinate(probeCoordinate, 0u),
-                0));
+            const float4 probeNormalDepth = g_probeNormalDepth.Load(int3(probeCoordinate, 0));
+            const float4 probeSh0 = g_probeIrradiance.Load(int3(TrShL2AtlasCoordinate(probeCoordinate, 0u), 0));
+            const float4 probePositionValidity = g_probePositionValidity.Load(int3(probeCoordinate, 0));
+            
             const float probeNormalLengthSquared = dot(
                 probeNormalDepth.xyz,
                 probeNormalDepth.xyz);
-            if(probeNormalLengthSquared < 1.0e-6f ||
-               probeSh0.a <= 1.0e-6f)
+            
+            if (probePositionValidity.w < 0.5f ||
+                probeNormalLengthSquared < 1.0e-6f ||
+                probeSh0.a <= 1.0e-6f)
             {
                 continue;
             }
@@ -94,16 +95,23 @@ float3 TrUpsampleProbeIrradiance(
             const float normalWeight = pow(
                 saturate(dot(worldNormal, probeNormal)),
                 max(g_normalWeightPower, 1.0f));
-            const float probeViewDepth = TrDeviceDepthToViewDepth(
-                probeNormalDepth.w,
-                g_viewConstants.nearPlane,
-                g_viewConstants.farPlane);
-            float depthWeight = saturate(
-                1.0f - abs(pixelViewDepth - probeViewDepth) /
-                depthThreshold);
-            depthWeight *= depthWeight;
+            
+            // Distance from the probe position to the tangent plane at the
+            // currently shaded pixel:
+            //
+            //     d_plane = |(P_probe - P_pixel) dot N_pixel|
+            //
+            // Tangential displacement has no effect, while displacement across
+            // the current surface is exponentially rejected.
+            const float planeDistance = abs(dot(probePositionValidity.xyz - worldPosition, worldNormal));
+            const float relativePlaneDistance = planeDistance * inverseDepthScale;
 
-            const float weight = spatialWeight * normalWeight * depthWeight *
+            // UE-style plane-aware interpolation weight:
+            //
+            //     w_plane = 2 ^ (-K * d_plane / viewDepth)
+            const float planeWeight = exp2(-max(g_planeDistanceWeight, 0.0f) * relativePlaneDistance);
+            
+            const float weight = spatialWeight * normalWeight * planeWeight *
                 saturate(probeSh0.a);
             
             // E(N_pixel) = Σ_lm E_lm Y_lm(N_pixel)
@@ -185,6 +193,7 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
         const float3 irradiance = TrUpsampleProbeIrradiance(
             uint2(pixel),
             depth,
+            worldPosition,
             worldNormal);
         screenProbeDiffuseRadiance = TrEvaluateIndirectDiffuseRadiance(
             baseColor,

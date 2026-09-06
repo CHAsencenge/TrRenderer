@@ -7,7 +7,7 @@ void TrDeferredLightingPass::Initialize(
     ID3D12Device* device,
     const std::wstring& shaderPath)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[7];
+    CD3DX12_ROOT_PARAMETER rootParameters[8];
     rootParameters[0].InitAsConstantBufferView(
         TrConstantRegister::Scene,
         0,
@@ -42,6 +42,12 @@ void TrDeferredLightingPass::Initialize(
     rootParameters[6].InitAsShaderResourceView(
         TrShaderResourceRegister::Lights,
         0,
+        D3D12_SHADER_VISIBILITY_PIXEL);
+    CD3DX12_DESCRIPTOR_RANGE probePositionRange;
+    probePositionRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
+    rootParameters[7].InitAsDescriptorTable(
+        1,
+        &probePositionRange,
         D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -90,10 +96,18 @@ void TrDeferredLightingPass::Render(
         renderTargets.GetHdrLighting().GetDescription();
     const D3D12_RESOURCE_DESC& irradianceDescription =
         probeIrradiance.GetDescription();
+    const D3D12_RESOURCE_DESC& positionDescription =
+        screenProbes.GetPositionValidity().GetDescription();
+    const D3D12_RESOURCE_DESC& normalDepthDescription =
+        screenProbes.GetNormalDepth().GetDescription();
     if(hdrDescription.Width != layout.RenderWidth ||
        hdrDescription.Height != layout.RenderHeight ||
        irradianceDescription.Width != layout.IrradianceAtlasWidth ||
-       irradianceDescription.Height != layout.IrradianceAtlasHeight)
+       irradianceDescription.Height != layout.IrradianceAtlasHeight ||
+        positionDescription.Width != layout.ProbeCountX ||
+        positionDescription.Height != layout.ProbeCountY ||
+        normalDepthDescription.Width != layout.ProbeCountX ||
+        normalDepthDescription.Height != layout.ProbeCountY)
     {
         throw std::logic_error(
             "Deferred lighting Screen Probe resources have incompatible dimensions.");
@@ -103,6 +117,9 @@ void TrDeferredLightingPass::Render(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     probeIrradiance.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+    screenProbes.GetPositionValidity().Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
@@ -123,6 +140,9 @@ void TrDeferredLightingPass::Render(
         5,
         probeIrradianceSrv);
     commandList->SetGraphicsRootShaderResourceView(6, lights);
+    commandList->SetGraphicsRootDescriptorTable(
+        7,
+        screenProbes.GetPositionSrv().GpuHandle);
 
     renderTargets.BeginDeferredLightingPass(commandList);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

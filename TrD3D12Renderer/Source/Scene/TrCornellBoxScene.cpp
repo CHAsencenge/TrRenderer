@@ -123,8 +123,6 @@ TrCornellBoxMeshData CreateCornellBoxSphereScene()
     addQuad("Back Wall", {-1.0f, 0.0f, 2.0f}, { 1.0f, 0.0f, 2.0f}, { 1.0f, 2.0f, 2.0f}, {-1.0f, 2.0f, 2.0f}, { 0.0f, 0.0f,-1.0f}, white);
     addQuad("Left Wall", {-1.0f, 0.0f, 2.0f}, {-1.0f, 0.0f, 0.0f}, {-1.0f, 2.0f, 0.0f}, {-1.0f, 2.0f, 2.0f}, { 1.0f, 0.0f, 0.0f}, red);
     addQuad("Right Wall", { 1.0f, 0.0f, 0.0f}, { 1.0f, 0.0f, 2.0f}, { 1.0f, 2.0f, 2.0f}, { 1.0f, 2.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, green);
-    addQuad("Ceiling Light", {-0.32f, 1.99f, 0.70f}, {0.32f, 1.99f, 0.70f}, {0.32f, 1.99f, 1.30f}, {-0.32f, 1.99f, 1.30f}, {0.0f,-1.0f, 0.0f}, {4.0f, 4.0f, 4.0f});
-
     auto addUvSphere = [&meshData](
         const char* name,
         const DirectX::XMFLOAT3& center,
@@ -214,11 +212,6 @@ TrScene CreateCornellBoxScene()
         "Matte Red", {0.63f, 0.065f, 0.05f, 1.0f}, 0.78f));
     result.Materials.push_back(MakeMaterial(
         "Matte Green", {0.14f, 0.45f, 0.091f, 1.0f}, 0.78f));
-    TrSceneMaterial ceilingLight = MakeMaterial(
-        "Ceiling Light", {1.0f, 1.0f, 1.0f, 1.0f}, 0.2f);
-    ceilingLight.EmissiveFactor = {1.0f, 0.91f, 0.72f};
-    ceilingLight.EmissiveStrength = 7.0f;
-    result.Materials.push_back(ceilingLight);
     result.Materials.push_back(MakeMaterial(
         "Brushed Gold", {0.82f, 0.58f, 0.24f, 1.0f}, 0.24f, 0.72f));
     result.Materials.push_back(MakeMaterial(
@@ -229,11 +222,22 @@ TrScene CreateCornellBoxScene()
     transparentCyan.DoubleSided = true;
     result.Materials.push_back(transparentCyan);
 
-    // One mesh with six material primitives verifies that Primitive is a draw
+    // Use an explicit punctual light for both direct shading and Screen Probe
+    // hit lighting. The former emissive ceiling quad has been removed so it
+    // cannot continue to act as a second, surface-based light source.
+    TrSceneLight ceilingPointLight;
+    ceilingPointLight.Name = "Ceiling Point Light";
+    ceilingPointLight.Type = TrSceneLightType::Point;
+    ceilingPointLight.Color = {0.5f, 0.45f, 0.36f};
+    ceilingPointLight.Intensity = 8.0f;
+    ceilingPointLight.Range = 4.0f;
+    result.Lights.push_back(ceilingPointLight);
+
+    // One mesh with five material primitives verifies that Primitive is a draw
     // range/material section rather than a scene object.
     TrSceneMesh roomMesh;
     roomMesh.Name = "Room Multi-Primitive Mesh";
-    constexpr std::array<std::uint32_t, 6> roomMaterialIds = {0, 0, 0, 1, 2, 3};
+    constexpr std::array<std::uint32_t, 5> roomMaterialIds = {0, 0, 0, 1, 2};
     for(std::size_t partIndex = 0; partIndex < roomMaterialIds.size(); ++partIndex)
     {
         const TrCornellBoxMeshData::Part& part = source.Parts[partIndex];
@@ -277,7 +281,7 @@ TrScene CreateCornellBoxScene()
 
     // Convert one legacy sphere into a unit local-space mesh. Multiple nodes
     // below share this single GPU mesh with different transforms.
-    const TrCornellBoxMeshData::Part& sourceSphere = source.Parts[6];
+    const TrCornellBoxMeshData::Part& sourceSphere = source.Parts[5];
     TrSceneMesh sphereMesh;
     sphereMesh.Name = "Shared Unit Sphere";
     sphereMesh.Vertices.reserve(sourceSphere.VertexCount);
@@ -315,7 +319,7 @@ TrScene CreateCornellBoxScene()
     TrScenePrimitive spherePrimitive;
     spherePrimitive.VertexCount = static_cast<std::uint32_t>(sphereMesh.Vertices.size());
     spherePrimitive.IndexCount = static_cast<std::uint32_t>(sphereMesh.Indices.size());
-    spherePrimitive.MaterialIndex = 4;
+    spherePrimitive.MaterialIndex = 3;
     sphereMesh.Primitives.push_back(spherePrimitive);
     result.Meshes.push_back(std::move(sphereMesh));
 
@@ -352,7 +356,7 @@ TrScene CreateCornellBoxScene()
     TrScenePrimitive cubePrimitive;
     cubePrimitive.VertexCount = static_cast<std::uint32_t>(cubeMesh.Vertices.size());
     cubePrimitive.IndexCount = static_cast<std::uint32_t>(cubeMesh.Indices.size());
-    cubePrimitive.MaterialIndex = 5;
+    cubePrimitive.MaterialIndex = 4;
     cubeMesh.Primitives.push_back(cubePrimitive);
     result.Meshes.push_back(std::move(cubeMesh));
 
@@ -377,7 +381,7 @@ TrScene CreateCornellBoxScene()
     TrScenePrimitive transparentPanelPrimitive;
     transparentPanelPrimitive.VertexCount = 4;
     transparentPanelPrimitive.IndexCount = 6;
-    transparentPanelPrimitive.MaterialIndex = 6;
+    transparentPanelPrimitive.MaterialIndex = 5;
     transparentPanelMesh.Primitives.push_back(transparentPanelPrimitive);
     result.Meshes.push_back(std::move(transparentPanelMesh));
 
@@ -386,6 +390,10 @@ TrScene CreateCornellBoxScene()
         result, "Cornell Box Root", TrInvalidSceneIndex, TrInvalidSceneIndex,
         XMMatrixIdentity());
     AddNode(result, "Room", root, 0, XMMatrixIdentity());
+    const std::uint32_t ceilingPointLightNode = AddNode(
+        result, "Ceiling Point Light", root, TrInvalidSceneIndex,
+        XMMatrixTranslation(0.0f, 1.85f, 1.0f));
+    result.Nodes[ceilingPointLightNode].LightIndex = 0;
 
     // The rig and its child groups exercise real parent-to-child propagation;
     // two source meshes are reused by several independently transformed nodes.

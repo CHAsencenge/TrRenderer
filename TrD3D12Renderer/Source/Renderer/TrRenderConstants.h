@@ -81,7 +81,7 @@ enum class TrTonemapOperator : std::uint32_t
 struct alignas(16) TrSceneConstants
 {
     DirectX::XMFLOAT3 AmbientColor = {1.0f, 1.0f, 1.0f};
-    float AmbientStrength = 0.22f;
+    float AmbientStrength = 0.1f;
     std::uint32_t LightCount = 0;
     DirectX::XMFLOAT3 Padding = {0.0f, 0.0f, 0.0f};
 };
@@ -172,9 +172,9 @@ struct alignas(16) TrDeferredLightingPassConstants
     float DirectLightingScale = 1.0f;
     float AmbientLightingScale = 1.0f;
     float IndirectLightingScale = 1.0f;
-    float RelativeDepthThreshold = 0.02f;
-    float MinimumDepthThreshold = 0.3f; // Suppresses banding at the cost of more leaking.
     float NormalWeightPower = 8.0f;
+    float PlaneDistanceWeight = 100.0f;
+    float Padding = 0.0f;
     std::uint32_t FeatureMask = 0;
     TrLightingVisualization Visualization = TrLightingVisualization::Combined;
 };
