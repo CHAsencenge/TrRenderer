@@ -163,9 +163,10 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             const float previousNormalLengthSquared = dot(
                 previousNormalDepth.xyz,
                 previousNormalDepth.xyz);
+            // Geometry eligibility must not depend on lighting trace
+            // confidence stored in previousSh0.a.
             if(previousPosition.w < 0.5f ||
-               previousNormalLengthSquared < 1.0e-6f ||
-               previousSh0.a <= 1.0e-6f)
+               previousNormalLengthSquared < 1.0e-6f)
             {
                 continue;
             }
@@ -196,10 +197,24 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             const float positionWeight = saturate(
                 1.0f - positionDistance / positionThreshold);
             
-            float geometryWeight = spatialWeight * normalWeight * positionWeight; 
-            float previousConfidence = saturate(previousSh0.a); // previousSh0.a: 上一帧该 Probe 的历史光照置信度
-            float radianceWeight = geometryWeight * previousConfidence;
-            
+            const float geometryWeight =
+                spatialWeight * normalWeight * positionWeight;
+
+            // Accumulate geometric support before inspecting lighting
+            // confidence. A probe can cover this surface while having no
+            // usable lighting evidence.
+            geometryWeightSum += geometryWeight;
+
+            const float previousTraceConfidence = saturate(previousSh0.a);
+            if(geometryWeight <= 1.0e-6f ||
+               previousTraceConfidence <= 1.0e-6f)
+            {
+                continue;
+            }
+
+            const float radianceWeight =
+                geometryWeight * previousTraceConfidence;
+
             [unroll]
             for(uint coefficientIndex = 0u;
                 coefficientIndex < TR_SH_L2_COEFFICIENT_COUNT;
@@ -211,25 +226,35 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                             candidateProbe,
                             coefficientIndex),
                         0)).rgb;
-                confidenceWeightedHistory[coefficientIndex] += previousCoefficient * radianceWeight;
+                confidenceWeightedHistory[coefficientIndex] +=
+                    previousCoefficient * radianceWeight;
             }
-            geometryWeightSum += geometryWeight;
             radianceWeightSum += radianceWeight;
         }
     }
 
-    if (geometryWeightSum <= 1.0e-6f)
+    if(geometryWeightSum <= 1.0e-6f)
     {
+        // No previous probe passed the geometry reprojection tests.
+        StoreCurrentIrradianceSh(probeCoordinate);
+        return;
+    }
+
+    if(radianceWeightSum <= 1.0e-6f)
+    {
+        // Geometry history exists, but it carries no usable lighting
+        // evidence. This is a lighting-history miss, not a geometry miss.
         StoreCurrentIrradianceSh(probeCoordinate);
         return;
     }
     
-    const float currentConfidence = saturate(
+    const float currentTraceConfidence = saturate(
         g_currentIrradiance.Load(int3(
             TrShL2AtlasCoordinate(probeCoordinate, 0u),
             0)).a);
     
-    float historyConfidence = radianceWeightSum / geometryWeightSum;
+    const float historyTraceConfidence = saturate(
+        radianceWeightSum / geometryWeightSum);
     
     // 归一化置信度混合
     // 当前 confidence 低、历史高：更多使用历史
@@ -237,25 +262,25 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // 两者都高：保持默认约 90% 历史
     // 历史几何验证失败：完全使用当前
     const float currentEvidence =
-    (1.0f - g_staticHistoryWeight) *
-    currentConfidence; // (1-α)C_c
+        (1.0f - g_staticHistoryWeight) *
+        currentTraceConfidence; // (1-α)C_c
 
     const float historyEvidence =
-    g_staticHistoryWeight *
-    historyConfidence; // αC_h
+        g_staticHistoryWeight *
+        historyTraceConfidence; // αC_h
 
     const float evidenceSum =
-    currentEvidence + historyEvidence;
+        currentEvidence + historyEvidence;
 
     // αC_h / {(1-α)C_c + αC_h}
     const float historyWeight =
-    evidenceSum > 1.0e-6f
-        ? historyEvidence / evidenceSum
-        : 0.0f;
+        evidenceSum > 1.0e-6f
+            ? historyEvidence / evidenceSum
+            : 0.0f;
     
-    const float resolvedConfidence = lerp(
-        currentConfidence,
-        historyConfidence,
+    const float resolvedTraceConfidence = lerp(
+        currentTraceConfidence,
+        historyTraceConfidence,
         historyWeight);
     
     [unroll]
@@ -267,11 +292,14 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             probeCoordinate,
             coefficientIndex);
         
-        const float3 currentCoefficient = g_currentIrradiance.Load(int3(atlasCoordinate, 0)).rgb;
-        const float3 historyCoefficient = confidenceWeightedHistory[coefficientIndex] / radianceWeightSum;
+        const float3 currentCoefficient = g_currentIrradiance.Load(
+            int3(atlasCoordinate, 0)).rgb;
+        const float3 historyCoefficient =
+            confidenceWeightedHistory[coefficientIndex] /
+            radianceWeightSum;
         
         g_outputIrradiance[atlasCoordinate] = float4(
             lerp(currentCoefficient, historyCoefficient, historyWeight),
-            resolvedConfidence);
+            resolvedTraceConfidence);
     }
 }

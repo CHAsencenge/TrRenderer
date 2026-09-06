@@ -20,7 +20,7 @@ cbuffer DeferredLightingPassConstants : register(b2)
     float g_indirectLightingScale;
     float g_normalWeightPower;
     float g_planeDistanceWeight;
-    float g_upsamplePadding;
+    float g_bilinearExpandPixels;
     uint g_pipelineFeatureMask;
     uint g_lightingVisualization;
 };
@@ -34,7 +34,56 @@ Texture2D<float4> g_probeIrradiance : register(t5);
 StructuredBuffer<TrGpuLight> g_lights : register(t6);
 Texture2D<float4> g_probePositionValidity : register(t7);
 
-float3 TrUpsampleProbeIrradiance(
+float2 TrExpandBilinearFraction(
+    float2 bilinearFraction,
+    float2 probeSpacingPixels,
+    float expandPixels)
+{
+    // 普通 bilinear：
+    //
+    //     f = localPixel / cellSize
+    //
+    // Expanded bilinear：
+    //
+    //     fExpanded =
+    //         (localPixel + expandPixels) /
+    //         (cellSize + 2 * expandPixels)
+    //
+    // 因为 localPixel = f * cellSize，所以：
+    //
+    //     fExpanded =
+    //         (f * cellSize + expandPixels) /
+    //         (cellSize + 2 * expandPixels).
+    //
+    // expandPixels = 0 时严格退化为普通 bilinear。
+    const float expansion = max(expandPixels, 0.0f);
+    const float2 denominator = probeSpacingPixels + 2.0f * expansion;
+    return saturate(
+        (bilinearFraction * probeSpacingPixels + expansion) /
+        max(denominator, 1.0e-5f));
+}
+
+float4 TrComputeBilinearWeights(float2 fraction)
+{
+    const float2 inverseFraction = 1.0f - fraction;
+
+    return float4(
+        inverseFraction.x * inverseFraction.y,
+        fraction.x * inverseFraction.y,
+        inverseFraction.x * fraction.y,
+        fraction.x * fraction.y);
+}
+
+struct TrUpsampledProbeIrradiance
+{
+    float3 irradiance;
+    // Sum of spatial, normal and plane weights from valid probe geometry.
+    float geometrySupport;
+    // Geometry-weighted availability of resolved probe lighting.
+    float traceConfidence;
+};
+
+TrUpsampledProbeIrradiance TrUpsampleProbeIrradiance(
     uint2 pixel,
     float deviceDepth,
     float3 worldPosition,
@@ -43,19 +92,29 @@ float3 TrUpsampleProbeIrradiance(
     uint probeCountX;
     uint probeCountY;
     g_probeNormalDepth.GetDimensions(probeCountX, probeCountY);
-    const float2 continuousProbeCoordinate =
-        (float2(pixel) + 0.5f) *
-        float2(probeCountX, probeCountY) / g_viewConstants.renderSize - 0.5f;
+
+    const float2 probeCount = float2(probeCountX, probeCountY);
+    const float2 probeSpacingPixels = g_viewConstants.renderSize / max(probeCount, 1.0f);
+
+    const float2 continuousProbeCoordinate = (float2(pixel) + 0.5f) / probeSpacingPixels - 0.5f;
     const int2 baseProbeCoordinate = int2(floor(continuousProbeCoordinate));
     const float2 probeFraction = frac(continuousProbeCoordinate);
+
+    const float2 expandedProbeFraction = TrExpandBilinearFraction(
+                                            probeFraction,
+                                            probeSpacingPixels,
+                                            g_bilinearExpandPixels);
+    const float4 spatialWeights = TrComputeBilinearWeights(expandedProbeFraction);
+
     const float pixelViewDepth = TrDeviceDepthToViewDepth(
         deviceDepth,
         g_viewConstants.nearPlane,
         g_viewConstants.farPlane);
     const float inverseDepthScale = rcp(max(pixelViewDepth, 1.0e-4f));
 
-    float3 weightedIrradiance = 0.0f;
-    float weightSum = 0.0f;
+    float3 traceWeightedIrradiance = 0.0f;
+    float geometryWeightSum = 0.0f;
+    float radianceWeightSum = 0.0f;
     float shBasis[TR_SH_L2_COEFFICIENT_COUNT];
     TrEvaluateShL2Basis(worldNormal, shBasis);
     [unroll]
@@ -69,11 +128,9 @@ float3 TrUpsampleProbeIrradiance(
                 unclampedProbe,
                 int2(0, 0),
                 int2(probeCountX - 1u, probeCountY - 1u)));
-            const float spatialWeightX = x == 0
-                ? 1.0f - probeFraction.x
-                : probeFraction.x;
-            const float spatialWeight = spatialWeightX *
-                (y == 0 ? 1.0f - probeFraction.y : probeFraction.y);
+
+            const uint spatialWeightIndex = uint(y) * 2u + uint(x);
+            const float spatialWeight = spatialWeights[spatialWeightIndex];
 
             const float4 probeNormalDepth = g_probeNormalDepth.Load(int3(probeCoordinate, 0));
             const float4 probeSh0 = g_probeIrradiance.Load(int3(TrShL2AtlasCoordinate(probeCoordinate, 0u), 0));
@@ -83,9 +140,10 @@ float3 TrUpsampleProbeIrradiance(
                 probeNormalDepth.xyz,
                 probeNormalDepth.xyz);
             
-            if (probePositionValidity.w < 0.5f ||
-                probeNormalLengthSquared < 1.0e-6f ||
-                probeSh0.a <= 1.0e-6f)
+            // Probe geometry validity is independent of whether its screen
+            // traces produced usable lighting evidence.
+            if(probePositionValidity.w < 0.5f ||
+               probeNormalLengthSquared < 1.0e-6f)
             {
                 continue;
             }
@@ -110,10 +168,27 @@ float3 TrUpsampleProbeIrradiance(
             //
             //     w_plane = 2 ^ (-K * d_plane / viewDepth)
             const float planeWeight = exp2(-max(g_planeDistanceWeight, 0.0f) * relativePlaneDistance);
-            
-            const float weight = spatialWeight * normalWeight * planeWeight *
-                saturate(probeSh0.a);
-            
+
+            const float geometryWeight =
+                spatialWeight * normalWeight * planeWeight;
+
+            // Geometry support must be accumulated before trace confidence is
+            // considered. A probe can geometrically cover this pixel even
+            // when its lighting is unresolved.
+            geometryWeightSum += geometryWeight;
+
+            const float probeTraceConfidence = saturate(probeSh0.a);
+            if(geometryWeight <= 1.0e-6f ||
+               probeTraceConfidence <= 1.0e-6f)
+            {
+                continue;
+            }
+
+            // Confidence selects reliable lighting samples. Division by the
+            // same sum below prevents confidence from directly dimming energy.
+            const float radianceWeight =
+                geometryWeight * probeTraceConfidence;
+
             // E(N_pixel) = Σ_lm E_lm Y_lm(N_pixel)
             float3 probeIrradiance = probeSh0.rgb * shBasis[0];
             [unroll]
@@ -129,14 +204,37 @@ float3 TrUpsampleProbeIrradiance(
                     0)).rgb;
                 probeIrradiance += coefficient * shBasis[coefficientIndex];
             }
-            weightedIrradiance += max(probeIrradiance, 0.0f) * weight;
-            weightSum += weight;
+            traceWeightedIrradiance +=
+                max(probeIrradiance, 0.0f) * radianceWeight;
+            radianceWeightSum += radianceWeight;
         }
     }
 
-    return weightSum > 1.0e-6f
-        ? weightedIrradiance / weightSum
-        : 0.0f;
+    TrUpsampledProbeIrradiance result;
+    result.irradiance = 0.0f;
+    result.geometrySupport = geometryWeightSum;
+    result.traceConfidence = 0.0f;
+
+    if(geometryWeightSum <= 1.0e-6f)
+    {
+        // No candidate probe geometrically covers the shaded surface.
+        return result;
+    }
+
+    result.traceConfidence = saturate(
+        radianceWeightSum / geometryWeightSum);
+
+    if(radianceWeightSum <= 1.0e-6f)
+    {
+        // Geometry exists, but the current tracing and temporal stages did
+        // not produce usable lighting. A future non-screen fallback belongs
+        // here; constant ambient must remain a separate lighting component.
+        return result;
+    }
+
+    result.irradiance =
+        traceWeightedIrradiance / radianceWeightSum;
+    return result;
 }
 
 TrFullscreenVertex VSMain(uint vertexId : SV_VertexID)
@@ -190,7 +288,8 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
     float3 screenProbeDiffuseRadiance = 0.0f;
     if((g_pipelineFeatureMask & TR_FEATURE_INDIRECT_LIGHTING) != 0u)
     {
-        const float3 irradiance = TrUpsampleProbeIrradiance(
+        const TrUpsampledProbeIrradiance probeSample =
+            TrUpsampleProbeIrradiance(
             uint2(pixel),
             depth,
             worldPosition,
@@ -199,7 +298,7 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
             baseColor,
             metallic,
             emissiveOcclusion.a,
-            irradiance,
+            probeSample.irradiance,
             g_indirectLightingScale);
     }
     return float4(TrResolveLightingVisualization(

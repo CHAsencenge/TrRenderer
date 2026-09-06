@@ -174,7 +174,7 @@ struct alignas(16) TrDeferredLightingPassConstants
     float IndirectLightingScale = 1.0f;
     float NormalWeightPower = 8.0f;
     float PlaneDistanceWeight = 100.0f;
-    float Padding = 0.0f;
+    float BilinearExpandPixels = 1.0f;
     std::uint32_t FeatureMask = 0;
     TrLightingVisualization Visualization = TrLightingVisualization::Combined;
 };
