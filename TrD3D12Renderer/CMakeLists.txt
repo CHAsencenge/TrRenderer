@@ -247,8 +247,11 @@ set(SHADER_ABI_FILES
   shaders/Common/ABI/view_constants.header.hlsl)
 set(SHADER_GEOMETRY_FILES
   shaders/Common/Geometry/static_mesh.header.hlsl)
+set(SHADER_COLOR_FILES
+  shaders/Common/Color/tonemap.header.hlsl)
 set(SHADER_LIGHTING_FILES
   shaders/Common/Lighting/light_evaluation.header.hlsl
+  shaders/Common/Lighting/pbr_brdf.header.hlsl
   shaders/Common/Lighting/spherical_harmonics.header.hlsl
   shaders/Common/Lighting/surface_lighting.header.hlsl)
 set(SHADER_MATERIAL_FILES
@@ -264,6 +267,7 @@ set(SHADER_DOCUMENTATION_FILES
 set(COMMON_HLSL_SOURCE_FILES
   ${SHADER_ABI_FILES}
   ${SHADER_GEOMETRY_FILES}
+  ${SHADER_COLOR_FILES}
   ${SHADER_LIGHTING_FILES}
   ${SHADER_MATERIAL_FILES}
   ${SHADER_UTILITY_FILES})

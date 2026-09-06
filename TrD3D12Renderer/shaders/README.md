@@ -8,8 +8,12 @@ Shader code is split by ownership rather than by shader stage.
 - `Common/Geometry`: reusable vertex-input and geometry transforms.
 - `Common/Material`: material flags, coverage sampling, full surface sampling,
   and normal reconstruction.
-- `Common/Lighting`: light evaluation, diffuse lighting, and spherical
-  harmonics.
+- `Common/Lighting`: light evaluation, metallic-roughness GGX BRDF, diffuse
+  lighting, and spherical harmonics.
+- `Common/Color`: display transforms. Tone map operators take linear,
+  exposure-scaled scene radiance and return linear display-referred color in
+  `[0, 1]`. They never apply the OETF; the composite pass owns that single final
+  gamma encode so it stays shared across operators.
 - `Common/Utility`: depth, projection, and fullscreen-triangle helpers.
 - `Raster`, `Compute`, and `Lumen`: pass entry points. Each pass owns its
   resource declarations, register bindings, and pass-specific `b2` constants.

@@ -28,7 +28,8 @@ cbuffer ForwardTransparentPassConstants : register(b2)
 {
     float g_directLightingScale;
     float g_ambientLightingScale;
-    float2 g_transparentPadding;
+    uint g_lightingVisualization;
+    float g_transparentPadding;
 };
 
 ConstantBuffer<TrPrimitiveConstants> g_primitiveConstants : register(b3);
@@ -114,26 +115,39 @@ float4 PSMain(ForwardTransparentVertex input) : SV_Target
            g_materialConstants.flags,
            TR_MATERIAL_FLAG_UNLIT))
     {
-        color = surface.baseColor + surface.emissive;
+        color = g_lightingVisualization ==
+                TR_LIGHTING_VISUALIZATION_COMBINED
+            ? surface.baseColor + surface.emissive
+            : 0.0f;
     }
     else
     {
-        const float3 directIrradiance = TrEvaluateDirectIrradiance(
-            g_lights,
-            g_sceneConstants.lightCount,
-            input.worldPosition,
-            surface.worldNormal);
-        const float3 directRadiance = TrEvaluateDirectDiffuseRadiance(
-            surface.baseColor,
-            directIrradiance,
-            g_directLightingScale);
+        const float3 directionToView = normalize(
+            g_viewConstants.cameraPosition - input.worldPosition);
+        const TrDirectPbrRadiance directRadiance =
+            TrEvaluateDirectPbrRadiance(
+                g_lights,
+                g_sceneConstants.lightCount,
+                input.worldPosition,
+                surface.worldNormal,
+                directionToView,
+                surface.baseColor,
+                surface.metallic,
+                surface.roughness,
+                g_directLightingScale);
         const float3 ambientRadiance = TrEvaluateAmbientDiffuseRadiance(
             surface.baseColor,
+            surface.metallic,
             g_sceneConstants.ambientColor,
             g_sceneConstants.ambientStrength,
             g_ambientLightingScale,
             surface.occlusion);
-        color = directRadiance + ambientRadiance + surface.emissive;
+        color = TrResolveLightingVisualization(
+            directRadiance,
+            ambientRadiance,
+            0.0f.xxx,
+            surface.emissive,
+            g_lightingVisualization);
     }
 
     return float4(color, surface.opacity);

@@ -499,7 +499,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\scene_constants.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\ABI\view_constants.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Geometry\static_mesh.header.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Color\tonemap.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\light_evaluation.header.hlsl" />
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\pbr_brdf.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\spherical_harmonics.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\surface_lighting.header.hlsl" />
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Material\material_flags.header.hlsl" />

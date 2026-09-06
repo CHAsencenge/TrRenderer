@@ -54,8 +54,9 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint2(sceneWidth - 1u, sceneHeight - 1u));
     const float3 baseColor =
         g_baseColorRoughness.Load(int3(hitPixel, 0)).rgb;
-    const float3 normal =
-        g_normalMetallic.Load(int3(hitPixel, 0)).xyz;
+    const float4 normalMetallic =
+        g_normalMetallic.Load(int3(hitPixel, 0));
+    const float3 normal = normalMetallic.xyz;
     const float3 emissive =
         g_emissiveOcclusion.Load(int3(hitPixel, 0)).rgb;
     const float hitDepth = g_depth.Load(int3(hitPixel, 0));
@@ -81,6 +82,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         normal * rsqrt(normalLengthSquared));
     const float3 incidentRadiance = TrEvaluateDirectDiffuseRadiance(
         baseColor,
+        normalMetallic.a,
         directIrradiance,
         g_directLightingScale) + emissive;
     g_radiance[tracePixel] = float4(

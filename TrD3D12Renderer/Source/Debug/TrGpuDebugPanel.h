@@ -13,11 +13,14 @@
 #include <vector>
 
 enum class TrGeometryVisualization : std::uint32_t;
+enum class TrLightingVisualization : std::uint32_t;
+enum class TrTonemapOperator : std::uint32_t;
 class TrRuntimeScene;
 
 enum class TrDebugPanelFeature : std::uint32_t
 {
     GeometryView,
+    LightingView,
     DisplaySettings,
     PipelineFeatures,
     Performance,
@@ -53,7 +56,9 @@ public:
         const TrPerformanceSnapshot& performance,
         TrPipelineFeatures& pipelineFeatures,
         TrGeometryVisualization& geometryVisualization,
+        TrLightingVisualization& lightingVisualization,
         float& exposure,
+        TrTonemapOperator& tonemapOperator,
         float& depthVisualizationRange,
         const std::vector<TrSceneSelectionEntry>& sceneEntries,
         std::size_t currentSceneIndex,

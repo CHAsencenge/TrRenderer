@@ -357,7 +357,13 @@
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Geometry\static_mesh.header.hlsl">
       <Filter>Shaders\Common\Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Color\tonemap.header.hlsl">
+      <Filter>Shaders\Common\Color</Filter>
+    </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\light_evaluation.header.hlsl">
+      <Filter>Shaders\Common\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\pbr_brdf.header.hlsl">
       <Filter>Shaders\Common\Lighting</Filter>
     </ClInclude>
     <ClInclude Include="E:\UGit\TrRenderer\TrD3D12Renderer\shaders\Common\Lighting\spherical_harmonics.header.hlsl">
@@ -444,6 +450,9 @@
     </Filter>
     <Filter Include="Shaders\Common\ABI">
       <UniqueIdentifier>{6F115049-5E56-31C1-B52C-1A6BE9229CCC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Common\Color">
+      <UniqueIdentifier>{73FA24FA-62AE-3944-A081-0A1285FD89B3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Common\Geometry">
       <UniqueIdentifier>{382C5D74-79D4-3A2A-BC73-0A978E01BB75}</UniqueIdentifier>

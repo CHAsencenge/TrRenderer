@@ -188,7 +188,10 @@ private:
     DirectX::XMFLOAT2 mTemporalJitter = {0.0f, 0.0f};
     DirectX::XMFLOAT2 mPreviousTemporalJitter = {0.0f, 0.0f};
     UINT mProbeTemporalDebugViewIndex = UINT_MAX;
+    TrLightingVisualization mLightingVisualization =
+        TrLightingVisualization::Combined;
     float mExposure = 1.0f;
+    TrTonemapOperator mTonemapOperator = TrTonemapOperator::KhronosPbrNeutral;
     float mDepthVisualizationRange = 10.0f;
     bool mInitialized = false;
 };

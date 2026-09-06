@@ -180,6 +180,8 @@ void TrDeferredRenderer::OnUpdate()
     std::optional<std::wstring> sceneChangeRequest;
     const TrGeometryVisualization previousGeometryVisualization =
         mGeometryVisualization;
+    const TrLightingVisualization previousLightingVisualization =
+        mLightingVisualization;
     const bool previousIndirectLighting = mPipelineFeatures.IsEnabled(
         TrPipelineFeature::IndirectLighting);
     if(mGpuDebugPanel.BuildFrame(
@@ -188,7 +190,9 @@ void TrDeferredRenderer::OnUpdate()
            mPerformanceMonitor.GetSnapshot(),
            mPipelineFeatures,
            mGeometryVisualization,
+           mLightingVisualization,
            mExposure,
+           mTonemapOperator,
            mDepthVisualizationRange,
            mSceneSelectionEntries,
            mCurrentSceneSelectionIndex,
@@ -202,6 +206,13 @@ void TrDeferredRenderer::OnUpdate()
        previousIndirectLighting != indirectLightingEnabled)
     {
         mScreenProbeResources.InvalidateHistory();
+        mTaaColorHistory.Invalidate();
+        mTaaDepthHistory.Invalidate();
+    }
+    else if(previousLightingVisualization != mLightingVisualization)
+    {
+        // A lighting debug view changes the meaning of every HDR pixel. Do not
+        // blend the newly selected component with the previous TAA history.
         mTaaColorHistory.Invalidate();
         mTaaDepthHistory.Invalidate();
     }
@@ -341,12 +352,15 @@ void TrDeferredRenderer::OnUpdate()
 
     TrDeferredLightingPassConstants lightingPassConstants = {};
     lightingPassConstants.FeatureMask = mPipelineFeatures.GetEnabledMask();
+    lightingPassConstants.Visualization = mLightingVisualization;
     TrScreenProbeRadiancePassConstants screenProbeRadianceConstants = {};
     screenProbeRadianceConstants.DirectLightingScale =
         lightingPassConstants.DirectLightingScale;
-    const TrForwardTransparentPassConstants transparentPassConstants = {};
+    TrForwardTransparentPassConstants transparentPassConstants = {};
+    transparentPassConstants.Visualization = mLightingVisualization;
     TrCompositePassConstants compositePassConstants = {};
     compositePassConstants.Exposure = mExposure;
+    compositePassConstants.Tonemap = mTonemapOperator;
     compositePassConstants.VisualizationMode = static_cast<std::uint32_t>(
         mGpuDebug.GetSelectedView().Visualization);
     compositePassConstants.DepthVisualizationRange = mDepthVisualizationRange;
@@ -1083,9 +1097,31 @@ void TrDeferredRenderer::UpdateWindowTitle() const
     {
         geometryView = L"Primitive Draw";
     }
+    const wchar_t* lightingView = L"Combined";
+    if(mLightingVisualization == TrLightingVisualization::IndirectLighting)
+    {
+        lightingView = L"Indirect Only (Total)";
+    }
+    else if(mLightingVisualization == TrLightingVisualization::ConstantAmbient)
+    {
+        lightingView = L"Constant Ambient Only";
+    }
+    else if(mLightingVisualization ==
+            TrLightingVisualization::ScreenProbeDiffuse)
+    {
+        lightingView = L"Screen Probe Diffuse Only";
+    }
+    else if(mLightingVisualization == TrLightingVisualization::DirectDiffuse)
+    {
+        lightingView = L"Direct Diffuse Only";
+    }
+    else if(mLightingVisualization == TrLightingVisualization::DirectSpecular)
+    {
+        lightingView = L"Direct Specular Only";
+    }
     const std::wstring title = mTitle + L" | GPU Debug [" +
         std::to_wstring(mGpuDebug.GetSelectedIndex()) + L"] " + debugView.Name +
-        L" | Geometry " + geometryView;
+        L" | Geometry " + geometryView + L" | Lighting " + lightingView;
     SetWindowTextW(TrWindowApp::GetHwnd(), title.c_str());
 }
 

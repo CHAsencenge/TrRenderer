@@ -22,7 +22,7 @@ cbuffer DeferredLightingPassConstants : register(b2)
     float g_minimumDepthThreshold;
     float g_normalWeightPower;
     uint g_pipelineFeatureMask;
-    float g_lightingPadding;
+    uint g_lightingVisualization;
 };
 
 Texture2D<float4> g_baseColorRoughness : register(t0);
@@ -147,45 +147,56 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    const float3 baseColor = g_baseColorRoughness.Load(int3(pixel, 0)).rgb;
+    const float4 baseColorRoughness =
+        g_baseColorRoughness.Load(int3(pixel, 0));
+    const float3 baseColor = baseColorRoughness.rgb;
+    const float roughness = baseColorRoughness.a;
     const float4 normalMetallic = g_normalMetallic.Load(int3(pixel, 0));
     const float3 worldNormal = normalize(normalMetallic.xyz);
+    const float metallic = normalMetallic.a;
     const float4 emissiveOcclusion = g_emissiveOcclusion.Load(int3(pixel, 0));
     const float3 worldPosition = TrReconstructWorldPosition(
         uint2(pixel),
         depth,
         g_viewConstants.inverseRenderSize,
         g_viewConstants.inverseViewProjection);
-    const float3 directIrradiance = TrEvaluateDirectIrradiance(
+    const float3 directionToView = normalize(
+        g_viewConstants.cameraPosition - worldPosition);
+    const TrDirectPbrRadiance directRadiance = TrEvaluateDirectPbrRadiance(
         g_lights,
         g_sceneConstants.lightCount,
         worldPosition,
-        worldNormal);
-    const float3 directRadiance = TrEvaluateDirectDiffuseRadiance(
+        worldNormal,
+        directionToView,
         baseColor,
-        directIrradiance,
-        g_directLightingScale) + emissiveOcclusion.rgb;
+        metallic,
+        roughness,
+        g_directLightingScale);
     const float3 ambientRadiance = TrEvaluateAmbientDiffuseRadiance(
         baseColor,
+        metallic,
         g_sceneConstants.ambientColor,
         g_sceneConstants.ambientStrength,
         g_ambientLightingScale,
         emissiveOcclusion.a);
-    float3 indirectRadiance = 0.0f;
+    float3 screenProbeDiffuseRadiance = 0.0f;
     if((g_pipelineFeatureMask & TR_FEATURE_INDIRECT_LIGHTING) != 0u)
     {
         const float3 irradiance = TrUpsampleProbeIrradiance(
             uint2(pixel),
             depth,
             worldNormal);
-        indirectRadiance = TrEvaluateIndirectDiffuseRadiance(
+        screenProbeDiffuseRadiance = TrEvaluateIndirectDiffuseRadiance(
             baseColor,
-            normalMetallic.a,
+            metallic,
             emissiveOcclusion.a,
             irradiance,
             g_indirectLightingScale);
     }
-    return float4(
-        directRadiance + ambientRadiance + indirectRadiance,
-        1.0f);
+    return float4(TrResolveLightingVisualization(
+        directRadiance,
+        ambientRadiance,
+        screenProbeDiffuseRadiance,
+        emissiveOcclusion.rgb,
+        g_lightingVisualization), 1.0f);
 }

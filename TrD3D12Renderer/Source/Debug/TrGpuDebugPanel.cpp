@@ -31,12 +31,72 @@ namespace
         return "Unknown";
     }
 
+    const char* GetLightingVisualizationName(
+        TrLightingVisualization visualization)
+    {
+        switch(visualization)
+        {
+        case TrLightingVisualization::Combined:
+            return "Combined Lighting";
+        case TrLightingVisualization::IndirectLighting:
+            return "Indirect Lighting (Total)";
+        case TrLightingVisualization::DirectSpecular:
+            return "Direct Specular";
+        case TrLightingVisualization::DirectDiffuse:
+            return "Direct Diffuse";
+        case TrLightingVisualization::ConstantAmbient:
+            return "Constant Ambient";
+        case TrLightingVisualization::ScreenProbeDiffuse:
+            return "Screen Probe Diffuse";
+        }
+        return "Unknown";
+    }
+
+    const char* GetLightingVisualizationDescription(
+        TrLightingVisualization visualization)
+    {
+        switch(visualization)
+        {
+        case TrLightingVisualization::Combined:
+            return "Shows direct diffuse, direct specular, constant ambient, Screen Probe diffuse indirect and emissive together.";
+        case TrLightingVisualization::IndirectLighting:
+            return "Shows total indirect lighting: constant ambient plus Screen Probe diffuse. Direct lighting and emissive are excluded. Transparent materials currently contribute constant ambient only.";
+        case TrLightingVisualization::ConstantAmbient:
+            return "Shows only the constant ambient approximation. Screen Probe diffuse, direct lighting and emissive are excluded.";
+        case TrLightingVisualization::ScreenProbeDiffuse:
+            return "Shows only Screen Probe diffuse indirect lighting. It is black when indirect lighting is disabled; transparent materials are also black because their forward path does not sample Screen Probes yet.";
+        case TrLightingVisualization::DirectDiffuse:
+            return "Shows only the direct Fresnel-weighted Lambert diffuse radiance, after light color, attenuation and N dot L. Direct specular, indirect lighting and emissive are excluded.";
+        case TrLightingVisualization::DirectSpecular:
+            return "Shows only the direct Cook-Torrance GGX specular radiance. This is a lighting contribution, not the material metallic or roughness input. Indirect specular is not implemented.";
+        }
+        return "Unknown lighting visualization.";
+    }
+
+    const char* GetTonemapOperatorName(TrTonemapOperator tonemapOperator)
+    {
+        switch(tonemapOperator)
+        {
+        case TrTonemapOperator::None:
+            return "None (clip)";
+        case TrTonemapOperator::KhronosPbrNeutral:
+            return "Khronos PBR Neutral";
+        case TrTonemapOperator::AcesFitted:
+            return "ACES Fitted";
+        case TrTonemapOperator::Agx:
+            return "AgX";
+        }
+        return "Unknown";
+    }
+
     const char* GetFeatureName(TrDebugPanelFeature feature)
     {
         switch(feature)
         {
         case TrDebugPanelFeature::GeometryView:
             return "Geometry View";
+        case TrDebugPanelFeature::LightingView:
+            return "Lighting View";
         case TrDebugPanelFeature::DisplaySettings:
             return "Display Settings";
         case TrDebugPanelFeature::PipelineFeatures:
@@ -55,6 +115,54 @@ namespace
         const char* label,
         TrGeometryVisualization value,
         TrGeometryVisualization& selected)
+    {
+        const bool isSelected = value == selected;
+        if(isSelected)
+        {
+            ImGui::PushStyleColor(
+                ImGuiCol_Button,
+                ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+        }
+        const bool clicked = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+        if(isSelected)
+        {
+            ImGui::PopStyleColor();
+        }
+        if(clicked)
+        {
+            selected = value;
+        }
+        return clicked && !isSelected;
+    }
+
+    bool DrawTonemapOperatorButton(
+        const char* label,
+        TrTonemapOperator value,
+        TrTonemapOperator& selected)
+    {
+        const bool isSelected = value == selected;
+        if(isSelected)
+        {
+            ImGui::PushStyleColor(
+                ImGuiCol_Button,
+                ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+        }
+        const bool clicked = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+        if(isSelected)
+        {
+            ImGui::PopStyleColor();
+        }
+        if(clicked)
+        {
+            selected = value;
+        }
+        return clicked && !isSelected;
+    }
+
+    bool DrawLightingVisualizationButton(
+        const char* label,
+        TrLightingVisualization value,
+        TrLightingVisualization& selected)
     {
         const bool isSelected = value == selected;
         if(isSelected)
@@ -227,7 +335,9 @@ bool TrGpuDebugPanel::BuildFrame(
     const TrPerformanceSnapshot& performance,
     TrPipelineFeatures& pipelineFeatures,
     TrGeometryVisualization& geometryVisualization,
+    TrLightingVisualization& lightingVisualization,
     float& exposure,
+    TrTonemapOperator& tonemapOperator,
     float& depthVisualizationRange,
     const std::vector<TrSceneSelectionEntry>& sceneEntries,
     std::size_t currentSceneIndex,
@@ -281,6 +391,13 @@ bool TrGpuDebugPanel::BuildFrame(
                    mSelectedFeature == TrDebugPanelFeature::GeometryView))
             {
                 mSelectedFeature = TrDebugPanelFeature::GeometryView;
+            }
+            if(ImGui::MenuItem(
+                   "Lighting View",
+                   nullptr,
+                   mSelectedFeature == TrDebugPanelFeature::LightingView))
+            {
+                mSelectedFeature = TrDebugPanelFeature::LightingView;
             }
             if(ImGui::MenuItem(
                    "Display Settings",
@@ -358,6 +475,11 @@ bool TrGpuDebugPanel::BuildFrame(
                 selectedViewChanged |= geometryViewChanged;
                 if(geometryViewChanged)
                 {
+                    if(geometryVisualization != TrGeometryVisualization::Shaded)
+                    {
+                        lightingVisualization =
+                            TrLightingVisualization::Combined;
+                    }
                     mStatus = GetGeometryVisualizationName(
                         geometryVisualization);
                     mInputValid = true;
@@ -372,6 +494,46 @@ bool TrGpuDebugPanel::BuildFrame(
                         : geometryVisualization == TrGeometryVisualization::PrimitiveDraw
                             ? "Every PrimitiveID + InstanceID draw receives a distinct color."
                             : "Materials and lighting are shown normally.");
+            }
+            else if(mSelectedFeature == TrDebugPanelFeature::LightingView)
+            {
+                ImGui::TextUnformatted("Lighting Contribution View");
+                bool lightingViewChanged = DrawLightingVisualizationButton(
+                    "Combined Lighting",
+                    TrLightingVisualization::Combined,
+                    lightingVisualization);
+                lightingViewChanged |= DrawLightingVisualizationButton(
+                    "Indirect Lighting Only (Total)",
+                    TrLightingVisualization::IndirectLighting,
+                    lightingVisualization);
+                lightingViewChanged |= DrawLightingVisualizationButton(
+                    "Constant Ambient Only",
+                    TrLightingVisualization::ConstantAmbient,
+                    lightingVisualization);
+                lightingViewChanged |= DrawLightingVisualizationButton(
+                    "Screen Probe Diffuse Only",
+                    TrLightingVisualization::ScreenProbeDiffuse,
+                    lightingVisualization);
+                lightingViewChanged |= DrawLightingVisualizationButton(
+                    "Direct Diffuse Only",
+                    TrLightingVisualization::DirectDiffuse,
+                    lightingVisualization);
+                lightingViewChanged |= DrawLightingVisualizationButton(
+                    "Direct Specular Only",
+                    TrLightingVisualization::DirectSpecular,
+                    lightingVisualization);
+                selectedViewChanged |= lightingViewChanged;
+                if(lightingViewChanged)
+                {
+                    geometryVisualization = TrGeometryVisualization::Shaded;
+                    selectedViewChanged |= gpuDebug.SelectView(0);
+                    mStatus = GetLightingVisualizationName(
+                        lightingVisualization);
+                    mInputValid = true;
+                }
+                ImGui::Separator();
+                ImGui::TextWrapped(GetLightingVisualizationDescription(
+                    lightingVisualization));
             }
             else if(mSelectedFeature == TrDebugPanelFeature::DisplaySettings)
             {
@@ -433,6 +595,38 @@ bool TrGpuDebugPanel::BuildFrame(
                 {
                     ImGui::PopStyleColor();
                 }
+
+                ImGui::Separator();
+                ImGui::TextUnformatted("Tone Map (HDR views only)");
+                bool tonemapChanged = DrawTonemapOperatorButton(
+                    "None (clip)",
+                    TrTonemapOperator::None,
+                    tonemapOperator);
+                tonemapChanged |= DrawTonemapOperatorButton(
+                    "Khronos PBR Neutral",
+                    TrTonemapOperator::KhronosPbrNeutral,
+                    tonemapOperator);
+                tonemapChanged |= DrawTonemapOperatorButton(
+                    "ACES Fitted",
+                    TrTonemapOperator::AcesFitted,
+                    tonemapOperator);
+                tonemapChanged |= DrawTonemapOperatorButton(
+                    "AgX",
+                    TrTonemapOperator::Agx,
+                    tonemapOperator);
+                if(tonemapChanged)
+                {
+                    mStatus = GetTonemapOperatorName(tonemapOperator);
+                    mInputValid = true;
+                }
+                ImGui::TextWrapped(
+                    tonemapOperator == TrTonemapOperator::None
+                        ? "Highlights are hard-clipped. Use only to tell tone map artifacts apart from lighting artifacts."
+                        : tonemapOperator == TrTonemapOperator::KhronosPbrNeutral
+                            ? "Mid-tones are an identity transform, so on-screen diffuse color still matches base color."
+                            : tonemapOperator == TrTonemapOperator::AcesFitted
+                                ? "Filmic contrast. Mid-tone hue and saturation shift, so albedo reads darker than it is."
+                                : "Longest highlight roll-off and the most stable highlight hue.");
             }
             else if(mSelectedFeature == TrDebugPanelFeature::PipelineFeatures)
             {

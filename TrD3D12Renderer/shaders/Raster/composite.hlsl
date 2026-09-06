@@ -1,3 +1,4 @@
+#include "../Common/Color/tonemap.header.hlsl"
 #include "../Common/Utility/depth.header.hlsl"
 #include "../Common/Utility/fullscreen_triangle.header.hlsl"
 
@@ -11,7 +12,8 @@ cbuffer CompositePassConstants : register(b2)
     float g_depthVisualizationRange;
     float g_nearPlane;
     float g_farPlane;
-    float2 g_compositePadding;
+    uint g_tonemapOperator;
+    float g_compositePadding;
     float2 g_outputSize;
     float2 g_outputPadding;
 };
@@ -113,7 +115,12 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
     float3 linearColor = source.rgb;
     if(g_visualizationMode == 0u)
     {
-        linearColor *= g_exposure;
+        // HDR radiance: apply exposure, then map to display-referred range.
+        // Without a tone map the HDR range the whole pipeline preserves would be
+        // hard-clipped here, flattening every GGX highlight into a white patch.
+        linearColor = TrApplyTonemap(
+            linearColor * g_exposure,
+            g_tonemapOperator);
     }
     const float3 displayColor = pow(
         saturate(linearColor),

@@ -44,6 +44,40 @@ enum class TrGpuLightType : std::uint32_t
     Spot = 2
 };
 
+// Selects which outgoing-radiance component the lighting passes write.
+// Values are shared with shaders/Common/Lighting/surface_lighting.header.hlsl.
+enum class TrLightingVisualization : std::uint32_t
+{
+    Combined = 0,
+    // Constant ambient plus Screen Probe diffuse indirect lighting.
+    IndirectLighting = 1,
+    // Direct-light Cook-Torrance specular only. Indirect specular is not yet
+    // implemented, so it cannot contribute to this view.
+    DirectSpecular = 2,
+    // Direct-light Fresnel-weighted Lambert diffuse only, after light
+    // radiance and N dot L.
+    DirectDiffuse = 3,
+    // Constant ambient approximation only.
+    ConstantAmbient = 4,
+    // Screen Probe diffuse indirect lighting only.
+    ScreenProbeDiffuse = 5
+};
+
+// Display transform applied to HDR radiance in the composite pass.
+// Values are shared with shaders/Common/Color/tonemap.header.hlsl.
+enum class TrTonemapOperator : std::uint32_t
+{
+    // Hard clip. Diagnostic only: isolates whether an artifact comes from the
+    // tone map or from the lighting that feeds it.
+    None = 0,
+    // Identity through the mid-tones, so albedo stays readable on screen.
+    KhronosPbrNeutral = 1,
+    // Filmic, industry-familiar. Shifts mid-tone hue and saturation.
+    AcesFitted = 2,
+    // Longest highlight roll-off and the most stable highlight hue.
+    Agx = 3
+};
+
 struct alignas(16) TrSceneConstants
 {
     DirectX::XMFLOAT3 AmbientColor = {1.0f, 1.0f, 1.0f};
@@ -142,14 +176,15 @@ struct alignas(16) TrDeferredLightingPassConstants
     float MinimumDepthThreshold = 0.3f; // Suppresses banding at the cost of more leaking.
     float NormalWeightPower = 8.0f;
     std::uint32_t FeatureMask = 0;
-    float Padding = 0.0f;
+    TrLightingVisualization Visualization = TrLightingVisualization::Combined;
 };
 
 struct alignas(16) TrForwardTransparentPassConstants
 {
     float DirectLightingScale = 1.0f;
     float AmbientLightingScale = 1.0f;
-    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    TrLightingVisualization Visualization = TrLightingVisualization::Combined;
+    float Padding = 0.0f;
 };
 
 struct alignas(16) TrScreenProbeRadiancePassConstants
@@ -166,7 +201,8 @@ struct alignas(16) TrCompositePassConstants
     float DepthVisualizationRange = 10.0f;
     float NearPlane = 0.1f;
     float FarPlane = 100.0f;
-    DirectX::XMFLOAT2 Padding = {0.0f, 0.0f};
+    TrTonemapOperator Tonemap = TrTonemapOperator::KhronosPbrNeutral;
+    float Padding = 0.0f;
     DirectX::XMFLOAT2 OutputSize = {1.0f, 1.0f};
     DirectX::XMFLOAT2 OutputPadding = {0.0f, 0.0f};
 };
@@ -204,7 +240,11 @@ static_assert(offsetof(TrMaterialConstants, Flags) == 44);
 static_assert(offsetof(TrMaterialConstants, BaseColorTexture) == 48);
 static_assert(offsetof(TrMaterialConstants, EmissiveTexture) == 176);
 static_assert(sizeof(TrDeferredLightingPassConstants) == 32);
+static_assert(offsetof(TrDeferredLightingPassConstants, Visualization) == 28);
 static_assert(sizeof(TrForwardTransparentPassConstants) == 16);
+static_assert(offsetof(TrForwardTransparentPassConstants, Visualization) == 8);
 static_assert(sizeof(TrScreenProbeRadiancePassConstants) == 16);
 static_assert(sizeof(TrCompositePassConstants) == 48);
+static_assert(offsetof(TrCompositePassConstants, Tonemap) == 24);
+static_assert(offsetof(TrCompositePassConstants, OutputSize) == 32);
 static_assert(sizeof(TrDrawConstants) == 16);
