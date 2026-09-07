@@ -1096,11 +1096,11 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         TrDebugVisualization::ScreenTrace);
     mGpuDebug.RegisterView(
         L"Lumen Probe Radiance",
-        mScreenProbeResources.GetRadianceSrv().GpuHandle,
+        mScreenProbeResources.GetTraceRadianceSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mGpuDebug.RegisterView(
         L"Lumen Screen Trace Confidence (Per Ray)",
-        mScreenProbeResources.GetRadianceSrv().GpuHandle,
+        mScreenProbeResources.GetTraceRadianceSrv().GpuHandle,
         TrDebugVisualization::ScalarAlpha);
     mGpuDebug.RegisterView(
         L"Lumen Probe Irradiance SH L2 Atlas",

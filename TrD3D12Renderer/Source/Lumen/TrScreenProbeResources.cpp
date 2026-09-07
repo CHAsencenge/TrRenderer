@@ -37,8 +37,8 @@ void TrScreenProbeResources::Initialize(
     mTraceHitUav = resourceHeap.Allocate();
     mTraceDebugSrv = resourceHeap.Allocate();
     mTraceDebugUav = resourceHeap.Allocate();
-    mRadianceSrv = resourceHeap.Allocate();
-    mRadianceUav = resourceHeap.Allocate();
+    mTraceRadianceSrv = resourceHeap.Allocate();
+    mTraceRadianceUav = resourceHeap.Allocate();
     mIrradianceSrv = resourceHeap.Allocate();
     mIrradianceUav = resourceHeap.Allocate();
     mTemporalDebugSrv = resourceHeap.Allocate();
@@ -66,6 +66,21 @@ void TrScreenProbeResources::Initialize(
         NormalDepthFormat,
         resourceHeap,
         L"Lumen Screen Probe Normal Depth History");
+    mDirectionRadianceHistory.Initialize(
+        device,
+        mLayout.DirectionAtlasWidth,
+        mLayout.DirectionAtlasHeight,
+        DirectionRadianceFormat,
+        resourceHeap,
+        L"Lumen Screen Probe Direction Radiance History");
+
+    mDirectionAuxHistory.Initialize(
+        device,
+        mLayout.DirectionAtlasWidth,
+        mLayout.DirectionAtlasHeight,
+        DirectionHistoryAuxFormat,
+        resourceHeap,
+        L"Lumen Screen Probe Direction Aux History");
 }
 
 void TrScreenProbeResources::Resize(
@@ -77,7 +92,7 @@ void TrScreenProbeResources::Resize(
        mNormalDepthSrv.Index == UINT_MAX || mNormalDepthUav.Index == UINT_MAX ||
        mTraceHitSrv.Index == UINT_MAX || mTraceHitUav.Index == UINT_MAX ||
        mTraceDebugSrv.Index == UINT_MAX || mTraceDebugUav.Index == UINT_MAX ||
-       mRadianceSrv.Index == UINT_MAX || mRadianceUav.Index == UINT_MAX ||
+       mTraceRadianceSrv.Index == UINT_MAX || mTraceRadianceUav.Index == UINT_MAX ||
        mIrradianceSrv.Index == UINT_MAX || mIrradianceUav.Index == UINT_MAX ||
        mTemporalDebugSrv.Index == UINT_MAX ||
        mTemporalDebugUav.Index == UINT_MAX)
@@ -102,21 +117,25 @@ void TrScreenProbeResources::Resize(
 
 void TrScreenProbeResources::AdvanceHistory()
 {
-    mIrradianceHistory.AdvanceFrame();
     mPositionHistory.AdvanceFrame();
     mNormalDepthHistory.AdvanceFrame();
+    mDirectionRadianceHistory.AdvanceFrame();
+    mDirectionAuxHistory.AdvanceFrame();
 }
 
 void TrScreenProbeResources::InvalidateHistory()
 {
-    mIrradianceHistory.Invalidate();
+    mDirectionRadianceHistory.Invalidate();
+    mDirectionAuxHistory.Invalidate();
     mPositionHistory.Invalidate();
     mNormalDepthHistory.Invalidate();
 }
 
 bool TrScreenProbeResources::IsHistoryValid() const
 {
-    return mIrradianceHistory.IsValid() &&
+    return 
+        mDirectionRadianceHistory.IsValid() &&
+        mDirectionAuxHistory.IsValid() &&
         mPositionHistory.IsValid() &&
         mNormalDepthHistory.IsValid();
 }
@@ -137,6 +156,12 @@ void TrScreenProbeResources::CreateResources(
         probeCountX * TrScreenProbeLayout::RayGridDimension;
     const UINT traceHeight =
         probeCountY * TrScreenProbeLayout::RayGridDimension;
+    const UINT directionWidth =
+        probeCountX *
+        TrScreenProbeLayout::DirectionGridDimension;
+    const UINT directionHeight =
+        probeCountY *
+        TrScreenProbeLayout::DirectionGridDimension;
     const UINT irradianceWidth =
         probeCountX * TrScreenProbeLayout::ShCoefficientGridDimension;
     const UINT irradianceHeight =
@@ -153,6 +178,8 @@ void TrScreenProbeResources::CreateResources(
     mLayout.ProbeCountY = probeCountY;
     mLayout.TraceAtlasWidth = traceWidth;
     mLayout.TraceAtlasHeight = traceHeight;
+    mLayout.DirectionAtlasWidth = directionWidth;
+    mLayout.DirectionAtlasHeight = directionHeight;
     mLayout.IrradianceAtlasWidth = irradianceWidth;
     mLayout.IrradianceAtlasHeight = irradianceHeight;
 
@@ -196,15 +223,44 @@ void TrScreenProbeResources::CreateResources(
         initialState,
         nullptr,
         L"Lumen Screen Trace Debug");
-    mRadiance.Initialize2D(
+    mTraceRadiance.Initialize2D(
         device,
         traceWidth,
         traceHeight,
-        RadianceFormat,
+        TraceRadianceFormat,
         flags,
         initialState,
         nullptr,
-        L"Lumen Screen Probe Radiance");
+        L"Lumen Screen Probe Trace Radiance");
+    mDirectionRadiance.Initialize2D(
+        device,
+        directionWidth,
+        directionHeight,
+        DirectionRadianceFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Direction Radiance");
+
+    mDirectionHitDistance.Initialize2D(
+        device,
+        directionWidth,
+        directionHeight,
+        DirectionHitDistanceFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Direction Hit Distance");
+
+    mFilteredDirectionRadiance.Initialize2D(
+        device,
+        directionWidth,
+        directionHeight,
+        DirectionRadianceFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Filtered Direction Radiance");
     mIrradiance.Initialize2D(
         device,
         irradianceWidth,
@@ -248,12 +304,12 @@ void TrScreenProbeResources::CreateResources(
     mTraceDebug.CreateUnorderedAccessView(
         device,
         mTraceDebugUav.CpuHandle);
-    mRadiance.CreateShaderResourceView(
+    mTraceRadiance.CreateShaderResourceView(
         device,
-        mRadianceSrv.CpuHandle);
-    mRadiance.CreateUnorderedAccessView(
+        mTraceRadianceSrv.CpuHandle);
+    mTraceRadiance.CreateUnorderedAccessView(
         device,
-        mRadianceUav.CpuHandle);
+        mTraceRadianceUav.CpuHandle);
     mIrradiance.CreateShaderResourceView(
         device,
         mIrradianceSrv.CpuHandle);

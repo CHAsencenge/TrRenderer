@@ -100,7 +100,7 @@ TrScreenProbeRadiancePass::Outputs TrScreenProbeRadiancePass::Resolve(
         renderTargets.GetBaseColorSrv().GpuHandle);
     commandList->SetComputeRootDescriptorTable(
         4,
-        screenProbes.GetRadianceUav().GpuHandle);
+        screenProbes.GetTraceRadianceUav().GpuHandle);
     commandList->SetComputeRootConstantBufferView(5, viewConstants);
     commandList->SetComputeRootShaderResourceView(6, lights);
     commandList->Dispatch(

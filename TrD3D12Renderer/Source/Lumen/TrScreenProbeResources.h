@@ -8,9 +8,15 @@
 struct TrScreenProbeLayout
 {
     static constexpr UINT TileSize = 16;
-    static constexpr UINT RayGridDimension = 8; // 每个 probe 在 Trace Atlas 中占据的块的边长
+
+    static constexpr UINT RayGridDimension = 4; // 每个 probe 在 Trace Atlas 中占据的块的边长
     static constexpr UINT RaysPerProbe =
         RayGridDimension * RayGridDimension;
+   
+    static constexpr UINT DirectionGridDimension = 8; // 固定世界空间方向 atlas 的边长。
+    static constexpr UINT DirectionsPerProbe =
+        DirectionGridDimension * DirectionGridDimension;
+
     static constexpr UINT ShCoefficientCount = 9;
     static constexpr UINT ShCoefficientGridDimension = 3;
     static_assert(
@@ -23,6 +29,8 @@ struct TrScreenProbeLayout
     UINT ProbeCountY = 0;
     UINT TraceAtlasWidth = 0;
     UINT TraceAtlasHeight = 0;
+    UINT DirectionAtlasWidth = 0;
+    UINT DirectionAtlasHeight = 0;
     UINT IrradianceAtlasWidth = 0;
     UINT IrradianceAtlasHeight = 0;
 };
@@ -42,7 +50,17 @@ public:
         DXGI_FORMAT_R32G32B32A32_UINT;
     static constexpr DXGI_FORMAT TraceDebugFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
-    static constexpr DXGI_FORMAT RadianceFormat =
+    static constexpr DXGI_FORMAT TraceRadianceFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT DirectionRadianceFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT DirectionHitDistanceFormat =
+        DXGI_FORMAT_R16_FLOAT;
+    // x = temporal hit distance
+    // y = history length
+    // z = luminance first moment
+    // w = luminance second moment
+    static constexpr DXGI_FORMAT DirectionHistoryAuxFormat = 
         DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT IrradianceFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -66,14 +84,14 @@ public:
     TrTexture& GetNormalDepth() { return mNormalDepth; }
     TrTexture& GetTraceHit() { return mTraceHit; }
     TrTexture& GetTraceDebug() { return mTraceDebug; }
-    TrTexture& GetRadiance() { return mRadiance; }
+    TrTexture& GetRadiance() { return mTraceRadiance; }
     TrTexture& GetIrradiance() { return mIrradiance; }
     TrTexture& GetTemporalDebug() { return mTemporalDebug; }
     const TrTexture& GetPositionValidity() const { return mPositionValidity; }
     const TrTexture& GetNormalDepth() const { return mNormalDepth; }
     const TrTexture& GetTraceHit() const { return mTraceHit; }
     const TrTexture& GetTraceDebug() const { return mTraceDebug; }
-    const TrTexture& GetRadiance() const { return mRadiance; }
+    const TrTexture& GetRadiance() const { return mTraceRadiance; }
     const TrTexture& GetIrradiance() const { return mIrradiance; }
     const TrTexture& GetTemporalDebug() const { return mTemporalDebug; }
 
@@ -85,8 +103,8 @@ public:
     const TrDescriptorAllocation& GetTraceHitUav() const { return mTraceHitUav; }
     const TrDescriptorAllocation& GetTraceDebugSrv() const { return mTraceDebugSrv; }
     const TrDescriptorAllocation& GetTraceDebugUav() const { return mTraceDebugUav; }
-    const TrDescriptorAllocation& GetRadianceSrv() const { return mRadianceSrv; }
-    const TrDescriptorAllocation& GetRadianceUav() const { return mRadianceUav; }
+    const TrDescriptorAllocation& GetTraceRadianceSrv() const { return mTraceRadianceSrv; }
+    const TrDescriptorAllocation& GetTraceRadianceUav() const { return mTraceRadianceUav; }
     const TrDescriptorAllocation& GetIrradianceSrv() const { return mIrradianceSrv; }
     const TrDescriptorAllocation& GetIrradianceUav() const { return mIrradianceUav; }
     const TrDescriptorAllocation& GetTemporalDebugSrv() const { return mTemporalDebugSrv; }
@@ -107,13 +125,26 @@ private:
     TrTexture mNormalDepth;
     TrTexture mTraceHit;
     TrTexture mTraceDebug;
-    TrTexture mRadiance;
+    TrTexture mTraceRadiance;
     // Each probe occupies a 3x3 block containing its nine world-space SH L2
     // diffuse-irradiance coefficients.
     TrTexture mIrradiance;
     // Per-probe temporal diagnostics: RGB stores the history status color and
     // alpha stores the resolved history blend weight.
     TrTexture mTemporalDebug;
+    // RGB = 当前方向 radiance 
+    // A = 当前方向 lighting support / confidence
+    TrTexture mDirectionRadiance;
+    TrTexture mDirectionHitDistance;
+    TrTexture mFilteredDirectionRadiance;
+    TrTexture mDirectionTemporalDebug;
+
+    TrHistoryTexture mDirectionRadianceHistory;
+    // R = resolved hit distance
+    // G = history length
+    // B = luminance 一阶矩
+    // A = luminance 二阶矩
+    TrHistoryTexture mDirectionAuxHistory;
     TrHistoryTexture mIrradianceHistory;
     TrHistoryTexture mPositionHistory;
     TrHistoryTexture mNormalDepthHistory;
@@ -125,8 +156,8 @@ private:
     TrDescriptorAllocation mTraceHitUav;
     TrDescriptorAllocation mTraceDebugSrv;
     TrDescriptorAllocation mTraceDebugUav;
-    TrDescriptorAllocation mRadianceSrv;
-    TrDescriptorAllocation mRadianceUav;
+    TrDescriptorAllocation mTraceRadianceSrv;
+    TrDescriptorAllocation mTraceRadianceUav;
     TrDescriptorAllocation mIrradianceSrv;
     TrDescriptorAllocation mIrradianceUav;
     TrDescriptorAllocation mTemporalDebugSrv;

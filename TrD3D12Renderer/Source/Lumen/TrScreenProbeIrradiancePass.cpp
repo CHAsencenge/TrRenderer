@@ -84,7 +84,7 @@ TrScreenProbeIrradiancePass::Integrate(
     commandList->SetComputeRootSignature(mPipeline.GetRootSignature());
     commandList->SetComputeRootDescriptorTable(
         0,
-        screenProbes.GetRadianceSrv().GpuHandle);
+        screenProbes.GetTraceRadianceSrv().GpuHandle);
     commandList->SetComputeRootDescriptorTable(
         1,
         screenProbes.GetNormalDepthSrv().GpuHandle);

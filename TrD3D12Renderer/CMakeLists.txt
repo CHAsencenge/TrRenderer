@@ -111,12 +111,18 @@ set(TR_PASS_FILES
   Source/Passes/TrRenderPass.h)
 
 set(TR_LUMEN_FILES
+  Source/Lumen/TrScreenProbeDirectionFilterPass.cpp
+  Source/Lumen/TrScreenProbeDirectionFilterPass.h
   Source/Lumen/TrScreenProbeIrradiancePass.cpp
   Source/Lumen/TrScreenProbeIrradiancePass.h
   Source/Lumen/TrScreenProbePass.cpp
   Source/Lumen/TrScreenProbePass.h
+  Source/Lumen/TrScreenProbeRadianceCompositePass.cpp
+  Source/Lumen/TrScreenProbeRadianceCompositePass.h
   Source/Lumen/TrScreenProbeRadiancePass.cpp
   Source/Lumen/TrScreenProbeRadiancePass.h
+  Source/Lumen/TrScreenProbeRadianceTemporalPass.cpp
+  Source/Lumen/TrScreenProbeRadianceTemporalPass.h
   Source/Lumen/TrScreenProbeResources.cpp
   Source/Lumen/TrScreenProbeResources.h
   Source/Lumen/TrScreenProbeTemporalPass.cpp
@@ -230,8 +236,12 @@ set(COMPUTE_HLSL_SOURCE_FILES
   shaders/Compute/hzb.hlsl
   shaders/Compute/taa.hlsl)
 set(LUMEN_HLSL_SOURCE_FILES
+  shaders/Lumen/screen_probe_direction.header.hlsl
+  shaders/Lumen/screen_probe_direction_filter.hlsl
   shaders/Lumen/screen_probe_irradiance.hlsl
   shaders/Lumen/screen_probe_radiance.hlsl
+  shaders/Lumen/screen_probe_radiance_composite.hlsl
+  shaders/Lumen/screen_probe_radiance_temporal.hlsl
   shaders/Lumen/screen_probe_temporal.hlsl
   shaders/Lumen/screen_probe.hlsl
   shaders/Lumen/screen_probe_sampling.header.hlsl
