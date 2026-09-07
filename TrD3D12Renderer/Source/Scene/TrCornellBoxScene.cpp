@@ -228,9 +228,10 @@ TrScene CreateCornellBoxScene()
     TrSceneLight ceilingPointLight;
     ceilingPointLight.Name = "Ceiling Point Light";
     ceilingPointLight.Type = TrSceneLightType::Point;
-    ceilingPointLight.Color = {0.5f, 0.45f, 0.36f};
-    ceilingPointLight.Intensity = 8.0f;
-    ceilingPointLight.Range = 4.0f;
+    // ceilingPointLight.Color = {0.5f, 0.45f, 0.36f};
+    ceilingPointLight.Color = {1.0f, 0.9f, 0.72f};
+    ceilingPointLight.Intensity = 6.0f;
+    ceilingPointLight.Range = 3.0f;
     result.Lights.push_back(ceilingPointLight);
 
     // One mesh with five material primitives verifies that Primitive is a draw

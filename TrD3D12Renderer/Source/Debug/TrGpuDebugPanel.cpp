@@ -623,7 +623,7 @@ bool TrGpuDebugPanel::BuildFrame(
                     tonemapOperator == TrTonemapOperator::None
                         ? "Highlights are hard-clipped. Use only to tell tone map artifacts apart from lighting artifacts."
                         : tonemapOperator == TrTonemapOperator::KhronosPbrNeutral
-                            ? "Mid-tones are an identity transform, so on-screen diffuse color still matches base color."
+                            ? "Slope-1 below the 0.76 knee, so on-screen diffuse tracks base color exactly (minus a constant 0.04 pedestal)."
                             : tonemapOperator == TrTonemapOperator::AcesFitted
                                 ? "Filmic contrast. Mid-tone hue and saturation shift, so albedo reads darker than it is."
                                 : "Longest highlight roll-off and the most stable highlight hue.");

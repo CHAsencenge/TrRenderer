@@ -22,11 +22,18 @@ static const uint TR_TONEMAP_AGX = 3u;
 // from the row-vector mul(vector, matrix) convention used for spatial
 // transforms elsewhere in the codebase; keep the operand order as written.
 
-// Khronos PBR Neutral. Reference implementation from KhronosGroup/ToneMapping.
-// Tone maps by desaturating toward the white point only once a channel passes
-// the compression knee, so mid-tones stay a hue- and value-preserving identity.
+// Khronos PBR Neutral. Reference implementation from KhronosGroup/ToneMapping,
+// Apache 2.0. Input and output are Linear Rec. 709.
+//
+// Below the 0.76 knee the transform is slope-1 and leaves hue and saturation
+// completely alone; the only change is a constant -0.04 black-point offset
+// (smoothly faded out below 0.08 so black stays black). Above the knee the peak
+// rolls off hyperbolically and desaturates toward white.
+//
 // This is the operator to use when validating that base color and lighting are
-// numerically correct, because sub-knee diffuse albedo survives untouched.
+// numerically correct: on-screen diffuse color tracks base color at slope 1, so
+// relative comparisons are exact. Note the -0.04 pedestal when reading absolute
+// albedo off the screen.
 float3 TrTonemapKhronosPbrNeutral(float3 color)
 {
     const float startCompression = 0.8f - 0.04f;

@@ -92,14 +92,16 @@ TrScreenProbeIrradiancePass::Integrate(
         2,
         screenProbes.GetIrradianceUav().GpuHandle);
 
-    const TrScreenProbeIrradianceConstants constants =
-    {
-        layout.ProbeCountX,
-        layout.ProbeCountY,
-        TrScreenProbeLayout::RayGridDimension,
-        TrScreenProbeLayout::RaysPerProbe,
-        frameNumber
-    };
+    TrScreenProbeIrradianceConstants constants = {};
+    constants.ProbeCountX = layout.ProbeCountX;
+    constants.ProbeCountY = layout.ProbeCountY;
+    constants.RayGridDimension =
+        TrScreenProbeLayout::RayGridDimension;
+    constants.RaysPerProbe =
+        TrScreenProbeLayout::RaysPerProbe;
+    constants.FrameNumber = frameNumber;
+    constants.MaxRayIntensity = 10.0f;
+
     commandList->SetComputeRoot32BitConstants(
         3,
         sizeof(constants) / sizeof(std::uint32_t),

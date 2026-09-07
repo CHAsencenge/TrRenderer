@@ -11,7 +11,8 @@ struct alignas(16) TrScreenProbeIrradianceConstants
     UINT RayGridDimension = 0;
     UINT RaysPerProbe = 0;
     UINT FrameNumber = 0;
-    UINT Padding[3] = {};
+    float MaxRayIntensity = 10.0f;
+    UINT Padding[2] = {};
 };
 
 static_assert(sizeof(TrScreenProbeIrradianceConstants) == 32);

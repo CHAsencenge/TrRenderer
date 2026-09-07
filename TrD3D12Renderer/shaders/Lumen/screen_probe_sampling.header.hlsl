@@ -42,16 +42,38 @@ float3 TrGenerateScreenProbeRay(
     const float2 temporalShift = float2(
         TrScreenProbeRadicalInverse(temporalIndex),
         frac(float(temporalIndex) * 0.7548776662466927f));
-    const float2 samplePoint = frac(float2(
-        (float(rayIndex) + 0.5f) / float(rayCount),
-        TrScreenProbeRadicalInverse(rayIndex) + probeRotation) + temporalShift);
 
-    const float radius = sqrt(samplePoint.x);
-    const float phi = 2.0f * TR_SCREEN_PROBE_PI * samplePoint.y;
+    // Hammersley + Cranley-Patterson rotation。
+    // samplePoint 在 [0,1)^2 上保持均匀分布。
+    const float2 samplePoint = frac(
+        float2(
+            (float(rayIndex) + 0.5f) / max(float(rayCount), 1.0f),
+            TrScreenProbeRadicalInverse(rayIndex) + probeRotation) +
+        temporalShift);
+    
+    // 均匀半球映射。
+    //
+    // dω = dφ dz，因此令：
+    //
+    //     z   = 1 - u
+    //     phi = 2πv
+    //
+    // 得到常数 PDF：
+    //
+    //     p(ω) = 1 / (2π)
+    const float cosTheta = 1.0f - samplePoint.x;
+    const float sinTheta = sqrt(max(
+        0.0f,
+        1.0f - cosTheta * cosTheta));
+
+    const float phi =
+        2.0f * TR_SCREEN_PROBE_PI * samplePoint.y;
+
     const float3 localDirection = float3(
-        radius * cos(phi),
-        radius * sin(phi),
-        sqrt(max(0.0f, 1.0f - samplePoint.x)));
+        sinTheta * cos(phi),
+        sinTheta * sin(phi),
+        cosTheta);
+
 
     const float3 normal = normalize(worldNormal);
     const float3 helperAxis = abs(normal.z) < 0.999f
