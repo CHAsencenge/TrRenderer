@@ -136,7 +136,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 TrShDiffuseConvolutionFactor(coefficientIndex) * // A_l
                 sampleSolidAngle; 
         }
-        traceEvidenceSum += rayTraceConfidence;
+
     }
 
     const float probeTraceConfidence = traceEvidenceSum * inverseRayCount;

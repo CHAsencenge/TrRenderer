@@ -55,6 +55,8 @@ public:
         const TrRuntimeScene& runtimeScene,
         const TrPerformanceSnapshot& performance,
         TrPipelineFeatures& pipelineFeatures,
+        bool& taaProjectionJitterEnabled,
+        bool& freezeScreenProbeRaySequence,
         TrGeometryVisualization& geometryVisualization,
         TrLightingVisualization& lightingVisualization,
         float& exposure,

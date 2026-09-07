@@ -98,6 +98,12 @@ float4 PSMain(TrFullscreenVertex input) : SV_Target
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
+    if(g_visualizationMode == 10u)
+    {
+        // Screen Probe temporal status is already encoded as display colors.
+        return float4(saturate(source.rgb), 1.0f);
+    }
+
     if(g_visualizationMode == 9u)
     {
         const float2 velocityPixels = source.xy * g_outputSize;

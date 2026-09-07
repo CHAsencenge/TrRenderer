@@ -51,6 +51,7 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
     ID3D12GraphicsCommandList* commandList,
     TrDescriptorHeap& resourceHeap,
     D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+    UINT rayDirectionFrameNumber,
     const Inputs& inputs,
     TrScreenProbeResources& screenProbes)
 {
@@ -104,21 +105,16 @@ TrScreenTracePass::Outputs TrScreenTracePass::Trace(
         screenProbes.GetTraceDebugUav().GpuHandle);
     commandList->SetComputeRootConstantBufferView(5, viewConstants);
 
-    const TrScreenTraceConstants constants =
-    {
-        layout.ProbeCountX,
-        layout.ProbeCountY,
-        layout.TraceAtlasWidth,
-        layout.TraceAtlasHeight,
-        TrScreenProbeLayout::RayGridDimension,
-        hzbDescription.MipCount,
-        std::min(4u, hzbDescription.MipCount - 1u),
-        96u,
-        20.0f,
-        0.02f,
-        0.08f,
-        0.04f
-    };
+    TrScreenTraceConstants constants;
+    constants.ProbeCountX = layout.ProbeCountX;
+    constants.ProbeCountY = layout.ProbeCountY;
+    constants.TraceAtlasWidth = layout.TraceAtlasWidth;
+    constants.TraceAtlasHeight = layout.TraceAtlasHeight;
+    constants.RayGridDimension = TrScreenProbeLayout::RayGridDimension;
+    constants.HzbMipCount = hzbDescription.MipCount;
+    constants.StartMip = std::min(4u, hzbDescription.MipCount - 1u);
+    constants.MaxIterations = 96u;
+    constants.RayDirectionFrameNumber = rayDirectionFrameNumber;
     commandList->SetComputeRoot32BitConstants(
         6,
         sizeof(constants) / sizeof(std::uint32_t),

@@ -157,6 +157,10 @@ private:
     TrAxisAlignedBounds mCameraBounds;
     TrMaterialResources mMaterialResources;
     bool mUsingImportedScene = false;
+    // Keep the procedural Cornell scene static while diagnosing temporal
+    // indirect-lighting instability. The rig hierarchy remains available for
+    // validation and can be re-enabled without changing the scene asset.
+    bool mAnimateProceduralCornellScene = false;
     TrNodeId mProceduralAnimationNodeId = TrInvalidRuntimeId;
     TrGeometryVisualization mGeometryVisualization = TrGeometryVisualization::Shaded;
     std::vector<TrSceneSelectionEntry> mSceneSelectionEntries;
@@ -185,9 +189,12 @@ private:
     INT mLastMouseY = 0;
     std::chrono::steady_clock::time_point mLastCameraUpdateTime;
     DirectX::XMFLOAT4X4 mPreviousViewProjection;
+    bool mTaaProjectionJitterEnabled = true;
+    bool mFreezeScreenProbeRaySequence = false;
     DirectX::XMFLOAT2 mTemporalJitter = {0.0f, 0.0f};
     DirectX::XMFLOAT2 mPreviousTemporalJitter = {0.0f, 0.0f};
     UINT mProbeTemporalDebugViewIndex = UINT_MAX;
+    UINT mProbeTemporalConfidenceDebugViewIndex = UINT_MAX;
     TrLightingVisualization mLightingVisualization =
         TrLightingVisualization::Combined;
     float mExposure = 1.0f;

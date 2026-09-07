@@ -27,13 +27,15 @@ struct alignas(16) TrScreenTraceConstants
     UINT HzbMipCount = 0;
     UINT StartMip = 0;
     UINT MaxIterations = 0;
+    UINT RayDirectionFrameNumber = 0;
     float MaxTraceDistance = 20.0f;
     float SurfaceBias = 0.02f;
     float SurfaceThickness = 0.08f;
     float BaseStep = 0.04f;
+    UINT Padding[3] = {};
 };
 
-static_assert(sizeof(TrScreenTraceConstants) == 48);
+static_assert(sizeof(TrScreenTraceConstants) == 64);
 
 class TrScreenTracePass : public TrRenderPass
 {
@@ -48,6 +50,7 @@ public:
         ID3D12GraphicsCommandList* commandList,
         TrDescriptorHeap& resourceHeap,
         D3D12_GPU_VIRTUAL_ADDRESS viewConstants,
+        UINT rayDirectionFrameNumber,
         const Inputs& inputs,
         TrScreenProbeResources& screenProbes);
 

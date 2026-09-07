@@ -22,10 +22,12 @@ cbuffer ScreenTraceConstants : register(b2)
     uint g_hzbMipCount;
     uint g_startMip;
     uint g_maxIterations;
+    uint g_rayDirectionFrameNumber;
     float g_maxTraceDistance;
     float g_surfaceBias;
     float g_surfaceThickness;
     float g_baseStep;
+    uint3 g_tracePadding;
 };
 
 float LoadHzb(float2 screenUv, uint mipLevel)
@@ -199,7 +201,7 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         g_probeCountX,
         rayIndex,
         rayCount,
-        g_viewConstants.frameNumber,
+        g_rayDirectionFrameNumber,
         worldNormal);
     const float3 rayOrigin =
         positionValidity.xyz + worldNormal * g_surfaceBias;

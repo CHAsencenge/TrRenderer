@@ -128,7 +128,8 @@ void TrDeferredRenderer::OnUpdate()
     mPerformanceMonitor.Tick();
 
     mRuntimeScene.BeginFrame();
-    if(mProceduralAnimationNodeId != TrInvalidRuntimeId)
+    if(mAnimateProceduralCornellScene &&
+       mProceduralAnimationNodeId != TrInvalidRuntimeId)
     {
         const float angle = XMConvertToRadians(4.0f) +
             std::sin(static_cast<float>(mFrameNumber) * 0.0125f) *
@@ -184,11 +185,17 @@ void TrDeferredRenderer::OnUpdate()
         mLightingVisualization;
     const bool previousIndirectLighting = mPipelineFeatures.IsEnabled(
         TrPipelineFeature::IndirectLighting);
+    const bool previousTaaProjectionJitterEnabled =
+        mTaaProjectionJitterEnabled;
+    const bool previousFreezeScreenProbeRaySequence =
+        mFreezeScreenProbeRaySequence;
     if(mGpuDebugPanel.BuildFrame(
            mGpuDebug,
            mRuntimeScene,
            mPerformanceMonitor.GetSnapshot(),
            mPipelineFeatures,
+           mTaaProjectionJitterEnabled,
+           mFreezeScreenProbeRaySequence,
            mGeometryVisualization,
            mLightingVisualization,
            mExposure,
@@ -202,8 +209,15 @@ void TrDeferredRenderer::OnUpdate()
     }
     const bool indirectLightingEnabled = mPipelineFeatures.IsEnabled(
         TrPipelineFeature::IndirectLighting);
+    const bool taaProjectionJitterChanged =
+        previousTaaProjectionJitterEnabled != mTaaProjectionJitterEnabled;
+    const bool freezeScreenProbeRaySequenceChanged =
+        previousFreezeScreenProbeRaySequence !=
+        mFreezeScreenProbeRaySequence;
     if(previousGeometryVisualization != mGeometryVisualization ||
-       previousIndirectLighting != indirectLightingEnabled)
+       previousIndirectLighting != indirectLightingEnabled ||
+       taaProjectionJitterChanged ||
+       freezeScreenProbeRaySequenceChanged)
     {
         mScreenProbeResources.InvalidateHistory();
         mTaaColorHistory.Invalidate();
@@ -221,6 +235,18 @@ void TrDeferredRenderer::OnUpdate()
         TrLog::Info(
             std::string("Screen Probe indirect lighting ") +
             (indirectLightingEnabled ? "enabled." : "disabled."));
+    }
+    if(taaProjectionJitterChanged)
+    {
+        TrLog::Info(
+            std::string("TAA projection jitter ") +
+            (mTaaProjectionJitterEnabled ? "enabled." : "disabled."));
+    }
+    if(freezeScreenProbeRaySequenceChanged)
+    {
+        TrLog::Info(
+            std::string("Screen Probe ray sequence ") +
+            (mFreezeScreenProbeRaySequence ? "frozen." : "advancing."));
     }
     if(sceneChangeRequest.has_value())
     {
@@ -258,10 +284,9 @@ void TrDeferredRenderer::OnUpdate()
         mAspectRatio,
         mCameraNearPlane,
         mCameraFarPlane);
-    const XMFLOAT2 currentJitter = CalculateTemporalJitterNdc(
-        mFrameNumber,
-        mWidth,
-        mHeight);
+    const XMFLOAT2 currentJitter = mTaaProjectionJitterEnabled
+        ? CalculateTemporalJitterNdc(mFrameNumber, mWidth, mHeight)
+        : XMFLOAT2(0.0f, 0.0f);
     mPreviousTemporalJitter = mFrameNumber == 0
         ? currentJitter
         : mTemporalJitter;
@@ -1074,15 +1099,37 @@ void TrDeferredRenderer::RegisterGpuDebugViews()
         mScreenProbeResources.GetRadianceSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
     mGpuDebug.RegisterView(
+        L"Lumen Screen Trace Confidence (Per Ray)",
+        mScreenProbeResources.GetRadianceSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
+    mGpuDebug.RegisterView(
         L"Lumen Probe Irradiance SH L2 Atlas",
         mScreenProbeResources.GetIrradianceSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Trace Confidence (Current)",
+        mScreenProbeResources.GetIrradianceSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
     mProbeTemporalDebugViewIndex = mGpuDebug.GetViewCount();
     mGpuDebug.RegisterView(
         L"Lumen Probe Irradiance SH L2 Temporal Atlas",
         mScreenProbeResources.GetIrradianceHistory()
             .GetCurrentSrv().GpuHandle,
         TrDebugVisualization::HdrColor);
+    mProbeTemporalConfidenceDebugViewIndex = mGpuDebug.GetViewCount();
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Trace Confidence (Temporal)",
+        mScreenProbeResources.GetIrradianceHistory()
+            .GetCurrentSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Temporal History Status",
+        mScreenProbeResources.GetTemporalDebugSrv().GpuHandle,
+        TrDebugVisualization::ScreenProbeTemporalStatus);
+    mGpuDebug.RegisterView(
+        L"Lumen Probe Temporal History Weight",
+        mScreenProbeResources.GetTemporalDebugSrv().GpuHandle,
+        TrDebugVisualization::ScalarAlpha);
 }
 
 void TrDeferredRenderer::UpdateWindowTitle() const
@@ -1612,6 +1659,8 @@ void TrDeferredRenderer::PopulateCommandList()
     D3D12_GPU_DESCRIPTOR_HANDLE probeIrradianceSrv =
         mScreenProbeResources.GetIrradianceSrv().GpuHandle;
     const UINT renderFrameNumber = mFrameNumber > 0 ? mFrameNumber - 1u : 0u;
+    const UINT probeRayDirectionFrameNumber =
+        mFreezeScreenProbeRaySequence ? 0u : renderFrameNumber;
     const bool indirectLightingEnabled = mPipelineFeatures.IsEnabled(
         TrPipelineFeature::IndirectLighting);
     if(indirectLightingEnabled)
@@ -1638,6 +1687,7 @@ void TrDeferredRenderer::PopulateCommandList()
                     mCommandList.Get(),
                     mResourceHeap,
                     frame.ViewConstantBuffer.GetGpuVirtualAddress(),
+                    probeRayDirectionFrameNumber,
                     {&mHierarchicalDepth, screenProbeOutputs.ScreenProbes},
                     mScreenProbeResources);
             });
@@ -1666,7 +1716,7 @@ void TrDeferredRenderer::PopulateCommandList()
                 mScreenProbeIrradiancePass.Integrate(
                     mCommandList.Get(),
                     mResourceHeap,
-                    renderFrameNumber,
+                    probeRayDirectionFrameNumber,
                     mScreenProbeResources);
             });
         const TrScreenProbeTemporalPass::Outputs probeTemporalOutputs =
@@ -1686,6 +1736,9 @@ void TrDeferredRenderer::PopulateCommandList()
         probeIrradianceSrv = probeTemporalOutputs.IrradianceSrv;
         mGpuDebug.UpdateViewSource(
             mProbeTemporalDebugViewIndex,
+            probeIrradianceSrv);
+        mGpuDebug.UpdateViewSource(
+            mProbeTemporalConfidenceDebugViewIndex,
             probeIrradianceSrv);
         mScreenProbeResources.AdvanceHistory();
     }

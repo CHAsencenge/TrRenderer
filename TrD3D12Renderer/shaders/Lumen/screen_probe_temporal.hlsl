@@ -12,6 +12,7 @@ Texture2D<float4> g_previousNormalDepth : register(t5);
 RWTexture2D<float4> g_outputIrradiance : register(u0);
 RWTexture2D<float4> g_outputPositionValidity : register(u1);
 RWTexture2D<float4> g_outputNormalDepth : register(u2);
+RWTexture2D<float4> g_temporalDebug : register(u3);
 
 cbuffer ScreenProbeTemporalConstants : register(b2)
 {
@@ -77,6 +78,22 @@ void StoreZeroIrradianceSh(uint2 probeCoordinate)
     }
 }
 
+void StoreTemporalDebug(
+    uint2 probeCoordinate,
+    float3 statusColor,
+    float historyWeight)
+{
+    // RGB status legend:
+    //   green  = history accepted
+    //   red    = history rejected by reprojection or geometry tests
+    //   yellow = history is globally unavailable, such as after a reset
+    //   black  = the current probe is invalid
+    // Alpha stores the actual history blend weight for a separate scalar view.
+    g_temporalDebug[probeCoordinate] = float4(
+        statusColor,
+        saturate(historyWeight));
+}
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -101,11 +118,16 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     if(currentPosition.w < 0.5f || currentNormalLengthSquared < 1.0e-6f)
     {
         StoreZeroIrradianceSh(probeCoordinate);
+        StoreTemporalDebug(probeCoordinate, 0.0f, 0.0f);
         return;
     }
     if(g_historyValid == 0u)
     {
         StoreCurrentIrradianceSh(probeCoordinate);
+        StoreTemporalDebug(
+            probeCoordinate,
+            float3(1.0f, 1.0f, 0.0f),
+            0.0f);
         return;
     }
 
@@ -115,6 +137,10 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
            previousProbeCoordinate))
     {
         StoreCurrentIrradianceSh(probeCoordinate);
+        StoreTemporalDebug(
+            probeCoordinate,
+            float3(1.0f, 0.0f, 0.0f),
+            0.0f);
         return;
     }
 
@@ -237,6 +263,10 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         // No previous probe passed the geometry reprojection tests.
         StoreCurrentIrradianceSh(probeCoordinate);
+        StoreTemporalDebug(
+            probeCoordinate,
+            float3(1.0f, 0.0f, 0.0f),
+            0.0f);
         return;
     }
 
@@ -245,6 +275,10 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Geometry history exists, but it carries no usable lighting
         // evidence. This is a lighting-history miss, not a geometry miss.
         StoreCurrentIrradianceSh(probeCoordinate);
+        StoreTemporalDebug(
+            probeCoordinate,
+            float3(1.0f, 0.0f, 0.0f),
+            0.0f);
         return;
     }
     
@@ -281,6 +315,11 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     const float resolvedTraceConfidence = lerp(
         currentTraceConfidence,
         historyTraceConfidence,
+        historyWeight);
+
+    StoreTemporalDebug(
+        probeCoordinate,
+        float3(0.0f, 1.0f, 0.0f),
         historyWeight);
     
     [unroll]

@@ -18,7 +18,8 @@ enum class TrDebugVisualization : std::uint32_t
     ScalarAlpha = 6,
     DeviceDepth = 7,
     ScreenTrace = 8,
-    MotionVectors = 9
+    MotionVectors = 9,
+    ScreenProbeTemporalStatus = 10
 };
 
 struct TrGpuDebugView
@@ -31,7 +32,7 @@ struct TrGpuDebugView
 class TrGpuDebug
 {
 public:
-    static constexpr UINT MaxViews = 32;
+    static constexpr UINT MaxViews = 64;
 
     void Reset();
     void RegisterView(

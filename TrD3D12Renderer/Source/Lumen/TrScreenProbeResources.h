@@ -8,7 +8,7 @@
 struct TrScreenProbeLayout
 {
     static constexpr UINT TileSize = 16;
-    static constexpr UINT RayGridDimension = 4;
+    static constexpr UINT RayGridDimension = 8; // 每个 probe 在 Trace Atlas 中占据的块的边长
     static constexpr UINT RaysPerProbe =
         RayGridDimension * RayGridDimension;
     static constexpr UINT ShCoefficientCount = 9;
@@ -46,6 +46,8 @@ public:
         DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT IrradianceFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT TemporalDebugFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     void Initialize(
         ID3D12Device* device,
@@ -66,12 +68,14 @@ public:
     TrTexture& GetTraceDebug() { return mTraceDebug; }
     TrTexture& GetRadiance() { return mRadiance; }
     TrTexture& GetIrradiance() { return mIrradiance; }
+    TrTexture& GetTemporalDebug() { return mTemporalDebug; }
     const TrTexture& GetPositionValidity() const { return mPositionValidity; }
     const TrTexture& GetNormalDepth() const { return mNormalDepth; }
     const TrTexture& GetTraceHit() const { return mTraceHit; }
     const TrTexture& GetTraceDebug() const { return mTraceDebug; }
     const TrTexture& GetRadiance() const { return mRadiance; }
     const TrTexture& GetIrradiance() const { return mIrradiance; }
+    const TrTexture& GetTemporalDebug() const { return mTemporalDebug; }
 
     const TrDescriptorAllocation& GetPositionSrv() const { return mPositionSrv; }
     const TrDescriptorAllocation& GetPositionUav() const { return mPositionUav; }
@@ -85,6 +89,8 @@ public:
     const TrDescriptorAllocation& GetRadianceUav() const { return mRadianceUav; }
     const TrDescriptorAllocation& GetIrradianceSrv() const { return mIrradianceSrv; }
     const TrDescriptorAllocation& GetIrradianceUav() const { return mIrradianceUav; }
+    const TrDescriptorAllocation& GetTemporalDebugSrv() const { return mTemporalDebugSrv; }
+    const TrDescriptorAllocation& GetTemporalDebugUav() const { return mTemporalDebugUav; }
 
     TrHistoryTexture& GetIrradianceHistory() { return mIrradianceHistory; }
     TrHistoryTexture& GetPositionHistory() { return mPositionHistory; }
@@ -105,6 +111,9 @@ private:
     // Each probe occupies a 3x3 block containing its nine world-space SH L2
     // diffuse-irradiance coefficients.
     TrTexture mIrradiance;
+    // Per-probe temporal diagnostics: RGB stores the history status color and
+    // alpha stores the resolved history blend weight.
+    TrTexture mTemporalDebug;
     TrHistoryTexture mIrradianceHistory;
     TrHistoryTexture mPositionHistory;
     TrHistoryTexture mNormalDepthHistory;
@@ -120,4 +129,6 @@ private:
     TrDescriptorAllocation mRadianceUav;
     TrDescriptorAllocation mIrradianceSrv;
     TrDescriptorAllocation mIrradianceUav;
+    TrDescriptorAllocation mTemporalDebugSrv;
+    TrDescriptorAllocation mTemporalDebugUav;
 };

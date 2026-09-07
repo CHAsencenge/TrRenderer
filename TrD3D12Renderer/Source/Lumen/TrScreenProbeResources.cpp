@@ -41,6 +41,8 @@ void TrScreenProbeResources::Initialize(
     mRadianceUav = resourceHeap.Allocate();
     mIrradianceSrv = resourceHeap.Allocate();
     mIrradianceUav = resourceHeap.Allocate();
+    mTemporalDebugSrv = resourceHeap.Allocate();
+    mTemporalDebugUav = resourceHeap.Allocate();
     CreateResources(device, width, height);
 
     mIrradianceHistory.Initialize(
@@ -76,7 +78,9 @@ void TrScreenProbeResources::Resize(
        mTraceHitSrv.Index == UINT_MAX || mTraceHitUav.Index == UINT_MAX ||
        mTraceDebugSrv.Index == UINT_MAX || mTraceDebugUav.Index == UINT_MAX ||
        mRadianceSrv.Index == UINT_MAX || mRadianceUav.Index == UINT_MAX ||
-       mIrradianceSrv.Index == UINT_MAX || mIrradianceUav.Index == UINT_MAX)
+       mIrradianceSrv.Index == UINT_MAX || mIrradianceUav.Index == UINT_MAX ||
+       mTemporalDebugSrv.Index == UINT_MAX ||
+       mTemporalDebugUav.Index == UINT_MAX)
     {
         throw std::logic_error(
             "Screen Probe resources have not been initialized.");
@@ -210,6 +214,15 @@ void TrScreenProbeResources::CreateResources(
         initialState,
         nullptr,
         L"Lumen Screen Probe Irradiance");
+    mTemporalDebug.Initialize2D(
+        device,
+        probeCountX,
+        probeCountY,
+        TemporalDebugFormat,
+        flags,
+        initialState,
+        nullptr,
+        L"Lumen Screen Probe Temporal Debug");
 
     mPositionValidity.CreateShaderResourceView(
         device,
@@ -247,4 +260,10 @@ void TrScreenProbeResources::CreateResources(
     mIrradiance.CreateUnorderedAccessView(
         device,
         mIrradianceUav.CpuHandle);
+    mTemporalDebug.CreateShaderResourceView(
+        device,
+        mTemporalDebugSrv.CpuHandle);
+    mTemporalDebug.CreateUnorderedAccessView(
+        device,
+        mTemporalDebugUav.CpuHandle);
 }

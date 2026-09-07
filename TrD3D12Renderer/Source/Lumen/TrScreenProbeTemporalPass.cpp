@@ -27,8 +27,10 @@ void TrScreenProbeTemporalPass::Initialize(
     outputPositionRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
     CD3DX12_DESCRIPTOR_RANGE outputNormalDepthRange;
     outputNormalDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+    CD3DX12_DESCRIPTOR_RANGE temporalDebugRange;
+    temporalDebugRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[11];
+    CD3DX12_ROOT_PARAMETER rootParameters[12];
     rootParameters[0].InitAsDescriptorTable(1, &currentIrradianceRange);
     rootParameters[1].InitAsDescriptorTable(1, &currentPositionRange);
     rootParameters[2].InitAsDescriptorTable(1, &currentNormalDepthRange);
@@ -38,8 +40,9 @@ void TrScreenProbeTemporalPass::Initialize(
     rootParameters[6].InitAsDescriptorTable(1, &outputIrradianceRange);
     rootParameters[7].InitAsDescriptorTable(1, &outputPositionRange);
     rootParameters[8].InitAsDescriptorTable(1, &outputNormalDepthRange);
-    rootParameters[9].InitAsConstantBufferView(TrConstantRegister::View);
-    rootParameters[10].InitAsConstants(
+    rootParameters[9].InitAsDescriptorTable(1, &temporalDebugRange);
+    rootParameters[10].InitAsConstantBufferView(TrConstantRegister::View);
+    rootParameters[11].InitAsConstants(
         sizeof(TrScreenProbeTemporalConstants) / sizeof(std::uint32_t),
         TrConstantRegister::Pass);
 
@@ -95,6 +98,7 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
        !hasIrradianceDimensions(screenProbes.GetIrradiance()) ||
        !hasProbeDimensions(screenProbes.GetPositionValidity()) ||
        !hasProbeDimensions(screenProbes.GetNormalDepth()) ||
+       !hasProbeDimensions(screenProbes.GetTemporalDebug()) ||
        !hasIrradianceDimensions(irradianceHistory.GetCurrent()) ||
        !hasProbeDimensions(positionHistory.GetCurrent()) ||
        !hasProbeDimensions(normalDepthHistory.GetCurrent()))
@@ -109,6 +113,7 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
     TrTexture& outputIrradiance = irradianceHistory.GetCurrent();
     TrTexture& outputPosition = positionHistory.GetCurrent();
     TrTexture& outputNormalDepth = normalDepthHistory.GetCurrent();
+    TrTexture& temporalDebug = screenProbes.GetTemporalDebug();
     TrTexture& previousIrradiance = irradianceHistory.GetPrevious();
     TrTexture& previousPosition = positionHistory.GetPrevious();
     TrTexture& previousNormalDepth = normalDepthHistory.GetPrevious();
@@ -138,6 +143,9 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
         commandList,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     outputNormalDepth.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    temporalDebug.Transition(
         commandList,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
@@ -172,7 +180,10 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
     commandList->SetComputeRootDescriptorTable(
         8,
         normalDepthHistory.GetCurrentUav().GpuHandle);
-    commandList->SetComputeRootConstantBufferView(9, viewConstants);
+    commandList->SetComputeRootDescriptorTable(
+        9,
+        screenProbes.GetTemporalDebugUav().GpuHandle);
+    commandList->SetComputeRootConstantBufferView(10, viewConstants);
 
     TrScreenProbeTemporalConstants constants;
     constants.ProbeCountX = layout.ProbeCountX;
@@ -180,7 +191,7 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
     constants.HistoryValid = screenProbes.IsHistoryValid() ? 1u : 0u;
     constants.FrameNumber = frameNumber;
     commandList->SetComputeRoot32BitConstants(
-        10,
+        11,
         sizeof(constants) / sizeof(std::uint32_t),
         &constants,
         0);
@@ -192,6 +203,7 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
     outputIrradiance.UavBarrier(commandList);
     outputPosition.UavBarrier(commandList);
     outputNormalDepth.UavBarrier(commandList);
+    temporalDebug.UavBarrier(commandList);
     outputIrradiance.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
@@ -201,6 +213,9 @@ TrScreenProbeTemporalPass::Outputs TrScreenProbeTemporalPass::Resolve(
     outputNormalDepth.Transition(
         commandList,
         D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    temporalDebug.Transition(
+        commandList,
+        D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     currentIrradiance.Transition(
         commandList,
         D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);

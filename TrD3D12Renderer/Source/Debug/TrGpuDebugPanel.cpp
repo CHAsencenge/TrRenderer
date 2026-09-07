@@ -334,6 +334,8 @@ bool TrGpuDebugPanel::BuildFrame(
     const TrRuntimeScene& runtimeScene,
     const TrPerformanceSnapshot& performance,
     TrPipelineFeatures& pipelineFeatures,
+    bool& taaProjectionJitterEnabled,
+    bool& freezeScreenProbeRaySequence,
     TrGeometryVisualization& geometryVisualization,
     TrLightingVisualization& lightingVisualization,
     float& exposure,
@@ -649,6 +651,26 @@ bool TrGpuDebugPanel::BuildFrame(
                     "Disabling this skips Screen Probe placement, tracing, "
                     "radiance resolve, irradiance integration and temporal resolve. "
                     "Direct and ambient lighting remain enabled.");
+
+                ImGui::Separator();
+                ImGui::Checkbox(
+                    "TAA Projection Jitter",
+                    &taaProjectionJitterEnabled);
+                ImGui::TextWrapped(
+                    "Disabling this sets the camera projection jitter to zero while "
+                    "keeping the TAA resolve and history accumulation enabled. "
+                    "Screen Probe ray-sequence temporal shifts are independent and "
+                    "remain enabled.");
+
+                ImGui::Separator();
+                ImGui::Checkbox(
+                    "Freeze Screen Probe Ray Sequence",
+                    &freezeScreenProbeRaySequence);
+                ImGui::TextWrapped(
+                    "Freezing keeps every probe's ray directions fixed while the "
+                    "global frame number and TAA continue normally. Disable TAA "
+                    "Projection Jitter as well for a fully static screen-space "
+                    "trace diagnostic.");
             }
             else if(mSelectedFeature == TrDebugPanelFeature::Performance)
             {
@@ -844,6 +866,14 @@ bool TrGpuDebugPanel::BuildFrame(
                     "Screen Trace: green=hit, red=max distance, "
                     "blue=left screen, yellow=iteration limit, "
                     "black=invalid probe.");
+            }
+            else if(gpuDebug.GetSelectedView().Visualization ==
+                    TrDebugVisualization::ScreenProbeTemporalStatus)
+            {
+                ImGui::TextWrapped(
+                    "Probe Temporal History: green=accepted, red=rejected, "
+                    "yellow=history unavailable after reset, "
+                    "black=current probe invalid.");
             }
         }
         ImGui::EndChild();
